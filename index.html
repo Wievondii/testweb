@@ -1259,12 +1259,90 @@
             }
         });
         
-        // 简单的表单提交处理
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('消息已发送！我会尽快回复，如果我没在干饭的话 😄');
-            this.reset();
+        // 表单提交处理
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const submitLoading = document.getElementById('submitLoading');
+    const formMessage = document.getElementById('formMessage');
+    
+    // 获取表单数据
+    const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        subject: document.getElementById('subject').value,
+        message: document.getElementById('message').value
+    };
+    
+    // 简单验证
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+        showMessage('请填写所有必填字段！', 'error');
+        return;
+    }
+    
+    // 邮箱格式验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+        showMessage('请输入有效的邮箱地址！', 'error');
+        return;
+    }
+    
+    // 显示加载状态
+    submitBtn.disabled = true;
+    submitBtnText.textContent = '发送中...';
+    submitLoading.style.display = 'inline-block';
+    formMessage.style.display = 'none';
+    
+    try {
+        // 发送到您的API
+        const response = await fetch(`${API_BASE_URL}/api/contact`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
         });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showMessage(result.message || '消息已成功发射！我会尽快回复你 😄', 'success');
+            this.reset();
+        } else {
+            throw new Error(result.error || '发送失败');
+        }
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        showMessage('发送失败: ' + error.message, 'error');
+    } finally {
+        // 恢复按钮状态
+        submitBtn.disabled = false;
+        submitBtnText.textContent = '发射消息';
+        submitLoading.style.display = 'none';
+    }
+});
+        
+// 显示消息函数
+function showMessage(message, type) {
+    const formMessage = document.getElementById('formMessage');
+    formMessage.textContent = message;
+    formMessage.style.display = 'block';
+    
+    if (type === 'success') {
+        formMessage.style.color = '#4ECDC4';
+    } else if (type === 'error') {
+        formMessage.style.color = '#FF6B6B';
+    } else {
+        formMessage.style.color = '#1A535C';
+    }
+    
+    // 5秒后自动隐藏消息
+    setTimeout(() => {
+        formMessage.style.display = 'none';
+    }, 5000);
+}
         
         // 滚动时导航栏效果
         window.addEventListener('scroll', function() {
