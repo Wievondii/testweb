@@ -1141,6 +1141,46 @@
         // API基础URL - 使用您的Worker地址
         const API_BASE_URL = 'https://api-worker.a15507719974.workers.dev';
         
+        // 音频管理对象
+        const audioManager = {
+            currentAudio: null,
+            playSound: function(src, volume = 0.9) {
+                // 停止当前播放的声音
+                this.stopSound();
+                
+                try {
+                    // 创建新的音频对象
+                    this.currentAudio = new Audio(src);
+                    this.currentAudio.volume = volume;
+                    
+                    // 预加载音频以减少延迟
+                    this.currentAudio.preload = 'auto';
+                    
+                    // 播放音频
+                    this.currentAudio.play().catch(err => {
+                        console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
+                        showSoundPlayHint();
+                    });
+                    
+                    // 音频播放结束后清理引用
+                    this.currentAudio.onended = () => {
+                        this.currentAudio = null;
+                    };
+                    
+                } catch (e) {
+                    console.error('创建 Audio 出错:', e);
+                    this.currentAudio = null;
+                }
+            },
+            stopSound: function() {
+                if (this.currentAudio) {
+                    this.currentAudio.pause();
+                    this.currentAudio.currentTime = 0;
+                    this.currentAudio = null;
+                }
+            }
+        };
+        
         // 食物决策器功能 - 使用后端API
         document.getElementById('decideFood').addEventListener('click', async function() {
             const button = this;
@@ -1298,16 +1338,7 @@
             };
         
             const src = sounds[soundType] || sounds.default;
-            try {
-                const audio = new Audio(src);
-                audio.volume = 0.9; // 你可以微调（0.0 ~ 1.0）
-                audio.play().catch(err => {
-                    console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
-                    showSoundPlayHint(); // 保留你已有的提示函数
-                });
-            } catch (e) {
-                console.error('创建 Audio 出错:', e);
-            }
+            audioManager.playSound(src, 0.9);
         }
 
         // 显示声音播放提示
@@ -1334,7 +1365,9 @@
             
             // 点击任意位置移除提示
             const removeHint = () => {
-                document.body.removeChild(hint);
+                if (document.body.contains(hint)) {
+                    document.body.removeChild(hint);
+                }
                 document.removeEventListener('click', removeHint);
             };
             document.addEventListener('click', removeHint);
@@ -1365,11 +1398,7 @@
             try {
                 // 播放上传的音频文件（供用户听）
                 const audioURL = URL.createObjectURL(file);
-                const audio = new Audio(audioURL);
-                audio.volume = 0.8;
-                audio.play().catch(e => {
-                    console.log('自动播放被阻止，需要用户交互:', e);
-                });
+                audioManager.playSound(audioURL, 0.8);
                 
                 // 创建FormData对象
                 const formData = new FormData();
