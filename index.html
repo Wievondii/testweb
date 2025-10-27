@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WYY</title>
+    <title>快乐星球 - 带功能的幽默主页</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -165,6 +165,8 @@
             text-decoration: none;
             transition: var(--transition);
             cursor: pointer;
+            border: none;
+            font-family: inherit;
         }
         
         .btn-primary {
@@ -368,6 +370,61 @@
             border-radius: 20px;
             font-size: 12px;
             border: 1px solid var(--secondary-color);
+        }
+        
+        /* 工具样式 */
+        .tool-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: var(--light-color);
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .result-box {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: var(--radius);
+            border: 2px dashed var(--primary-color);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .food-image {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .cat-sound-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .cat-sound-btn {
+            padding: 8px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .cat-sound-btn:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.05);
         }
         
         /* 联系表单样式 */
@@ -641,6 +698,22 @@
                 transform: rotateZ(0);
             }
         }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -754,12 +827,21 @@
                     <div class="project-content">
                         <h3 class="project-title">午餐救星 <span class="emoji">🤔</span></h3>
                         <p class="project-description">一个能帮你决定今天吃什么的APP，解决了"中午吃什么"这个世界难题。</p>
+                        
+                        <div class="tool-container">
+                            <p>点击按钮，让命运决定你今天吃什么！</p>
+                            <button id="decideFood" class="btn btn-primary pulse">帮我决定！</button>
+                            <div id="foodResult" class="result-box">
+                                我还没想好...
+                            </div>
+                            <div id="foodImage" class="food-image"></div>
+                        </div>
+                        
                         <div class="project-tags">
                             <span class="tag">随机算法</span>
                             <span class="tag">美食数据库</span>
                             <span class="tag">选择困难症克星</span>
                         </div>
-                        <a href="#" class="btn btn-primary">我想试试</a>
                     </div>
                 </div>
                 <div class="project-card fade-in delay-1">
@@ -769,12 +851,26 @@
                     <div class="project-content">
                         <h3 class="project-title">喵语十级 <span class="emoji">🐱</span></h3>
                         <p class="project-description">通过AI分析猫咪的叫声，告诉你它到底是在说"我饿了"还是"你走开"。</p>
+                        
+                        <div class="tool-container">
+                            <p>点击不同的猫叫声，看看它在说什么！</p>
+                            <div class="cat-sound-buttons">
+                                <button class="cat-sound-btn" data-sound="short">短喵</button>
+                                <button class="cat-sound-btn" data-sound="long">长喵</button>
+                                <button class="cat-sound-btn" data-sound="purr">呼噜声</button>
+                                <button class="cat-sound-btn" data-sound="angry">生气喵</button>
+                            </div>
+                            <div id="catTranslation" class="result-box">
+                                喵喵喵？
+                            </div>
+                            <div id="catEmoji" style="font-size: 40px; margin-top: 10px;">🐱</div>
+                        </div>
+                        
                         <div class="project-tags">
                             <span class="tag">AI分析</span>
                             <span class="tag">猫语翻译</span>
                             <span class="tag">人猫沟通</span>
                         </div>
-                        <a href="#" class="btn btn-primary">喵一个</a>
                     </div>
                 </div>
             </div>
@@ -898,6 +994,90 @@
     </footer>
 
     <script>
+        // 食物决策器功能
+        const foods = [
+            { name: "老友粉", emoji: "🍜", description: "酸辣鲜香，一口入魂！" },
+            { name: "螺蛳粉", emoji: "🥘", description: "闻着臭吃着香，越吃越上头！" },
+            { name: "桂林米粉", emoji: "🍝", description: "滑嫩爽口，回味无穷！" },
+            { name: "生榨米粉", emoji: "🍲", description: "鲜香浓郁，口感独特！" },
+            { name: "麻辣烫", emoji: "🥵", description: "麻辣鲜香，过瘾！" },
+            { name: "火锅", emoji: "🍲", description: "围炉而坐，暖心暖胃！" },
+            { name: "烧烤", emoji: "🍢", description: "炭火香气，夜宵首选！" },
+            { name: "炸鸡", emoji: "🍗", description: "外酥里嫩，快乐源泉！" },
+            { name: "披萨", emoji: "🍕", description: "拉丝芝士，幸福满满！" },
+            { name: "寿司", emoji: "🍣", description: "精致美味，日式风情！" },
+            { name: "沙拉", emoji: "🥗", description: "清爽健康，轻食之选！" },
+            { name: "汉堡", emoji: "🍔", description: "多层口感，满足感爆棚！" }
+        ];
+
+        document.getElementById('decideFood').addEventListener('click', function() {
+            const randomIndex = Math.floor(Math.random() * foods.length);
+            const selectedFood = foods[randomIndex];
+            
+            const resultElement = document.getElementById('foodResult');
+            resultElement.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 24px;">${selectedFood.emoji} ${selectedFood.name} ${selectedFood.emoji}</div>
+                    <div style="margin-top: 10px; font-size: 16px;">${selectedFood.description}</div>
+                </div>
+            `;
+            
+            // 添加一点动画效果
+            resultElement.style.animation = 'none';
+            setTimeout(() => {
+                resultElement.style.animation = 'pulse 0.5s';
+            }, 10);
+            
+            // 添加食物图片（使用emoji作为简单表示）
+            const foodImage = document.getElementById('foodImage');
+            foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${selectedFood.emoji}</div>`;
+        });
+
+        // 猫咪翻译器功能
+        const catTranslations = {
+            short: {
+                text: "我饿了！快给我吃的！",
+                emoji: "😾"
+            },
+            long: {
+                text: "陪我玩嘛~ 我好无聊啊！",
+                emoji: "😽"
+            },
+            purr: {
+                text: "好舒服啊~ 继续摸不要停！",
+                emoji: "😻"
+            },
+            angry: {
+                text: "走开！别碰我！烦死了！",
+                emoji: "😾"
+            }
+        };
+
+        document.querySelectorAll('.cat-sound-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const soundType = this.getAttribute('data-sound');
+                const translation = catTranslations[soundType];
+                
+                const translationElement = document.getElementById('catTranslation');
+                translationElement.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px;">${translation.text}</div>
+                    </div>
+                `;
+                
+                const catEmojiElement = document.getElementById('catEmoji');
+                catEmojiElement.textContent = translation.emoji;
+                
+                // 添加一点动画效果
+                translationElement.style.animation = 'none';
+                catEmojiElement.style.animation = 'none';
+                setTimeout(() => {
+                    translationElement.style.animation = 'pulse 0.5s';
+                    catEmojiElement.style.animation = 'wiggle 0.5s';
+                }, 10);
+            });
+        });
+
         // 简单的表单提交处理
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
