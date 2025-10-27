@@ -471,200 +471,29 @@
             finally { button.disabled = false; button.textContent = '添加'; }
         });
 
-        // --- 猫咪翻译器：按钮调用与 UI 更新 ---
-        document.querySelectorAll('.cat-sound-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const soundType = this.getAttribute('data-sound');
-                // 播放合成猫叫声
-                playRealCatSound(soundType);
-                try {
-                    const response = await fetch(`${API_BASE_URL}/api/cat/translate`, {
-                        method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ soundType })
-                    });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const translation = await response.json();
-                    const translationElement = document.getElementById('catTranslation');
-                    translationElement.innerHTML = `<div style="text-align:center;"><div style="font-size:20px;">${translation.text}</div></div>`;
-                    const catEmojiElement = document.getElementById('catEmoji');
-                    catEmojiElement.textContent = translation.emoji;
-                    translationElement.style.animation = 'none'; catEmojiElement.style.animation = 'none';
-                    setTimeout(()=>{ translationElement.style.animation='pulse 0.5s'; catEmojiElement.style.animation='wiggle 0.5s'; },10);
-                } catch (error) {
-                    console.error('翻译猫语失败:', error);
-                    document.getElementById('catTranslation').innerHTML = `<div style="text-align:center;color:var(--primary-color);">翻译失败，请稍后再试！<br><small>错误信息: ${error.message}</small></div>`;
-                }
-            });
+// 播放真实猫叫声（使用仓库里的音频文件：assets/sounds/*.mp3）
+function playRealCatSound(soundType) {
+    const sounds = {
+        short: 'assets/sounds/meow_short.mp3',
+        long:  'assets/sounds/meow_long.mp3',
+        purr:  'assets/sounds/meow_purr.mp3',
+        angry: 'assets/sounds/meow_angry.mp3',
+        default: 'assets/sounds/meow_short.mp3'
+    };
+
+    const src = sounds[soundType] || sounds.default;
+    try {
+        const audio = new Audio(src);
+        audio.volume = 0.9; // 你可以微调（0.0 ~ 1.0）
+        audio.play().catch(err => {
+            console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
+            showSoundPlayHint(); // 保留你已有的提示函数
         });
+    } catch (e) {
+        console.error('创建 Audio 出错:', e);
+    }
+}
 
-        // --- 合成的猫叫（改进参数：更真实） ---
-        function playRealCatSound(soundType) {
-            // 创建并复用单一 AudioContext 和 master gain
-            if (!window._wyyAudioCtx) {
-                window._wyyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                window._wyyMasterGain = window._wyyAudioCtx.createGain();
-                window._wyyMasterGain.gain.setValueAtTime(0.6, window._wyyAudioCtx.currentTime);
-                window._wyyMasterGain.connect(window._wyyAudioCtx.destination);
-            }
-            const ctx = window._wyyAudioCtx;
-            const now = ctx.currentTime;
-
-            // 参数预设（更贴猫叫）
-            let duration = 0.6;
-            let startFreq = 900; // 起始基频（Hz）
-            let endFreq = 350;   // 下降后的基频
-            let noiseLevel = 0.35;
-            let lfoRate = 0; // 呼噜使用
-            let formant1 = 900, formant2 = 2200; // 形峰频率（模拟元音色）
-            let growl = false;
-
-            switch (soundType) {
-                case 'short':
-                    duration = 0.5;
-                    startFreq = 1200;
-                    endFreq = 450;
-                    noiseLevel = 0.24;
-                    formant1 = 700; formant2 = 2000;
-                    break;
-                case 'long':
-                    duration = 1.0;
-                    startFreq = 1300;
-                    endFreq = 320;
-                    noiseLevel = 0.30;
-                    formant1 = 750; formant2 = 1800;
-                    break;
-                case 'purr':
-                    duration = 2.0;
-                    startFreq = 140; // 低频持续
-                    endFreq = 140;
-                    noiseLevel = 0.06;
-                    lfoRate = 26; // 呼噜颤动 ~26Hz
-                    formant1 = 300; formant2 = 800;
-                    break;
-                case 'angry':
-                    duration = 0.55;
-                    startFreq = 900;
-                    endFreq = 220;
-                    noiseLevel = 0.7; // 大量噪声
-                    formant1 = 900; formant2 = 2600;
-                    growl = true; // 添加低频“咆哮”成分
-                    break;
-                default:
-                    duration = 0.6; startFreq=900; endFreq=350; noiseLevel=0.35;
-            }
-
-            // 主振荡：两个振荡器（基频 + 2次谐波/宽度）增加丰富度
-            const osc1 = ctx.createOscillator();
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(startFreq, now);
-            const osc2 = ctx.createOscillator();
-            osc2.type = 'triangle';
-            osc2.frequency.setValueAtTime(startFreq * 1.95, now); // 近似二次谐波，微微失谐
-            osc2.detune.setValueAtTime(6, now); // 轻微失谐增加“活感”
-
-            // 频率滑降（类似猫叫的上冲或下滑）
-            osc1.frequency.exponentialRampToValueAtTime(Math.max(endFreq,40), now + Math.max(0.04, duration * 0.78));
-            osc2.frequency.exponentialRampToValueAtTime(Math.max(endFreq * 1.9,80), now + Math.max(0.04, duration * 0.78));
-
-            // 包络
-            const env = ctx.createGain();
-            env.gain.setValueAtTime(0.001, now);
-            // 更自然的 A/D/R 曲线
-            env.gain.linearRampToValueAtTime(0.9, now + Math.min(0.02, duration * 0.08));
-            env.gain.exponentialRampToValueAtTime(0.0005, now + duration);
-
-            // 形峰滤波（两个带通，模拟元音共振峰）
-            const f1 = ctx.createBiquadFilter();
-            f1.type = 'bandpass'; f1.frequency.setValueAtTime(formant1, now); f1.Q.setValueAtTime(1.5, now);
-            const f2 = ctx.createBiquadFilter();
-            f2.type = 'bandpass'; f2.frequency.setValueAtTime(formant2, now); f2.Q.setValueAtTime(1.2, now);
-
-            // 噪声纹理（让“喵”的齿音更真实）
-            const bufSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
-            const noiseBuffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-            const data = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * noiseLevel;
-            const noiseSource = ctx.createBufferSource(); noiseSource.buffer = noiseBuffer;
-            const noiseHP = ctx.createBiquadFilter();
-            noiseHP.type = 'highpass'; noiseHP.frequency.setValueAtTime(800, now); noiseHP.Q.setValueAtTime(0.8, now);
-
-            // 将振荡器通过低通先柔化，再送入形峰滤波
-            const oscMix = ctx.createGain();
-            oscMix.gain.setValueAtTime(0.9, now);
-            osc1.connect(oscMix); osc2.connect(oscMix);
-
-            const oscLowpass = ctx.createBiquadFilter();
-            oscLowpass.type = 'lowpass'; oscLowpass.frequency.setValueAtTime(6000, now); oscLowpass.Q.setValueAtTime(0.7, now);
-            oscMix.connect(oscLowpass);
-            oscLowpass.connect(f1);
-            f1.connect(f2);
-            f2.connect(env);
-
-            // 噪声链路
-            noiseSource.connect(noiseHP);
-            noiseHP.connect(env);
-
-            // 可能的低频“咆哮”用于 angry
-            let growlOsc, growlGain;
-            if (growl) {
-                growlOsc = ctx.createOscillator();
-                growlOsc.type = 'sawtooth';
-                growlOsc.frequency.setValueAtTime(70, now); // 低频次谐
-                // 失谐与轻微频率抖动增加“咆哮”质感
-                growlOsc.frequency.exponentialRampToValueAtTime(60, now + duration * 0.6);
-                growlGain = ctx.createGain(); growlGain.gain.setValueAtTime(0.12, now);
-                const growlFilter = ctx.createBiquadFilter(); growlFilter.type='lowpass'; growlFilter.frequency.setValueAtTime(200, now);
-                growlOsc.connect(growlFilter); growlFilter.connect(growlGain); growlGain.connect(env);
-            }
-
-            // 输出到 master gain（之前已连接到 destination）
-            const outGain = ctx.createGain(); outGain.gain.setValueAtTime(0.9, now);
-            env.connect(outGain);
-            outGain.connect(window._wyyMasterGain);
-
-            // 如果是呼噜，添加 LFO 调制 env.gain 产生颤动
-            let lfo, lfoGain;
-            if (lfoRate > 0) {
-                lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.setValueAtTime(lfoRate, now);
-                lfoGain = ctx.createGain(); lfoGain.gain.setValueAtTime(0.25, now); // 调制幅度
-                lfo.connect(lfoGain); lfoGain.connect(env.gain);
-                lfo.start(now); lfo.stop(now + duration + 0.06);
-            }
-
-            // 启动声音源
-            osc1.start(now); osc2.start(now); noiseSource.start(now);
-            if (growlOsc) growlOsc.start(now);
-
-            // 停止
-            osc1.stop(now + duration + 0.06); osc2.stop(now + duration + 0.06); noiseSource.stop(now + duration + 0.06);
-            if (growlOsc) growlOsc.stop(now + duration + 0.06);
-
-            // 清理节点，延迟确保播放完
-            setTimeout(() => {
-                try {
-                    osc1.disconnect(); osc2.disconnect(); oscMix.disconnect(); oscLowpass.disconnect();
-                    f1.disconnect(); f2.disconnect(); env.disconnect(); outGain.disconnect(); noiseSource.disconnect(); noiseHP.disconnect();
-                    if (growlOsc){ growlOsc.disconnect(); growlGain.disconnect(); }
-                    if (lfo){ lfo.disconnect(); lfoGain.disconnect(); }
-                } catch (e) {}
-            }, (duration + 0.25) * 1000);
-
-            // 如果 AudioContext 被挂起（浏览器策略），提示用户交互并尝试 resume
-            if (ctx.state === 'suspended') {
-                showSoundPlayHint();
-                ctx.resume().catch(()=>{});
-            }
-        }
-
-        // 播放权限提示（与之前逻辑相同）
-        function showSoundPlayHint(){
-            const hint = document.createElement('div');
-            hint.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px;border-radius:10px;z-index:10000;text-align:center;max-width:300px;`;
-            hint.innerHTML = `<p>🔊 请点击任意位置启用音频播放</p><p style="font-size:12px;margin-top:10px;">部分浏览器需要用户交互后才能播放声音</p>`;
-            document.body.appendChild(hint);
-            const removeHint = ()=>{ document.body.removeChild(hint); document.removeEventListener('click', removeHint); };
-            document.addEventListener('click', removeHint);
-            setTimeout(removeHint, 5000);
-        }
 
         // --- 分析上传的猫叫声（模拟） ---
         document.getElementById('analyzeSound').addEventListener('click', async function() {
