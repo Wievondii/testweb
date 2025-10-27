@@ -978,21 +978,25 @@
                         </a>
                     </div>
                 </div>
-                <div class="contact-form">
+               <div class="contact-form">
                     <form id="contactForm">
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="你的大名" required>
+                            <input type="text" class="form-control" id="name" placeholder="你的大名" required>
                         </div>
                         <div class="form-group">
-                            <input type="email" class="form-control" placeholder="你的邮箱" required>
+                            <input type="email" class="form-control" id="email" placeholder="你的邮箱" required>
                         </div>
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="想聊啥" required>
+                            <input type="text" class="form-control" id="subject" placeholder="想聊啥" required>
                         </div>
                         <div class="form-group">
-                            <textarea class="form-control" placeholder="详细说说" required></textarea>
+                            <textarea class="form-control" id="message" placeholder="详细说说" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">发射消息 <span class="emoji">🚀</span></button>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
+                            <span id="submitBtnText">发射消息</span>
+                            <span id="submitLoading" class="loading" style="display: none; margin-left: 8px;"></span>
+                        </button>
+                        <div id="formMessage" style="margin-top: 15px; text-align: center;"></div>
                     </form>
                 </div>
             </div>
@@ -1043,7 +1047,7 @@
     </footer>
 
     <script>
-        // API基础URL - 使用你的Worker URL
+        // API基础URL - 使用您的Worker地址
         const API_BASE_URL = 'https://api-worker.a15507719974.workers.dev';
         
         // 食物决策器功能 - 使用后端API
@@ -1270,10 +1274,10 @@ document.getElementById('contactForm').addEventListener('submit', async function
     
     // 获取表单数据
     const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        subject: document.getElementById('subject').value,
-        message: document.getElementById('message').value
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        subject: document.getElementById('subject').value.trim(),
+        message: document.getElementById('message').value.trim()
     };
     
     // 简单验证
@@ -1296,6 +1300,8 @@ document.getElementById('contactForm').addEventListener('submit', async function
     formMessage.style.display = 'none';
     
     try {
+        console.log('正在发送消息到:', `${API_BASE_URL}/api/contact`);
+        
         // 发送到您的API
         const response = await fetch(`${API_BASE_URL}/api/contact`, {
             method: 'POST',
@@ -1305,13 +1311,16 @@ document.getElementById('contactForm').addEventListener('submit', async function
             body: JSON.stringify(formData)
         });
         
+        console.log('收到响应，状态码:', response.status);
+        
         const result = await response.json();
+        console.log('响应内容:', result);
         
         if (response.ok && result.success) {
             showMessage(result.message || '消息已成功发射！我会尽快回复你 😄', 'success');
             this.reset();
         } else {
-            throw new Error(result.error || '发送失败');
+            throw new Error(result.error || '发送失败，服务器返回错误');
         }
     } catch (error) {
         console.error('发送消息失败:', error);
@@ -1323,7 +1332,7 @@ document.getElementById('contactForm').addEventListener('submit', async function
         submitLoading.style.display = 'none';
     }
 });
-        
+
 // 显示消息函数
 function showMessage(message, type) {
     const formMessage = document.getElementById('formMessage');
