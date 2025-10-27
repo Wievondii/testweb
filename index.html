@@ -1292,35 +1292,151 @@
             });
         });
         
-        // 播放真实猫叫声函数
-        function playRealCatSound(soundType) {
-            // 预加载音频对象
-            if (!window.catSounds) {
-                window.catSounds = {};
+       // 合成猫叫声（用 WebAudio 合成，不依赖外部音频）
+// 将原来的 playRealCatSound 函数整体替换为下面的实现
+function playRealCatSound(soundType) {
+    // 复用单一 AudioContext（避免重复创建）
+    if (!window._wyyAudioCtx) {
+        window._wyyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // 如果首次创建需要用户交互才能播放，保留之前的提示逻辑（showSoundPlayHint）
+    }
+    const ctx = window._wyyAudioCtx;
+    const now = ctx.currentTime;
+
+    // 不同类型的参数（时长、起止音高、纹理强度等）
+    let duration = 0.6;
+    let startFreq = 900;
+    let endFreq = 350;
+    let noiseLevel = 0.35;
+    let lfoRate = 0; // 若 >0 则会做颤动（用于 purr）
+    switch (soundType) {
+        case 'short':
+            duration = 0.45;
+            startFreq = 1100;
+            endFreq = 450;
+            noiseLevel = 0.28;
+            break;
+        case 'long':
+            duration = 1.0;
+            startFreq = 1100;
+            endFreq = 320;
+            noiseLevel = 0.36;
+            break;
+        case 'purr':
+            duration = 1.6;
+            startFreq = 160; // 低频持续
+            endFreq = 160;
+            noiseLevel = 0.08;
+            lfoRate = 28; // 产生呼噜颤动
+            break;
+        case 'angry':
+            duration = 0.6;
+            startFreq = 700;
+            endFreq = 250;
+            noiseLevel = 0.6;
+            break;
+        default:
+            duration = 0.6;
+            startFreq = 900;
+            endFreq = 350;
+            noiseLevel = 0.35;
+    }
+
+    // 主载波（基础音高）
+    const carrier = ctx.createOscillator();
+    carrier.type = 'sine';
+    carrier.frequency.setValueAtTime(startFreq, now);
+    // 快速向下滑音（猫叫常有上冲/下滑）
+    carrier.frequency.exponentialRampToValueAtTime(Math.max(endFreq, 40), now + Math.max(0.05, duration * 0.8));
+
+    // 主包络（控制声音强度）
+    const env = ctx.createGain();
+    // avoid zero for exponential ramps
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(0.9, now + 0.02); // 快速起音
+    env.gain.exponentialRampToValueAtTime(0.001, now + duration); // 逐渐衰减
+
+    // 添加噪声纹理（使“喵”更真实）
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        // 随机噪声，后面会用滤波器雕刻
+        data[i] = (Math.random() * 2 - 1) * noiseLevel;
+    }
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+
+    // 噪声带通滤波器（让噪声集中在高频以产生“喵”的齿音）
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(1200, now);
+    noiseFilter.Q.setValueAtTime(0.8, now);
+
+    // 低通滤波器给载波做一点温和化
+    const carrierFilter = ctx.createBiquadFilter();
+    carrierFilter.type = 'lowpass';
+    carrierFilter.frequency.setValueAtTime(4000, now);
+    carrierFilter.Q.setValueAtTime(0.7, now);
+
+    // 把载波和噪声混合到同一个包络
+    carrier.connect(carrierFilter);
+    carrierFilter.connect(env);
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(env);
+
+    // 最终输出（可以在这里插入额外的整体滤波/压缩）
+    const outGain = ctx.createGain();
+    // 轻微总量缩放，避免过响
+    outGain.gain.setValueAtTime(0.9, now);
+
+    env.connect(outGain);
+    outGain.connect(ctx.destination);
+
+    // 若为呼噜（purr），使用 LFO 调制增益产生颤动效果
+    let lfo, lfoGain;
+    if (lfoRate > 0) {
+        lfo = ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(lfoRate, now);
+        lfoGain = ctx.createGain();
+        // 调制幅度（小幅抖动）
+        lfoGain.gain.setValueAtTime(0.25, now);
+        lfo.connect(lfoGain);
+        // 连接到 env.gain（可以直接连接到 AudioParam）
+        lfoGain.connect(env.gain);
+        lfo.start(now);
+        lfo.stop(now + duration + 0.05);
+    }
+
+    // 启动并在结束时释放资源
+    carrier.start(now);
+    noiseSource.start(now);
+
+    // 停止节点
+    carrier.stop(now + duration + 0.06);
+    noiseSource.stop(now + duration + 0.06);
+
+    // 清理：在声音结束后断开连接（防止内存泄露）
+    setTimeout(() => {
+        try {
+            carrier.disconnect();
+            noiseSource.disconnect();
+            carrierFilter.disconnect();
+            noiseFilter.disconnect();
+            env.disconnect();
+            outGain.disconnect();
+            if (lfo) {
+                lfo.disconnect();
+                lfoGain.disconnect();
             }
-            
-            // 定义不同猫叫声的音频URL
-            const soundUrls = {
-                short: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-109.mp3',
-                long: 'https://assets.mixkit.co/sfx/preview/mixkit-angry-cat-118.mp3',
-                purr: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-purring-119.mp3',
-                angry: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-110.mp3'
-            };
-            
-            // 如果音频对象不存在，创建它
-            if (!window.catSounds[soundType]) {
-                window.catSounds[soundType] = new Audio(soundUrls[soundType]);
-                window.catSounds[soundType].volume = 0.5; // 设置音量
-            }
-            
-            // 播放声音
-            window.catSounds[soundType].currentTime = 0; // 重置播放位置
-            window.catSounds[soundType].play().catch(e => {
-                console.log('音频播放被阻止:', e);
-                // 如果自动播放被阻止，显示提示
-                showSoundPlayHint();
-            });
+        } catch (e) {
+            // 有些浏览器在节点已自动回收时会抛错，忽略
         }
+    }, (duration + 0.2) * 1000);
+}
+
         
         // 显示声音播放提示
         function showSoundPlayHint() {
