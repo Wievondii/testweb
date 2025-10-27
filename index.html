@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WYY的个人主页</title>
+    <title>WYY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 基础样式重置 */
         * {
             margin: 0;
             padding: 0;
@@ -19,7 +18,7 @@
             --accent-color: #0071e3;
             --light-color: #f5f5f7;
             --white: #ffffff;
-            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --radius: 12px;
         }
@@ -32,6 +31,12 @@
             font-weight: 400;
             letter-spacing: -0.022em;
             overflow-x: hidden;
+            height: 100%;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
         }
         
         /* 导航栏样式 */
@@ -85,13 +90,18 @@
             color: var(--primary-color);
         }
         
-        /* 英雄区域样式 */
+        /* 全屏英雄区域样式 */
         .hero {
-            padding: 150px 0 100px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             position: relative;
             overflow: hidden;
+            padding: 0 20px;
         }
         
         .hero::before {
@@ -101,47 +111,53 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8) 0%, transparent 60%);
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
         }
         
         .hero-content {
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 0 22px;
             position: relative;
             z-index: 1;
+            max-width: 980px;
         }
         
         .hero h1 {
-            font-size: 80px;
-            font-weight: 700;
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 800;
             line-height: 1.05;
             letter-spacing: -0.015em;
             margin-bottom: 20px;
-            background: linear-gradient(45deg, #1d1d1f, #424245);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--white);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards;
         }
         
         .hero p {
-            font-size: 28px;
-            color: var(--secondary-color);
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: rgba(255, 255, 255, 0.9);
             max-width: 700px;
             margin: 0 auto 40px;
             line-height: 1.2;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.3s forwards;
         }
         
         .hero-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.6s forwards;
         }
         
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 12px 24px;
+            padding: 14px 28px;
             border-radius: 980px;
             font-size: 17px;
             font-weight: 500;
@@ -151,19 +167,46 @@
         }
         
         .btn-primary {
-            background-color: var(--accent-color);
-            color: var(--white);
+            background-color: var(--white);
+            color: var(--primary-color);
         }
         
         .btn-secondary {
             background-color: transparent;
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
+            color: var(--white);
+            border: 2px solid var(--white);
         }
         
         .btn:hover {
-            transform: scale(1.04);
-            box-shadow: var(--shadow);
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--white);
+            font-size: 14px;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        
+        .scroll-indicator i {
+            margin-top: 5px;
+            display: block;
+            font-size: 20px;
         }
         
         /* 内容区域样式 */
@@ -528,6 +571,18 @@
             }
         }
         
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-5px) translateX(-50%);
+            }
+        }
+        
         .fade-in {
             animation: fadeInUp 0.8s ease-out forwards;
         }
@@ -559,15 +614,19 @@
         </div>
     </nav>
 
-    <!-- 英雄区域 -->
-    <section class="hero">
+    <!-- 全屏英雄区域 -->
+    <section class="hero" id="home">
         <div class="hero-content">
-            <h1 class="fade-in">创造精彩体验</h1>
-            <p class="fade-in delay-1">专注于设计精美的数字产品与用户体验</p>
-            <div class="hero-buttons fade-in delay-2">
+            <h1>创造精彩体验</h1>
+            <p>专注于设计精美的数字产品与用户体验</p>
+            <div class="hero-buttons">
                 <a href="#projects" class="btn btn-primary">查看作品</a>
                 <a href="#contact" class="btn btn-secondary">联系我</a>
             </div>
+        </div>
+        <div class="scroll-indicator">
+            向下滚动
+            <i class="fas fa-chevron-down"></i>
         </div>
     </section>
 
@@ -766,6 +825,7 @@
                 <div class="footer-links">
                     <h4>快速链接</h4>
                     <ul>
+                        <li><a href="#home">首页</a></li>
                         <li><a href="#about">关于我</a></li>
                         <li><a href="#skills">技能</a></li>
                         <li><a href="#projects">项目</a></li>
@@ -776,7 +836,7 @@
                     <h4>服务</h4>
                     <ul>
                         <li><a href="#">网站开发</a></li>
-                        <li><a href="#">UI/UX 设计</a></li>
+                        <li><a href="#">UI设计</a></li>
                         <li><a href="#">移动应用</a></li>
                         <li><a href="#">咨询</a></li>
                     </ul>
@@ -792,7 +852,7 @@
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 个人主页. 保留所有权利.</p>
+                <p>&copy; 保留所有权利.</p>
             </div>
         </div>
     </footer>
