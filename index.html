@@ -1240,12 +1240,12 @@
             }
         });
                 
-                       // 猫咪翻译器功能 - 使用真实音频
+        // 猫咪翻译器功能 - 使用合成猫叫（WebAudio）
         document.querySelectorAll('.cat-sound-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const soundType = this.getAttribute('data-sound');
                 
-                // 播放对应的真实猫叫声
+                // 播放合成猫叫声
                 playRealCatSound(soundType);
                 
                 try {
@@ -1292,152 +1292,156 @@
             });
         });
         
-       // 合成猫叫声（用 WebAudio 合成，不依赖外部音频）
-// 将原来的 playRealCatSound 函数整体替换为下面的实现
-function playRealCatSound(soundType) {
-    // 复用单一 AudioContext（避免重复创建）
-    if (!window._wyyAudioCtx) {
-        window._wyyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // 如果首次创建需要用户交互才能播放，保留之前的提示逻辑（showSoundPlayHint）
-    }
-    const ctx = window._wyyAudioCtx;
-    const now = ctx.currentTime;
-
-    // 不同类型的参数（时长、起止音高、纹理强度等）
-    let duration = 0.6;
-    let startFreq = 900;
-    let endFreq = 350;
-    let noiseLevel = 0.35;
-    let lfoRate = 0; // 若 >0 则会做颤动（用于 purr）
-    switch (soundType) {
-        case 'short':
-            duration = 0.45;
-            startFreq = 1100;
-            endFreq = 450;
-            noiseLevel = 0.28;
-            break;
-        case 'long':
-            duration = 1.0;
-            startFreq = 1100;
-            endFreq = 320;
-            noiseLevel = 0.36;
-            break;
-        case 'purr':
-            duration = 1.6;
-            startFreq = 160; // 低频持续
-            endFreq = 160;
-            noiseLevel = 0.08;
-            lfoRate = 28; // 产生呼噜颤动
-            break;
-        case 'angry':
-            duration = 0.6;
-            startFreq = 700;
-            endFreq = 250;
-            noiseLevel = 0.6;
-            break;
-        default:
-            duration = 0.6;
-            startFreq = 900;
-            endFreq = 350;
-            noiseLevel = 0.35;
-    }
-
-    // 主载波（基础音高）
-    const carrier = ctx.createOscillator();
-    carrier.type = 'sine';
-    carrier.frequency.setValueAtTime(startFreq, now);
-    // 快速向下滑音（猫叫常有上冲/下滑）
-    carrier.frequency.exponentialRampToValueAtTime(Math.max(endFreq, 40), now + Math.max(0.05, duration * 0.8));
-
-    // 主包络（控制声音强度）
-    const env = ctx.createGain();
-    // avoid zero for exponential ramps
-    env.gain.setValueAtTime(0.0001, now);
-    env.gain.exponentialRampToValueAtTime(0.9, now + 0.02); // 快速起音
-    env.gain.exponentialRampToValueAtTime(0.001, now + duration); // 逐渐衰减
-
-    // 添加噪声纹理（使“喵”更真实）
-    const bufferSize = Math.floor(ctx.sampleRate * duration);
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-        // 随机噪声，后面会用滤波器雕刻
-        data[i] = (Math.random() * 2 - 1) * noiseLevel;
-    }
-    const noiseSource = ctx.createBufferSource();
-    noiseSource.buffer = noiseBuffer;
-
-    // 噪声带通滤波器（让噪声集中在高频以产生“喵”的齿音）
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.setValueAtTime(1200, now);
-    noiseFilter.Q.setValueAtTime(0.8, now);
-
-    // 低通滤波器给载波做一点温和化
-    const carrierFilter = ctx.createBiquadFilter();
-    carrierFilter.type = 'lowpass';
-    carrierFilter.frequency.setValueAtTime(4000, now);
-    carrierFilter.Q.setValueAtTime(0.7, now);
-
-    // 把载波和噪声混合到同一个包络
-    carrier.connect(carrierFilter);
-    carrierFilter.connect(env);
-
-    noiseSource.connect(noiseFilter);
-    noiseFilter.connect(env);
-
-    // 最终输出（可以在这里插入额外的整体滤波/压缩）
-    const outGain = ctx.createGain();
-    // 轻微总量缩放，避免过响
-    outGain.gain.setValueAtTime(0.9, now);
-
-    env.connect(outGain);
-    outGain.connect(ctx.destination);
-
-    // 若为呼噜（purr），使用 LFO 调制增益产生颤动效果
-    let lfo, lfoGain;
-    if (lfoRate > 0) {
-        lfo = ctx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.setValueAtTime(lfoRate, now);
-        lfoGain = ctx.createGain();
-        // 调制幅度（小幅抖动）
-        lfoGain.gain.setValueAtTime(0.25, now);
-        lfo.connect(lfoGain);
-        // 连接到 env.gain（可以直接连接到 AudioParam）
-        lfoGain.connect(env.gain);
-        lfo.start(now);
-        lfo.stop(now + duration + 0.05);
-    }
-
-    // 启动并在结束时释放资源
-    carrier.start(now);
-    noiseSource.start(now);
-
-    // 停止节点
-    carrier.stop(now + duration + 0.06);
-    noiseSource.stop(now + duration + 0.06);
-
-    // 清理：在声音结束后断开连接（防止内存泄露）
-    setTimeout(() => {
-        try {
-            carrier.disconnect();
-            noiseSource.disconnect();
-            carrierFilter.disconnect();
-            noiseFilter.disconnect();
-            env.disconnect();
-            outGain.disconnect();
-            if (lfo) {
-                lfo.disconnect();
-                lfoGain.disconnect();
+        // 合成猫叫声（用 WebAudio 合成，不依赖外部音频）
+        // 将原来的 playRealCatSound 函数整体替换为下面的实现
+        function playRealCatSound(soundType) {
+            // 创建并复用单一 AudioContext 和 master gain
+            if (!window._wyyAudioCtx) {
+                window._wyyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // master gain（用于全局音量控制）
+                window._wyyMasterGain = window._wyyAudioCtx.createGain();
+                window._wyyMasterGain.gain.setValueAtTime(0.5, window._wyyAudioCtx.currentTime); // 默认 50%
+                window._wyyMasterGain.connect(window._wyyAudioCtx.destination);
             }
-        } catch (e) {
-            // 有些浏览器在节点已自动回收时会抛错，忽略
-        }
-    }, (duration + 0.2) * 1000);
-}
+            const ctx = window._wyyAudioCtx;
+            const now = ctx.currentTime;
 
-        
+            // 参数：时长、起/止频率、噪声比例、LFO 速率（用于呼噜）
+            let duration = 0.6;
+            let startFreq = 900;
+            let endFreq = 350;
+            let noiseLevel = 0.35;
+            let lfoRate = 0;
+
+            switch (soundType) {
+                case 'short':
+                    duration = 0.45;
+                    startFreq = 1100;
+                    endFreq = 450;
+                    noiseLevel = 0.28;
+                    break;
+                case 'long':
+                    duration = 1.0;
+                    startFreq = 1100;
+                    endFreq = 320;
+                    noiseLevel = 0.36;
+                    break;
+                case 'purr':
+                    duration = 1.6;
+                    startFreq = 160;
+                    endFreq = 160;
+                    noiseLevel = 0.08;
+                    lfoRate = 28; // 呼噜颤动速率
+                    break;
+                case 'angry':
+                    duration = 0.6;
+                    startFreq = 700;
+                    endFreq = 250;
+                    noiseLevel = 0.6;
+                    break;
+                default:
+                    duration = 0.6;
+                    startFreq = 900;
+                    endFreq = 350;
+                    noiseLevel = 0.35;
+            }
+
+            // 载波振荡器（基础音）
+            const carrier = ctx.createOscillator();
+            carrier.type = 'sine';
+            carrier.frequency.setValueAtTime(startFreq, now);
+            carrier.frequency.exponentialRampToValueAtTime(Math.max(endFreq, 40), now + Math.max(0.05, duration * 0.8));
+
+            // 包络
+            const env = ctx.createGain();
+            env.gain.setValueAtTime(0.0001, now);
+            env.gain.exponentialRampToValueAtTime(0.9, now + 0.02); // 快速起音
+            env.gain.exponentialRampToValueAtTime(0.001, now + duration); // 衰减
+
+            // 噪声纹理（让“喵”更真实）
+            const bufferSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
+            const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * noiseLevel;
+            }
+            const noiseSource = ctx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+
+            // 噪声滤波（带通让齿音集中）
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(1200, now);
+            noiseFilter.Q.setValueAtTime(0.8, now);
+
+            // 载波低通（柔化基频）
+            const carrierFilter = ctx.createBiquadFilter();
+            carrierFilter.type = 'lowpass';
+            carrierFilter.frequency.setValueAtTime(4000, now);
+            carrierFilter.Q.setValueAtTime(0.7, now);
+
+            // 连接路径：载波 -> carrierFilter -> env ; 噪声 -> noiseFilter -> env
+            carrier.connect(carrierFilter);
+            carrierFilter.connect(env);
+
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(env);
+
+            // 输出增益（轻微缩放），接到全局 master gain
+            const outGain = ctx.createGain();
+            outGain.gain.setValueAtTime(0.9, now);
+
+            env.connect(outGain);
+            outGain.connect(window._wyyMasterGain);
+
+            // 如果是呼噜，添加 LFO 调制 env.gain
+            let lfo, lfoGain;
+            if (lfoRate > 0) {
+                lfo = ctx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.setValueAtTime(lfoRate, now);
+                lfoGain = ctx.createGain();
+                lfoGain.gain.setValueAtTime(0.25, now); // 调制幅度
+                lfo.connect(lfoGain);
+                lfoGain.connect(env.gain);
+                lfo.start(now);
+                lfo.stop(now + duration + 0.05);
+            }
+
+            // 启动
+            carrier.start(now);
+            noiseSource.start(now);
+
+            // 停止
+            carrier.stop(now + duration + 0.06);
+            noiseSource.stop(now + duration + 0.06);
+
+            // 清理连接（延迟执行，确保声音播放完）
+            setTimeout(() => {
+                try {
+                    carrier.disconnect();
+                    noiseSource.disconnect();
+                    carrierFilter.disconnect();
+                    noiseFilter.disconnect();
+                    env.disconnect();
+                    outGain.disconnect();
+                    if (lfo) {
+                        lfo.disconnect();
+                        lfoGain.disconnect();
+                    }
+                } catch (e) {
+                    // 忽略可能的异常
+                }
+            }, (duration + 0.2) * 1000);
+
+            // 如果浏览器需要用户交互来启动 AudioContext，则在首次调用后若状态为 'suspended'，提示用户交互
+            if (ctx.state === 'suspended') {
+                showSoundPlayHint();
+                // 尝试 resume（某些浏览器需要在用户交互后才能成功）
+                ctx.resume().catch(() => {});
+            }
+        }
+
         // 显示声音播放提示
         function showSoundPlayHint() {
             const hint = document.createElement('div');
@@ -1471,19 +1475,28 @@ function playRealCatSound(soundType) {
             setTimeout(removeHint, 5000);
         }
         
-        // 音量控制
+        // 音量控制（将滑块值应用到 master gain）
         document.getElementById('volumeControl').addEventListener('input', function() {
             const volume = this.value / 100;
             
-            // 更新所有猫叫声的音量
+            // 如果使用了 WebAudio master gain，则更新
+            if (window._wyyMasterGain && window._wyyAudioCtx) {
+                try {
+                    window._wyyMasterGain.gain.setValueAtTime(volume, window._wyyAudioCtx.currentTime);
+                } catch (e) {
+                    // 某些浏览器可能不支持直接 setValueAtTime 在特定时刻，忽略
+                    window._wyyMasterGain.gain.value = volume;
+                }
+            }
+            // 兼容：如果页面还存在 HTMLAudioElement 播放（例如上传播放的 audio），尝试更新它们的音量
             if (window.catSounds) {
                 Object.values(window.catSounds).forEach(audio => {
-                    audio.volume = volume;
+                    try { audio.volume = volume; } catch (e) {}
                 });
             }
         });
         
-                // 分析上传的猫叫声（模拟）- 改进版
+        // 分析上传的猫叫声（模拟）- 改进版
         document.getElementById('analyzeSound').addEventListener('click', async function() {
             const fileInput = document.getElementById('catSoundUpload');
             const file = fileInput.files[0];
@@ -1503,9 +1516,10 @@ function playRealCatSound(soundType) {
             loading.style.display = 'inline-block';
             
             try {
-                // 播放上传的音频文件
+                // 播放上传的音频文件（供用户听）
                 const audioURL = URL.createObjectURL(file);
                 const audio = new Audio(audioURL);
+                audio.volume = (window._wyyMasterGain ? window._wyyMasterGain.gain.value : 0.5);
                 audio.play().catch(e => {
                     console.log('自动播放被阻止，需要用户交互:', e);
                 });
@@ -1561,94 +1575,94 @@ function playRealCatSound(soundType) {
         });
         
         // 表单提交处理
-document.getElementById('contactForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const submitBtn = document.getElementById('submitBtn');
-    const submitBtnText = document.getElementById('submitBtnText');
-    const submitLoading = document.getElementById('submitLoading');
-    const formMessage = document.getElementById('formMessage');
-    
-    // 获取表单数据
-    const formData = {
-        name: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        subject: document.getElementById('subject').value.trim(),
-        message: document.getElementById('message').value.trim()
-    };
-    
-    // 简单验证
-    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-        showMessage('请填写所有必填字段！', 'error');
-        return;
-    }
-    
-    // 邮箱格式验证
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-        showMessage('请输入有效的邮箱地址！', 'error');
-        return;
-    }
-    
-    // 显示加载状态
-    submitBtn.disabled = true;
-    submitBtnText.textContent = '发送中...';
-    submitLoading.style.display = 'inline-block';
-    formMessage.style.display = 'none';
-    
-    try {
-        console.log('正在发送消息到:', `${API_BASE_URL}/api/contact`);
-        
-        // 发送到您的API
-        const response = await fetch(`${API_BASE_URL}/api/contact`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const submitLoading = document.getElementById('submitLoading');
+            const formMessage = document.getElementById('formMessage');
+            
+            // 获取表单数据
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                subject: document.getElementById('subject').value.trim(),
+                message: document.getElementById('message').value.trim()
+            };
+            
+            // 简单验证
+            if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                showMessage('请填写所有必填字段！', 'error');
+                return;
+            }
+            
+            // 邮箱格式验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                showMessage('请输入有效的邮箱地址！', 'error');
+                return;
+            }
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            submitBtnText.textContent = '发送中...';
+            submitLoading.style.display = 'inline-block';
+            formMessage.style.display = 'none';
+            
+            try {
+                console.log('正在发送消息到:', `${API_BASE_URL}/api/contact`);
+                
+                // 发送到您的API
+                const response = await fetch(`${API_BASE_URL}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                console.log('收到响应，状态码:', response.status);
+                
+                const result = await response.json();
+                console.log('响应内容:', result);
+                
+                if (response.ok && result.success) {
+                    showMessage(result.message || '消息已成功发射！我会尽快回复你 😄', 'success');
+                    this.reset();
+                } else {
+                    throw new Error(result.error || '发送失败，服务器返回错误');
+                }
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                showMessage('发送失败: ' + error.message, 'error');
+            } finally {
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitBtnText.textContent = '发射消息';
+                submitLoading.style.display = 'none';
+            }
         });
-        
-        console.log('收到响应，状态码:', response.status);
-        
-        const result = await response.json();
-        console.log('响应内容:', result);
-        
-        if (response.ok && result.success) {
-            showMessage(result.message || '消息已成功发射！我会尽快回复你 😄', 'success');
-            this.reset();
-        } else {
-            throw new Error(result.error || '发送失败，服务器返回错误');
-        }
-    } catch (error) {
-        console.error('发送消息失败:', error);
-        showMessage('发送失败: ' + error.message, 'error');
-    } finally {
-        // 恢复按钮状态
-        submitBtn.disabled = false;
-        submitBtnText.textContent = '发射消息';
-        submitLoading.style.display = 'none';
-    }
-});
 
-// 显示消息函数
-function showMessage(message, type) {
-    const formMessage = document.getElementById('formMessage');
-    formMessage.textContent = message;
-    formMessage.style.display = 'block';
-    
-    if (type === 'success') {
-        formMessage.style.color = '#4ECDC4';
-    } else if (type === 'error') {
-        formMessage.style.color = '#FF6B6B';
-    } else {
-        formMessage.style.color = '#1A535C';
-    }
-    
-    // 5秒后自动隐藏消息
-    setTimeout(() => {
-        formMessage.style.display = 'none';
-    }, 5000);
-}
+        // 显示消息函数
+        function showMessage(message, type) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.textContent = message;
+            formMessage.style.display = 'block';
+            
+            if (type === 'success') {
+                formMessage.style.color = '#4ECDC4';
+            } else if (type === 'error') {
+                formMessage.style.color = '#FF6B6B';
+            } else {
+                formMessage.style.color = '#1A535C';
+            }
+            
+            // 5秒后自动隐藏消息
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000);
+        }
         
         // 滚动时导航栏效果
         window.addEventListener('scroll', function() {
