@@ -6,7 +6,6 @@
     <title>WYY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        <style>
         * {
             margin: 0;
             padding: 0;
@@ -428,6 +427,20 @@
             transform: scale(1.05);
         }
         
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         /* 联系表单样式 */
         .contact-container {
             display: grid;
@@ -718,10 +731,10 @@
     </style>
 </head>
 <body>
-    <!-- （HTML 内容与原版保持一致） -->
+    <!-- 导航栏 -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="#" class="logo">快乐星球 <span class="emoji">🚀</span></a>
+            <a href="#" class="logo">WYY的个人主页 <span class="emoji">🚀</span></a>
             <ul class="nav-links">
                 <li><a href="#about">关于我</a></li>
                 <li><a href="#skills">超能力</a></li>
@@ -731,6 +744,7 @@
         </div>
     </nav>
 
+    <!-- 全屏英雄区域 -->
     <section class="hero" id="home">
         <div class="hero-content">
             <h1>我不想上课 <span class="emoji">😫</span></h1>
@@ -746,7 +760,7 @@
         </div>
     </section>
 
-    <!-- about, skills, projects ... （保持与原版相同） -->
+    <!-- 关于我区域 -->
     <section class="section" id="about">
         <div class="container">
             <div class="section-header">
@@ -779,6 +793,7 @@
         </div>
     </section>
 
+    <!-- 技能区域 -->
     <section class="section section-light" id="skills">
         <div class="container">
             <div class="section-header">
@@ -811,7 +826,7 @@
         </div>
     </section>
 
-    <!-- 项目区域（包含“今天吃什么”与“猫咪翻译器”工具） -->
+    <!-- 项目区域 -->
     <section class="section" id="projects">
         <div class="container">
             <div class="section-header">
@@ -829,17 +844,28 @@
                         
                         <div class="tool-container">
                             <p>点击按钮，让命运决定你今天吃什么！</p>
-                            <button id="decideFood" class="btn btn-primary pulse">帮我决定！</button>
+                            <button id="decideFood" class="btn btn-primary pulse">
+                                <span id="foodButtonText">帮我决定！</span>
+                                <span id="foodLoading" class="loading" style="display: none; margin-left: 8px;"></span>
+                            </button>
                             <div id="foodResult" class="result-box">
                                 我还没想好...
                             </div>
                             <div id="foodImage" class="food-image"></div>
+                            
+                            <!-- 新增：用户自定义食物选项 -->
+                            <div style="margin-top: 20px;">
+                                <p>或者，添加你想吃的食物：</p>
+                                <input type="text" id="newFood" placeholder="输入食物名称" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc; margin-right: 10px;">
+                                <button id="addFood" class="btn" style="padding: 8px 15px;">添加</button>
+                            </div>
                         </div>
                         
                         <div class="project-tags">
                             <span class="tag">随机算法</span>
                             <span class="tag">美食数据库</span>
                             <span class="tag">选择困难症克星</span>
+                            <span class="tag">后端支持</span>
                         </div>
                     </div>
                 </div>
@@ -863,12 +889,23 @@
                                 喵喵喵？
                             </div>
                             <div id="catEmoji" style="font-size: 40px; margin-top: 10px;">🐱</div>
+                            
+                            <!-- 新增：用户上传猫叫声 -->
+                            <div style="margin-top: 20px;">
+                                <p>上传猫叫声分析（模拟）：</p>
+                                <input type="file" id="catSoundUpload" accept="audio/*" style="margin: 10px 0;">
+                                <button id="analyzeSound" class="btn" style="padding: 8px 15px;">
+                                    <span id="analyzeButtonText">分析声音</span>
+                                    <span id="analyzeLoading" class="loading" style="display: none; margin-left: 8px;"></span>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="project-tags">
                             <span class="tag">AI分析</span>
                             <span class="tag">猫语翻译</span>
                             <span class="tag">人猫沟通</span>
+                            <span class="tag">后端支持</span>
                         </div>
                     </div>
                 </div>
@@ -876,7 +913,7 @@
         </div>
     </section>
 
-    <!-- 联系区域（保持原样） -->
+    <!-- 联系区域 -->
     <section class="section section-light" id="contact">
         <div class="container">
             <div class="section-header">
@@ -949,12 +986,12 @@
         </div>
     </section>
 
-    <!-- 页脚（保持原样） -->
+    <!-- 页脚 -->
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-about">
-                    <div class="footer-logo">快乐星球 <span class="emoji">🌍</span></div>
+                    <div class="footer-logo">WYY的个人主页 <span class="emoji">🌍</span></div>
                     <p>一个不想上课只想吃粉的快乐人类的个人主页。</p>
                     <p>人生格言：开心最重要，粉要趁热吃！</p>
                 </div>
@@ -987,177 +1024,235 @@
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 快乐星球. 保留所有权利. | 设计理念：开心最重要！</p>
+                <p>&copy; 2023 WYY的个人主页. 保留所有权利. | 设计理念：开心最重要！</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // ---------- 新增 - 后端 API 基础地址 ----------
-        const API_BASE = 'https://api-worker.a15507719974.workers.dev';
-
-        // ---------- 原有本地数据（作为后端失败时的回退） ----------
-        const foods = [
-            { name: "老友粉", emoji: "🍜", description: "酸辣鲜香，一口入魂！" },
-            { name: "螺蛳粉", emoji: "🥘", description: "闻着臭吃着香，越吃越上头！" },
-            { name: "桂林米粉", emoji: "🍝", description: "滑嫩爽口，回味无穷！" },
-            { name: "生榨米粉", emoji: "🍲", description: "鲜香浓郁，口感独特！" },
-            { name: "麻辣烫", emoji: "🥵", description: "麻辣鲜香，过瘾！" },
-            { name: "火锅", emoji: "🍲", description: "围炉而坐，暖心暖胃！" },
-            { name: "烧烤", emoji: "🍢", description: "炭火香气，夜宵首选！" },
-            { name: "炸鸡", emoji: "🍗", description: "外酥里嫩，快乐源泉！" },
-            { name: "披萨", emoji: "🍕", description: "拉丝芝士，幸福满满！" },
-            { name: "寿司", emoji: "🍣", description: "精致美味，日式风情！" },
-            { name: "沙拉", emoji: "🥗", description: "清爽健康，轻食之选！" },
-            { name: "汉堡", emoji: "🍔", description: "多层口感，满足感爆棚！" }
-        ];
-
-        const catTranslations = {
-            short: {
-                text: "我饿了！快给我吃的！",
-                emoji: "😾"
-            },
-            long: {
-                text: "陪我玩嘛~ 我好无聊啊！",
-                emoji: "😽"
-            },
-            purr: {
-                text: "好舒服啊~ 继续摸不要停！",
-                emoji: "😻"
-            },
-            angry: {
-                text: "走开！别碰我！烦死了！",
-                emoji: "😾"
-            }
-        };
-
-        // ---------- 辅助：带超时的 fetchJSON ----------
-        async function fetchJSON(url, opts = {}, timeout = 7000) {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
+        // API基础URL - 使用你的Worker URL
+        const API_BASE_URL = 'https://api-worker.a15507719974.workers.dev';
+        
+        // 食物决策器功能 - 使用后端API
+        document.getElementById('decideFood').addEventListener('click', async function() {
+            const button = this;
+            const buttonText = document.getElementById('foodButtonText');
+            const loading = document.getElementById('foodLoading');
+            
+            // 显示加载状态
+            button.disabled = true;
+            buttonText.textContent = '思考中...';
+            loading.style.display = 'inline-block';
+            
             try {
-                const res = await fetch(url, { signal: controller.signal, ...opts });
-                clearTimeout(id);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                return await res.json();
+                // 调用后端API
+                const response = await fetch(`${API_BASE_URL}/api/food/random`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                const resultElement = document.getElementById('foodResult');
+                resultElement.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px;">${data.emoji} ${data.name} ${data.emoji}</div>
+                        <div style="margin-top: 10px; font-size: 16px;">${data.description}</div>
+                    </div>
+                `;
+                
+                // 添加一点动画效果
+                resultElement.style.animation = 'none';
+                setTimeout(() => {
+                    resultElement.style.animation = 'pulse 0.5s';
+                }, 10);
+                
+                // 添加食物图片（使用emoji作为简单表示）
+                const foodImage = document.getElementById('foodImage');
+                foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${data.emoji}</div>`;
+            } catch (error) {
+                console.error('获取食物失败:', error);
+                document.getElementById('foodResult').innerHTML = `
+                    <div style="text-align: center; color: var(--primary-color);">
+                        获取食物失败，请稍后再试！<br>
+                        <small>错误信息: ${error.message}</small>
+                    </div>
+                `;
             } finally {
-                clearTimeout(id);
+                // 恢复按钮状态
+                button.disabled = false;
+                buttonText.textContent = '帮我决定！';
+                loading.style.display = 'none';
             }
-        }
-
-        // ---------- 决策器：向后端请求随机食物（失败回退到本地） ----------
-        async function decideFoodFromBackend() {
-            const resultElement = document.getElementById('foodResult');
-            const foodImage = document.getElementById('foodImage');
-
-            // loading UI
-            resultElement.innerHTML = '<div>加载中… <span class="emoji">⏳</span></div>';
-            foodImage.innerHTML = '';
-
-            try {
-                const data = await fetchJSON(`${API_BASE}/api/food/random`, { method: 'GET' }, 6000);
-                // 期望返回 { id, name, emoji, description } 或类似
-                const name = data.name || data.title || '美食';
-                const emoji = data.emoji || '🍽️';
-                const description = data.description || data.desc || '';
-
-                resultElement.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 24px;">${emoji} ${name} ${emoji}</div>
-                        <div style="margin-top: 10px; font-size: 16px;">${description}</div>
-                    </div>
-                `;
-                foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${emoji}</div>`;
-
-            } catch (err) {
-                // 后端失败，使用本地随机项作为回退
-                console.warn('调用后端食物API失败，已回退到本地数据：', err);
-                const randomIndex = Math.floor(Math.random() * foods.length);
-                const selectedFood = foods[randomIndex];
-                resultElement.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 24px;">${selectedFood.emoji} ${selectedFood.name} ${selectedFood.emoji}</div>
-                        <div style="margin-top: 10px; font-size: 16px;">${selectedFood.description}</div>
-                    </div>
-                `;
-                foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${selectedFood.emoji}</div>`;
+        });
+        
+        // 添加自定义食物
+        document.getElementById('addFood').addEventListener('click', async function() {
+            const newFoodInput = document.getElementById('newFood');
+            const foodName = newFoodInput.value.trim();
+            
+            if (!foodName) {
+                alert('请输入食物名称！');
+                return;
             }
-
-            // 动画（与你原来的效果保持一致）
-            resultElement.style.animation = 'none';
-            setTimeout(() => {
-                resultElement.style.animation = 'pulse 0.5s';
-            }, 10);
-        }
-
-        // ---------- 猫咪翻译：调用后端 /api/cat/translate（失败回退本地） ----------
-        async function translateCatSound(soundType) {
-            const translationElement = document.getElementById('catTranslation');
-            const catEmojiElement = document.getElementById('catEmoji');
-
-            // loading UI
-            translationElement.innerHTML = `<div style="text-align:center">分析中… <span class="emoji">🔊</span></div>`;
-            catEmojiElement.textContent = '🐱';
-
+            
+            const button = this;
+            button.disabled = true;
+            button.textContent = '添加中...';
+            
             try {
-                const payload = { soundType };
-                const data = await fetchJSON(`${API_BASE}/api/cat/translate`, {
+                const response = await fetch(`${API_BASE_URL}/api/food`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                }, 6000);
-
-                // data 期望 { text, emoji, confidence? }
-                const text = data.text || data.translation || '喵？';
-                const emoji = data.emoji || '🐱';
-
-                translationElement.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 20px;">${text}</div>
-                    </div>
-                `;
-                catEmojiElement.textContent = emoji;
-
-            } catch (err) {
-                // 回退到本地翻译
-                console.warn('调用后端猫咪翻译API失败，使用本地回退：', err);
-                const local = catTranslations[soundType] || { text: "我不知道你在说什么喵~", emoji: "😿" };
-                translationElement.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 20px;">${local.text}</div>
-                    </div>
-                `;
-                catEmojiElement.textContent = local.emoji;
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: foodName,
+                        emoji: '🍽️',
+                        description: `看起来不错的${foodName}！`
+                    })
+                });
+                
+                if (response.ok) {
+                    alert(`成功添加 ${foodName} 到食物列表！`);
+                    newFoodInput.value = '';
+                } else {
+                    throw new Error('添加失败');
+                }
+            } catch (error) {
+                console.error('添加食物失败:', error);
+                alert('添加食物失败，请稍后再试！');
+            } finally {
+                button.disabled = false;
+                button.textContent = '添加';
             }
-
-            // 动画（保持原效果）
-            translationElement.style.animation = 'none';
-            catEmojiElement.style.animation = 'none';
-            setTimeout(() => {
-                translationElement.style.animation = 'pulse 0.5s';
-                catEmojiElement.style.animation = 'wiggle 0.5s';
-            }, 10);
-        }
-
-        // ---------- 事件绑定：替换原先使用本地数组的逻辑，改为调用后端（失败回退） ----------
-        document.getElementById('decideFood').addEventListener('click', decideFoodFromBackend);
-
+        });
+        
+        // 猫咪翻译器功能 - 使用后端API
         document.querySelectorAll('.cat-sound-btn').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', async function() {
                 const soundType = this.getAttribute('data-sound');
-                // 调用后端翻译
-                translateCatSound(soundType);
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/cat/translate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ soundType })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const translation = await response.json();
+                    
+                    const translationElement = document.getElementById('catTranslation');
+                    translationElement.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px;">${translation.text}</div>
+                        </div>
+                    `;
+                    
+                    const catEmojiElement = document.getElementById('catEmoji');
+                    catEmojiElement.textContent = translation.emoji;
+                    
+                    // 添加一点动画效果
+                    translationElement.style.animation = 'none';
+                    catEmojiElement.style.animation = 'none';
+                    setTimeout(() => {
+                        translationElement.style.animation = 'pulse 0.5s';
+                        catEmojiElement.style.animation = 'wiggle 0.5s';
+                    }, 10);
+                } catch (error) {
+                    console.error('翻译猫语失败:', error);
+                    document.getElementById('catTranslation').innerHTML = `
+                        <div style="text-align: center; color: var(--primary-color);">
+                            翻译失败，请稍后再试！<br>
+                            <small>错误信息: ${error.message}</small>
+                        </div>
+                    `;
+                }
             });
         });
-
-        // ---------- 其余脚本保持与原先一致（表单、滚动效果、交互动画） ----------
+        
+        // 分析上传的猫叫声（模拟）
+        document.getElementById('analyzeSound').addEventListener('click', async function() {
+            const fileInput = document.getElementById('catSoundUpload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择音频文件！');
+                return;
+            }
+            
+            const button = this;
+            const buttonText = document.getElementById('analyzeButtonText');
+            const loading = document.getElementById('analyzeLoading');
+            
+            // 显示加载状态
+            button.disabled = true;
+            buttonText.textContent = '分析中...';
+            loading.style.display = 'inline-block';
+            
+            try {
+                // 创建FormData对象
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                // 调用后端API分析声音
+                const response = await fetch(`${API_BASE_URL}/api/cat/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                const translationElement = document.getElementById('catTranslation');
+                translationElement.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px;">分析结果: ${result.text}</div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #666;">置信度: ${result.confidence}%</div>
+                    </div>
+                `;
+                
+                const catEmojiElement = document.getElementById('catEmoji');
+                catEmojiElement.textContent = result.emoji;
+                
+                // 添加一点动画效果
+                translationElement.style.animation = 'none';
+                catEmojiElement.style.animation = 'none';
+                setTimeout(() => {
+                    translationElement.style.animation = 'pulse 0.5s';
+                    catEmojiElement.style.animation = 'wiggle 0.5s';
+                }, 10);
+            } catch (error) {
+                console.error('分析声音失败:', error);
+                document.getElementById('catTranslation').innerHTML = `
+                    <div style="text-align: center; color: var(--primary-color);">
+                        分析失败，请稍后再试！<br>
+                        <small>错误信息: ${error.message}</small>
+                    </div>
+                `;
+            } finally {
+                // 恢复按钮状态
+                button.disabled = false;
+                buttonText.textContent = '分析声音';
+                loading.style.display = 'none';
+            }
+        });
+        
         // 简单的表单提交处理
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
             alert('消息已发送！我会尽快回复，如果我没在吃粉的话 😄');
             this.reset();
         });
-
+        
         // 滚动时导航栏效果
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
@@ -1169,13 +1264,13 @@
                 navbar.style.boxShadow = 'none';
             }
         });
-
+        
         // 滚动动画
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
-
+        
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1183,11 +1278,11 @@
                 }
             });
         }, observerOptions);
-
+        
         document.querySelectorAll('.card, .project-card').forEach(el => {
             observer.observe(el);
         });
-
+        
         // 添加一些交互趣味
         document.querySelectorAll('.btn').forEach(btn => {
             btn.addEventListener('mouseover', function() {
