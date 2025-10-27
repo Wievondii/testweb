@@ -893,10 +893,10 @@
                         <div class="tool-container">
                             <p>点击不同的猫叫声，看看它在说什么！</p>
                             <div class="cat-sound-buttons">
-                                <button class="cat-sound-btn" data-sound="short">短喵</button>
-                                <button class="cat-sound-btn" data-sound="long">长喵</button>
-                                <button class="cat-sound-btn" data-sound="purr">呼噜声</button>
-                                <button class="cat-sound-btn" data-sound="angry">生气喵</button>
+                                <button class="cat-sound-btn" data-sound="short">短喵 🔊</button>
+                                <button class="cat-sound-btn" data-sound="long">长喵 🔊</button>
+                                <button class="cat-sound-btn" data-sound="purr">呼噜声 🔊</button>
+                                <button class="cat-sound-btn" data-sound="angry">生气喵 🔊</button>
                             </div>
                             <div id="catTranslation" class="result-box">
                                 喵喵喵？
@@ -911,6 +911,11 @@
                                     <span id="analyzeButtonText">分析声音</span>
                                     <span id="analyzeLoading" class="loading" style="display: none; margin-left: 8px;"></span>
                                 </button>
+                            </div>
+                            <!-- 音量控制 -->
+                            <div style="margin-top: 15px;">
+                                <label for="volumeControl" style="font-size: 14px;">音量控制:</label>
+                                <input type="range" id="volumeControl" min="0" max="100" value="50" style="width: 100%; margin-top: 5px;">
                             </div>
                         </div>
                         
@@ -1143,14 +1148,14 @@
                 button.textContent = '添加';
             }
         });
-        
-                // 猫咪翻译器功能 - 使用后端API并添加声音
+                
+                       // 猫咪翻译器功能 - 使用真实音频
         document.querySelectorAll('.cat-sound-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const soundType = this.getAttribute('data-sound');
                 
-                // 播放对应的猫叫声
-                playCatSound(soundType);
+                // 播放对应的真实猫叫声
+                playRealCatSound(soundType);
                 
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/cat/translate`, {
@@ -1196,77 +1201,80 @@
             });
         });
         
-        // 播放猫叫声函数
-        function playCatSound(soundType) {
-            // 创建音频上下文
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            
-            // 根据声音类型设置不同的振荡器参数
-            let oscillatorType = 'sine';
-            let frequency = 200;
-            let duration = 0.5;
-            
-            switch(soundType) {
-                case 'short':
-                    frequency = 300;
-                    duration = 0.3;
-                    break;
-                case 'long':
-                    frequency = 250;
-                    duration = 1.0;
-                    break;
-                case 'purr':
-                    oscillatorType = 'sawtooth';
-                    frequency = 120;
-                    duration = 1.5;
-                    break;
-                case 'angry':
-                    oscillatorType = 'square';
-                    frequency = 400;
-                    duration = 0.8;
-                    break;
+        // 播放真实猫叫声函数
+        function playRealCatSound(soundType) {
+            // 预加载音频对象
+            if (!window.catSounds) {
+                window.catSounds = {};
             }
             
-            // 创建振荡器
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            // 定义不同猫叫声的音频URL
+            const soundUrls = {
+                short: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-109.mp3',
+                long: 'https://assets.mixkit.co/sfx/preview/mixkit-angry-cat-118.mp3',
+                purr: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-purring-119.mp3',
+                angry: 'https://assets.mixkit.co/sfx/preview/mixkit-cat-meow-110.mp3'
+            };
             
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            // 设置振荡器参数
-            oscillator.type = oscillatorType;
-            oscillator.frequency.value = frequency;
-            
-            // 设置音量包络
-            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
-            
-            // 对于呼噜声，创建颤音效果
-            if (soundType === 'purr') {
-                const vibrato = audioContext.createOscillator();
-                const vibratoGain = audioContext.createGain();
-                
-                vibrato.connect(vibratoGain);
-                vibratoGain.connect(oscillator.frequency);
-                
-                vibrato.type = 'sine';
-                vibrato.frequency.value = 10; // 颤音频率
-                vibratoGain.gain.value = 20; // 颤音深度
-                
-                vibrato.start();
-                vibrato.stop(audioContext.currentTime + duration);
+            // 如果音频对象不存在，创建它
+            if (!window.catSounds[soundType]) {
+                window.catSounds[soundType] = new Audio(soundUrls[soundType]);
+                window.catSounds[soundType].volume = 0.5; // 设置音量
             }
             
             // 播放声音
-            oscillator.start();
-            
-            // 淡出效果
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-            
-            // 停止振荡器
-            oscillator.stop(audioContext.currentTime + duration);
+            window.catSounds[soundType].currentTime = 0; // 重置播放位置
+            window.catSounds[soundType].play().catch(e => {
+                console.log('音频播放被阻止:', e);
+                // 如果自动播放被阻止，显示提示
+                showSoundPlayHint();
+            });
         }
+        
+        // 显示声音播放提示
+        function showSoundPlayHint() {
+            const hint = document.createElement('div');
+            hint.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 10000;
+                text-align: center;
+                max-width: 300px;
+            `;
+            hint.innerHTML = `
+                <p>🔊 请点击任意位置启用音频播放</p>
+                <p style="font-size: 12px; margin-top: 10px;">部分浏览器需要用户交互后才能播放声音</p>
+            `;
+            document.body.appendChild(hint);
+            
+            // 点击任意位置移除提示
+            const removeHint = () => {
+                document.body.removeChild(hint);
+                document.removeEventListener('click', removeHint);
+            };
+            document.addEventListener('click', removeHint);
+            
+            // 5秒后自动移除提示
+            setTimeout(removeHint, 5000);
+        }
+        
+        // 音量控制
+        document.getElementById('volumeControl').addEventListener('input', function() {
+            const volume = this.value / 100;
+            
+            // 更新所有猫叫声的音量
+            if (window.catSounds) {
+                Object.values(window.catSounds).forEach(audio => {
+                    audio.volume = volume;
+                });
+            }
+        });
         
                 // 分析上传的猫叫声（模拟）- 改进版
         document.getElementById('analyzeSound').addEventListener('click', async function() {
