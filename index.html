@@ -471,28 +471,28 @@
             finally { button.disabled = false; button.textContent = '添加'; }
         });
 
-// 播放真实猫叫声（使用仓库里的音频文件：assets/sounds/*.mp3）
-function playRealCatSound(soundType) {
-    const sounds = {
-        short: 'assets/sounds/meow_short.mp3',
-        long:  'assets/sounds/meow_long.mp3',
-        purr:  'assets/sounds/meow_purr.mp3',
-        angry: 'assets/sounds/meow_angry.mp3',
-        default: 'assets/sounds/meow_short.mp3'
-    };
-
-    const src = sounds[soundType] || sounds.default;
-    try {
-        const audio = new Audio(src);
-        audio.volume = 0.9; // 你可以微调（0.0 ~ 1.0）
-        audio.play().catch(err => {
-            console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
-            showSoundPlayHint(); // 保留你已有的提示函数
-        });
-    } catch (e) {
-        console.error('创建 Audio 出错:', e);
-    }
-}
+        // 播放真实猫叫声（使用仓库里的音频文件：assets/sounds/*.mp3）
+        function playRealCatSound(soundType) {
+            const sounds = {
+                short: 'assets/sounds/meow_short.mp3',
+                long:  'assets/sounds/meow_long.wav',
+                purr:  'assets/sounds/meow_purr.mp3',
+                angry: 'assets/sounds/meow_angry.mp3',
+                default: 'assets/sounds/meow_short.mp3'
+            };
+        
+            const src = sounds[soundType] || sounds.default;
+            try {
+                const audio = new Audio(src);
+                audio.volume = 0.9; // 你可以微调（0.0 ~ 1.0）
+                audio.play().catch(err => {
+                    console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
+                    showSoundPlayHint(); // 保留你已有的提示函数
+                });
+            } catch (e) {
+                console.error('创建 Audio 出错:', e);
+            }
+        }
 
 
         // --- 分析上传的猫叫声（模拟） ---
