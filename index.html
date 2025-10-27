@@ -13,10 +13,11 @@
         }
         
         :root {
-            --primary-color: #1d1d1f;
-            --secondary-color: #86868b;
-            --accent-color: #0071e3;
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --accent-color: #FFD166;
             --light-color: #f5f5f7;
+            --dark-color: #1A535C;
             --white: #ffffff;
             --transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -24,9 +25,9 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--white);
-            color: var(--primary-color);
+            color: var(--dark-color);
             line-height: 1.47059;
             font-weight: 400;
             letter-spacing: -0.022em;
@@ -80,7 +81,7 @@
         
         .nav-links a {
             text-decoration: none;
-            color: var(--secondary-color);
+            color: var(--dark-color);
             font-size: 12px;
             font-weight: 400;
             transition: var(--transition);
@@ -98,7 +99,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4, #FFD166);
             position: relative;
             overflow: hidden;
             padding: 0 20px;
@@ -183,7 +184,7 @@
         }
         
         .btn-primary:hover {
-            background-color: var(--accent-color);
+            background-color: var(--dark-color);
             color: var(--white);
         }
         
@@ -236,11 +237,12 @@
             line-height: 1.07143;
             letter-spacing: -0.005em;
             margin-bottom: 16px;
+            color: var(--primary-color);
         }
         
         .section-subtitle {
             font-size: 28px;
-            color: var(--secondary-color);
+            color: var(--dark-color);
             max-width: 600px;
             margin: 0 auto;
             line-height: 1.14286;
@@ -264,17 +266,18 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
+            border: 3px dashed var(--secondary-color);
         }
         
         .card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-10px) rotate(2deg);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
         
         .card-icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, #0071e3, #5ac8fa);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -291,10 +294,11 @@
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 16px;
+            color: var(--dark-color);
         }
         
         .card p {
-            color: var(--secondary-color);
+            color: var(--dark-color);
             font-size: 17px;
             line-height: 1.47059;
         }
@@ -312,17 +316,18 @@
             box-shadow: var(--shadow);
             transition: var(--transition);
             background: var(--white);
+            border: 3px solid var(--accent-color);
         }
         
         .project-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
         
         .project-image {
             width: 100%;
             height: 280px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -339,10 +344,11 @@
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 12px;
+            color: var(--dark-color);
         }
         
         .project-description {
-            color: var(--secondary-color);
+            color: var(--dark-color);
             font-size: 17px;
             line-height: 1.47059;
             margin-bottom: 20px;
@@ -357,10 +363,11 @@
         
         .tag {
             background-color: var(--light-color);
-            color: var(--secondary-color);
+            color: var(--dark-color);
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
+            border: 1px solid var(--secondary-color);
         }
         
         /* 联系表单样式 */
@@ -375,6 +382,7 @@
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 24px;
+            color: var(--dark-color);
         }
         
         .contact-item {
@@ -386,7 +394,7 @@
         .contact-icon {
             width: 44px;
             height: 44px;
-            background-color: var(--light-color);
+            background-color: var(--accent-color);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -395,7 +403,7 @@
         }
         
         .contact-icon i {
-            color: var(--accent-color);
+            color: var(--white);
             font-size: 18px;
         }
         
@@ -404,6 +412,7 @@
             padding: 40px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
+            border: 3px dashed var(--primary-color);
         }
         
         .form-group {
@@ -413,15 +422,17 @@
         .form-control {
             width: 100%;
             padding: 16px;
-            border: 1px solid #d2d2d7;
+            border: 2px solid var(--secondary-color);
             border-radius: 12px;
             font-size: 17px;
             transition: var(--transition);
+            font-family: 'Comic Sans MS', cursive;
         }
         
         .form-control:focus {
-            border-color: var(--accent-color);
+            border-color: var(--primary-color);
             outline: none;
+            transform: scale(1.02);
         }
         
         textarea.form-control {
@@ -431,7 +442,7 @@
         
         /* 页脚样式 */
         footer {
-            background-color: var(--primary-color);
+            background-color: var(--dark-color);
             color: var(--white);
             padding: 60px 0 30px;
         }
@@ -447,10 +458,11 @@
             font-size: 21px;
             font-weight: 600;
             margin-bottom: 16px;
+            color: var(--accent-color);
         }
         
         .footer-about p {
-            color: #86868b;
+            color: #ffffffaa;
             font-size: 17px;
             line-height: 1.47059;
             margin-bottom: 20px;
@@ -460,6 +472,7 @@
             font-size: 17px;
             font-weight: 600;
             margin-bottom: 20px;
+            color: var(--accent-color);
         }
         
         .footer-links ul {
@@ -471,14 +484,14 @@
         }
         
         .footer-links a {
-            color: #86868b;
+            color: #ffffffaa;
             text-decoration: none;
             font-size: 14px;
             transition: var(--transition);
         }
         
         .footer-links a:hover {
-            color: var(--white);
+            color: var(--accent-color);
         }
         
         .social-links {
@@ -490,7 +503,7 @@
         .social-icon {
             width: 36px;
             height: 36px;
-            background-color: #333336;
+            background-color: var(--accent-color);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -499,8 +512,8 @@
         }
         
         .social-icon:hover {
-            background-color: var(--accent-color);
-            transform: scale(1.1);
+            background-color: var(--primary-color);
+            transform: scale(1.1) rotate(10deg);
         }
         
         .social-icon i {
@@ -511,8 +524,8 @@
         .copyright {
             text-align: center;
             padding-top: 30px;
-            border-top: 1px solid #333336;
-            color: #86868b;
+            border-top: 1px solid #ffffff33;
+            color: #ffffffaa;
             font-size: 12px;
         }
         
@@ -598,18 +611,48 @@
         .delay-3 {
             animation-delay: 0.6s;
         }
+        
+        .emoji {
+            font-size: 1.5em;
+            display: inline-block;
+            animation: wiggle 2s infinite;
+        }
+        
+        @keyframes wiggle {
+            0%, 7% {
+                transform: rotateZ(0);
+            }
+            15% {
+                transform: rotateZ(-10deg);
+            }
+            20% {
+                transform: rotateZ(8deg);
+            }
+            25% {
+                transform: rotateZ(-6deg);
+            }
+            30% {
+                transform: rotateZ(4deg);
+            }
+            35% {
+                transform: rotateZ(-2deg);
+            }
+            40%, 100% {
+                transform: rotateZ(0);
+            }
+        }
     </style>
 </head>
 <body>
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="#" class="logo">个人主页</a>
+            <a href="#" class="logo">快乐星球 <span class="emoji">🚀</span></a>
             <ul class="nav-links">
                 <li><a href="#about">关于我</a></li>
-                <li><a href="#skills">技能</a></li>
-                <li><a href="#projects">项目</a></li>
-                <li><a href="#contact">联系我</a></li>
+                <li><a href="#skills">超能力</a></li>
+                <li><a href="#projects">搞事情</a></li>
+                <li><a href="#contact">找我玩</a></li>
             </ul>
         </div>
     </nav>
@@ -617,15 +660,15 @@
     <!-- 全屏英雄区域 -->
     <section class="hero" id="home">
         <div class="hero-content">
-            <h1>我不想上课</h1>
-            <p>我想回家吃老友粉桂林米粉螺蛳粉生榨米粉</p>
+            <h1>我不想上课 <span class="emoji">😫</span></h1>
+            <p>我想回家吃老友粉桂林米粉螺蛳粉生榨米粉 <span class="emoji">🍜</span></p>
             <div class="hero-buttons">
-                <a href="#projects" class="btn btn-primary">查看作品</a>
-                <a href="#contact" class="btn btn-secondary">联系我</a>
+                <a href="#projects" class="btn btn-primary">看看我搞了啥</a>
+                <a href="#contact" class="btn btn-secondary">一起搞事情</a>
             </div>
         </div>
         <div class="scroll-indicator">
-            向下滚动
+            往下滑，有惊喜
             <i class="fas fa-chevron-down"></i>
         </div>
     </section>
@@ -634,30 +677,30 @@
     <section class="section" id="about">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">关于我</h2>
-                <p class="section-subtitle">热衷于创造美观且实用的数字体验</p>
+                <h2 class="section-title">关于我这个有趣的灵魂 <span class="emoji">😎</span></h2>
+                <p class="section-subtitle">一个不想上课只想吃粉的快乐人类</p>
             </div>
             <div class="grid">
                 <div class="card fade-in">
                     <div class="card-icon">
-                        <i class="fas fa-lightbulb"></i>
+                        <i class="fas fa-utensils"></i>
                     </div>
-                    <h3>创意设计</h3>
-                    <p>专注于用户界面和体验设计，创造直观且引人入胜的数字产品。</p>
+                    <h3>美食探险家 <span class="emoji">🍽️</span></h3>
+                    <p>专业品尝各种米粉20年，能从100米外闻出哪家粉店用的是真骨头汤。</p>
                 </div>
                 <div class="card fade-in delay-1">
                     <div class="card-icon">
-                        <i class="fas fa-code"></i>
+                        <i class="fas fa-gamepad"></i>
                     </div>
-                    <h3>前端开发</h3>
-                    <p>使用现代技术栈构建响应式、高性能的网站和应用程序。</p>
+                    <h3>游戏高手 <span class="emoji">🎮</span></h3>
+                    <p>能在吃粉的同时单手通关马里奥，创造了"边吃粉边打游戏不洒汤"的世界纪录。</p>
                 </div>
                 <div class="card fade-in delay-2">
                     <div class="card-icon">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="fas fa-couch"></i>
                     </div>
-                    <h3>移动优先</h3>
-                    <p>优先考虑移动设备体验，确保在所有屏幕尺寸上都有出色表现。</p>
+                    <h3>躺平专家 <span class="emoji">🛋️</span></h3>
+                    <p>熟练掌握各种躺平姿势，能在不离开沙发的情况下拿到遥控器、零食和手机。</p>
                 </div>
             </div>
         </div>
@@ -667,30 +710,30 @@
     <section class="section section-light" id="skills">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">专业技能</h2>
-                <p class="section-subtitle">掌握现代网络开发与设计工具</p>
+                <h2 class="section-title">我的超能力 <span class="emoji">🦸</span></h2>
+                <p class="section-subtitle">虽然不想上课，但这些技能我还是很厉害的</p>
             </div>
             <div class="grid">
                 <div class="card fade-in">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        <i class="fab fa-html5"></i>
+                    <div class="card-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">
+                        <i class="fas fa-code"></i>
                     </div>
-                    <h3>前端技术</h3>
-                    <p>HTML5, CSS3, JavaScript, React, Vue.js, TypeScript</p>
+                    <h3>代码魔法 <span class="emoji">💻</span></h3>
+                    <p>能用代码变出各种有趣的东西，虽然有时候会有bug，但至少能运行！</p>
                 </div>
                 <div class="card fade-in delay-1">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        <i class="fas fa-palette"></i>
+                    <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));">
+                        <i class="fas fa-paint-brush"></i>
                     </div>
-                    <h3>UI/UX 设计</h3>
-                    <p>Figma, Sketch, Adobe XD, 用户研究, 原型设计</p>
+                    <h3>灵魂画手 <span class="emoji">🎨</span></h3>
+                    <p>能用鼠标画出看起来像猫的狗，和看起来像狗的猫，抽象派大师。</p>
                 </div>
                 <div class="card fade-in delay-2">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                        <i class="fas fa-server"></i>
+                    <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));">
+                        <i class="fas fa-music"></i>
                     </div>
-                    <h3>后端技术</h3>
-                    <p>Node.js, Python, MySQL, MongoDB, RESTful API</p>
+                    <h3>浴室歌神 <span class="emoji">🎤</span></h3>
+                    <p>只有在浴室里才能发挥100%歌唱实力，出了浴室音准就会迷路。</p>
                 </div>
             </div>
         </div>
@@ -700,40 +743,38 @@
     <section class="section" id="projects">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">精选项目</h2>
-                <p class="section-subtitle">探索我最近完成的创意项目</p>
+                <h2 class="section-title">我搞的事情 <span class="emoji">🔧</span></h2>
+                <p class="section-subtitle">一些吃饱了撑的做出来的有趣项目</p>
             </div>
             <div class="project-grid">
                 <div class="project-card fade-in">
                     <div class="project-image">
-                        电子商务平台
+                        "今天吃什么"决策器
                     </div>
                     <div class="project-content">
-                        <h3 class="project-title">现代电商解决方案</h3>
-                        <p class="project-description">一个全功能的电子商务平台，具有用户认证、产品搜索和支付集成功能。</p>
+                        <h3 class="project-title">午餐救星 <span class="emoji">🤔</span></h3>
+                        <p class="project-description">一个能帮你决定今天吃什么的APP，解决了"中午吃什么"这个世界难题。</p>
                         <div class="project-tags">
-                            <span class="tag">React</span>
-                            <span class="tag">Node.js</span>
-                            <span class="tag">MongoDB</span>
-                            <span class="tag">支付集成</span>
+                            <span class="tag">随机算法</span>
+                            <span class="tag">美食数据库</span>
+                            <span class="tag">选择困难症克星</span>
                         </div>
-                        <a href="#" class="btn btn-primary">查看详情</a>
+                        <a href="#" class="btn btn-primary">我想试试</a>
                     </div>
                 </div>
                 <div class="project-card fade-in delay-1">
-                    <div class="project-image" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
-                        任务管理应用
+                    <div class="project-image" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color));">
+                        猫咪翻译器
                     </div>
                     <div class="project-content">
-                        <h3 class="project-title">智能任务管理器</h3>
-                        <p class="project-description">一个直观的任务管理工具，帮助用户组织日常任务并提高生产力。</p>
+                        <h3 class="project-title">喵语十级 <span class="emoji">🐱</span></h3>
+                        <p class="project-description">通过AI分析猫咪的叫声，告诉你它到底是在说"我饿了"还是"你走开"。</p>
                         <div class="project-tags">
-                            <span class="tag">Vue.js</span>
-                            <span class="tag">Firebase</span>
-                            <span class="tag">PWA</span>
-                            <span class="tag">响应式设计</span>
+                            <span class="tag">AI分析</span>
+                            <span class="tag">猫语翻译</span>
+                            <span class="tag">人猫沟通</span>
                         </div>
-                        <a href="#" class="btn btn-primary">查看详情</a>
+                        <a href="#" class="btn btn-primary">喵一个</a>
                     </div>
                 </div>
             </div>
@@ -744,8 +785,8 @@
     <section class="section section-light" id="contact">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">联系我</h2>
-                <p class="section-subtitle">有任何问题或合作机会？请随时联系我</p>
+                <h2 class="section-title">找我玩 <span class="emoji">📞</span></h2>
+                <p class="section-subtitle">约饭、聊天、一起搞事情，或者单纯分享好吃的粉店</p>
             </div>
             <div class="contact-container">
                 <div class="contact-info">
@@ -756,7 +797,7 @@
                         </div>
                         <div>
                             <h4>邮箱</h4>
-                            <p>hello@example.com</p>
+                            <p>chi_fen@happyplanet.com</p>
                         </div>
                     </div>
                     <div class="contact-item">
@@ -773,8 +814,8 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div>
-                            <h4>地址</h4>
-                            <p>中国，大连市</p>
+                            <h4>常驻地点</h4>
+                            <p>各大粉店、沙发、床</p>
                         </div>
                     </div>
                     <div class="social-links">
@@ -785,28 +826,28 @@
                             <i class="fab fa-weixin"></i>
                         </a>
                         <a href="#" class="social-icon">
-                            <i class="fab fa-github"></i>
+                            <i class="fab fa-tiktok"></i>
                         </a>
                         <a href="#" class="social-icon">
-                            <i class="fab fa-linkedin-in"></i>
+                            <i class="fab fa-bilibili"></i>
                         </a>
                     </div>
                 </div>
                 <div class="contact-form">
                     <form id="contactForm">
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="您的姓名" required>
+                            <input type="text" class="form-control" placeholder="你的大名" required>
                         </div>
                         <div class="form-group">
-                            <input type="email" class="form-control" placeholder="您的邮箱" required>
+                            <input type="email" class="form-control" placeholder="你的邮箱" required>
                         </div>
                         <div class="form-group">
-                            <input type="text" class="form-control" placeholder="主题" required>
+                            <input type="text" class="form-control" placeholder="想聊啥" required>
                         </div>
                         <div class="form-group">
-                            <textarea class="form-control" placeholder="您的消息" required></textarea>
+                            <textarea class="form-control" placeholder="详细说说" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">发送消息</button>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">发射消息 <span class="emoji">🚀</span></button>
                     </form>
                 </div>
             </div>
@@ -818,41 +859,40 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-about">
-                    <div class="footer-logo">个人主页</div>
-                    <p>专注于创造美观、实用的数字产品与用户体验。</p>
-                    <p>通过精心设计的界面和流畅的交互，为用户带来愉悦的使用体验。</p>
+                    <div class="footer-logo">快乐星球 <span class="emoji">🌍</span></div>
+                    <p>一个不想上课只想吃粉的快乐人类的个人主页。</p>
+                    <p>人生格言：开心最重要，粉要趁热吃！</p>
                 </div>
                 <div class="footer-links">
-                    <h4>快速链接</h4>
+                    <h4>快速通道</h4>
                     <ul>
-                        <li><a href="#home">首页</a></li>
-                        <li><a href="#about">关于我</a></li>
-                        <li><a href="#skills">技能</a></li>
-                        <li><a href="#projects">项目</a></li>
-                        <li><a href="#contact">联系我</a></li>
+                        <li><a href="#home">回顶部吃粉</a></li>
+                        <li><a href="#about">了解我这个有趣的灵魂</a></li>
+                        <li><a href="#skills">看看我的超能力</a></li>
+                        <li><a href="#projects">围观我搞的事情</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h4>服务</h4>
+                    <h4>粉店推荐</h4>
                     <ul>
-                        <li><a href="#">网站开发</a></li>
-                        <li><a href="#">UI设计</a></li>
-                        <li><a href="#">移动应用</a></li>
-                        <li><a href="#">咨询</a></li>
+                        <li><a href="#">老友粉TOP10</a></li>
+                        <li><a href="#">螺蛳粉避坑指南</a></li>
+                        <li><a href="#">桂林米粉探店</a></li>
+                        <li><a href="#">生榨米粉全攻略</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h4>资源</h4>
+                    <h4>快乐资源</h4>
                     <ul>
-                        <li><a href="#">博客</a></li>
-                        <li><a href="#">案例研究</a></li>
-                        <li><a href="#">设计资源</a></li>
-                        <li><a href="#">工具推荐</a></li>
+                        <li><a href="#">搞笑视频合集</a></li>
+                        <li><a href="#">躺平姿势大全</a></li>
+                        <li><a href="#">游戏通关秘籍</a></li>
+                        <li><a href="#">摸鱼技巧分享</a></li>
                     </ul>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 保留所有权利.</p>
+                <p>&copy; 2023 快乐星球. 保留所有权利. | 设计理念：开心最重要！</p>
             </div>
         </div>
     </footer>
@@ -861,7 +901,7 @@
         // 简单的表单提交处理
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('感谢您的消息！我会尽快回复您。');
+            alert('消息已发送！我会尽快回复，如果我没在吃粉的话 😄');
             this.reset();
         });
         
@@ -893,6 +933,16 @@
         
         document.querySelectorAll('.card, .project-card').forEach(el => {
             observer.observe(el);
+        });
+        
+        // 添加一些交互趣味
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseover', function() {
+                this.style.transform = 'scale(1.05) rotate(2deg)';
+            });
+            btn.addEventListener('mouseout', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
         });
     </script>
 </body>
