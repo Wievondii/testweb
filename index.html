@@ -1,160 +1,822 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WYY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root{
-            --primary-color:#FF6B6B; --secondary-color:#4ECDC4; --accent-color:#FFD166;
-            --light-color:#f5f5f7; --dark-color:#1A535C; --white:#ffffff;
-            --transition:all 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
-            --shadow:0 4px 12px rgba(0,0,0,0.08); --radius:12px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        body{ font-family:'Comic Sans MS','Segoe UI',Tahoma, Geneva, Verdana, sans-serif;
-            background-color:var(--white); color:var(--dark-color); line-height:1.47059;
-            font-weight:400; letter-spacing:-0.022em; overflow-x:hidden; height:100%;
+        
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --accent-color: #FFD166;
+            --light-color: #f5f5f7;
+            --dark-color: #1A535C;
+            --white: #ffffff;
+            --transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
         }
-        html{ scroll-behavior:smooth; height:100%; }
-
-        /* navbar */
-        .navbar{ position:fixed; top:0; left:0; width:100%; backdrop-filter:blur(20px);
-            background-color:rgba(255,255,255,0.8); z-index:1000; transition:var(--transition);
-            border-bottom:1px solid rgba(0,0,0,0.05);
+        
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--white);
+            color: var(--dark-color);
+            line-height: 1.47059;
+            font-weight: 400;
+            letter-spacing: -0.022em;
+            overflow-x: hidden;
+            height: 100%;
         }
-        .nav-container{ max-width:980px; margin:0 auto; padding:0 22px; height:44px;
-            display:flex; justify-content:space-between; align-items:center;
+        
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
         }
-        .logo{ font-size:21px; font-weight:600; color:var(--primary-color); text-decoration:none; }
-        .nav-links{ display:flex; list-style:none; }
-        .nav-links li{ margin-left:24px; }
-        .nav-links a{ text-decoration:none; color:var(--dark-color); font-size:12px; font-weight:400; transition:var(--transition); }
-        .nav-links a:hover{ color:var(--primary-color); }
-
-        /* hero */
-        .hero{ height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
-            background:linear-gradient(135deg,#FF6B6B,#4ECDC4,#FFD166); position:relative; overflow:hidden; padding:0 20px;
+        
+        /* 导航栏样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
-        .hero::before{ content:''; position:absolute; top:0; left:0; width:100%; height:100%;
-            background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 60%); }
-        .hero-content{ position:relative; z-index:1; max-width:980px; }
-        .hero h1{ font-size:clamp(3rem,8vw,8rem); font-weight:800; line-height:1.05; letter-spacing:-0.015em; margin-bottom:20px;
-            color:var(--white); text-shadow:0 5px 15px rgba(0,0,0,0.2); opacity:0; transform:translateY(30px); animation:fadeInUp 1s ease-out forwards; }
-        .hero p{ font-size:clamp(1.2rem,3vw,2rem); color:rgba(255,255,255,0.9); max-width:700px; margin:0 auto 40px; line-height:1.2;
-            opacity:0; transform:translateY(30px); animation:fadeInUp 1s ease-out 0.3s forwards; }
-        .hero-buttons{ display:flex; justify-content:center; gap:20px; opacity:0; transform:translateY(30px);
-            animation:fadeInUp 1s ease-out 0.6s forwards;
+        
+        .nav-container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 22px;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .btn{ display:inline-flex; align-items:center; justify-content:center; padding:14px 28px; border-radius:980px;
-            font-size:17px; font-weight:500; text-decoration:none; transition:var(--transition); cursor:pointer; border:none; font-family:inherit;
+        
+        .logo {
+            font-size: 21px;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-decoration: none;
         }
-        .btn-primary{ background-color:var(--white); color:var(--primary-color); }
-        .btn-secondary{ background-color:transparent; color:var(--white); border:2px solid var(--white); }
-        .btn:hover{ transform:scale(1.05); box-shadow:0 10px 25px rgba(0,0,0,0.2); }
-        .btn-primary:hover{ background-color:var(--dark-color); color:var(--white); }
-        .btn-secondary:hover{ background-color:var(--white); color:var(--primary-color); }
-        .scroll-indicator{ position:absolute; bottom:30px; left:50%; transform:translateX(-50%); color:var(--white); font-size:14px; opacity:0.7; animation:bounce 2s infinite; }
-        .scroll-indicator i{ margin-top:5px; display:block; font-size:20px; }
-
-        /* sections */
-        .section{ padding:100px 0; position:relative; }
-        .section-light{ background-color:var(--light-color); }
-        .container{ max-width:980px; margin:0 auto; padding:0 22px; }
-        .section-header{ text-align:center; margin-bottom:80px; }
-        .section-title{ font-size:56px; font-weight:700; line-height:1.07143; letter-spacing:-0.005em; margin-bottom:16px; color:var(--primary-color); }
-        .section-subtitle{ font-size:28px; color:var(--dark-color); max-width:600px; margin:0 auto; line-height:1.14286; font-weight:500; }
-
-        /* cards */
-        .grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:30px; }
-        .card{ background:var(--white); border-radius:var(--radius); padding:40px; box-shadow:var(--shadow); transition:var(--transition);
-            display:flex; flex-direction:column; align-items:center; text-align:center; border:3px dashed var(--secondary-color);
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
         }
-        .card:hover{ transform:translateY(-10px) rotate(2deg); box-shadow:0 20px 40px rgba(0,0,0,0.1); }
-        .card-icon{ width:70px; height:70px; background:linear-gradient(135deg,var(--primary-color),var(--accent-color)); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:24px; }
-        .card-icon i{ font-size:30px; color:var(--white); }
-        .card h3{ font-size:24px; font-weight:600; margin-bottom:16px; color:var(--dark-color); }
-        .card p{ color:var(--dark-color); font-size:17px; line-height:1.47059; }
-
-        /* projects default */
-        .project-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(450px,1fr)); gap:30px; }
-        .project-card{ border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:var(--transition); background:var(--white); border:3px solid var(--accent-color); }
-        .project-card:hover{ transform:translateY(-5px) scale(1.02); box-shadow:0 20px 40px rgba(0,0,0,0.1); }
-        .project-image{ width:100%; height:280px; background:linear-gradient(135deg,var(--primary-color),var(--secondary-color)); display:flex; align-items:center; justify-content:center; color:var(--white); font-size:24px; font-weight:600; }
-        .project-content{ padding:30px; }
-        .project-title{ font-size:24px; font-weight:600; margin-bottom:12px; color:var(--dark-color); }
-        .project-description{ color:var(--dark-color); font-size:17px; line-height:1.47059; margin-bottom:20px; }
-        .project-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-        .tag{ background-color:var(--light-color); color:var(--dark-color); padding:4px 12px; border-radius:20px; font-size:12px; border:1px solid var(--secondary-color); }
-
-        /* 工具默认 */
-        .tool-container{ margin:20px 0; padding:20px; background-color:var(--light-color); border-radius:var(--radius); text-align:center; }
-        .result-box{ margin:20px 0; padding:15px; background-color:var(--white); border-radius:var(--radius); border:2px dashed var(--primary-color); min-height:60px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:600; }
-        .food-image{ width:100px; height:100px; margin:10px auto; border-radius:50%; background-size:cover; background-position:center; }
-        .cat-sound-buttons{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:15px 0; }
-        .cat-sound-btn{ padding:8px 15px; background-color:var(--secondary-color); color:white; border:none; border-radius:20px; cursor:pointer; transition:var(--transition); }
-        .cat-sound-btn:hover{ background-color:var(--primary-color); transform:scale(1.05); }
-
-        .loading{ display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,.3); border-radius:50%; border-top-color:#fff; animation:spin 1s ease-in-out infinite; }
-        @keyframes spin{ to{ transform:rotate(360deg) } }
-
-        /* contact */
-        .contact-container{ display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; }
-        .contact-info h3{ font-size:24px; font-weight:600; margin-bottom:24px; color:var(--dark-color); }
-        .contact-item{ display:flex; align-items:center; margin-bottom:24px; }
-        .contact-icon{ width:44px; height:44px; background-color:var(--accent-color); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:16px; }
-        .contact-icon i{ color:var(--white); font-size:18px; }
-        .contact-form{ background:var(--white); padding:40px; border-radius:var(--radius); box-shadow:var(--shadow); border:3px dashed var(--primary-color); }
-        .form-group{ margin-bottom:24px; }
-        .form-control{ width:100%; padding:16px; border:2px solid var(--secondary-color); border-radius:12px; font-size:17px; transition:var(--transition); font-family:'Comic Sans MS', cursive; }
-        .form-control:focus{ border-color:var(--primary-color); outline:none; transform:scale(1.02); }
-        textarea.form-control{ min-height:120px; resize:vertical; }
-
-        /* footer */
-        footer{ background-color:var(--dark-color); color:var(--white); padding:60px 0 30px; }
-        .footer-content{ display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:40px; }
-        .footer-logo{ font-size:21px; font-weight:600; margin-bottom:16px; color:var(--accent-color); }
-        .footer-about p{ color:#ffffffaa; font-size:17px; line-height:1.47059; margin-bottom:20px; }
-        .footer-links h4{ font-size:17px; font-weight:600; margin-bottom:20px; color:var(--accent-color); }
-        .footer-links ul{ list-style:none; } .footer-links li{ margin-bottom:12px; }
-        .footer-links a{ color:#ffffffaa; text-decoration:none; font-size:14px; transition:var(--transition); }
-        .footer-links a:hover{ color:var(--accent-color); }
-        .social-links{ display:flex; gap:16px; margin-top:20px; }
-        .social-icon{ width:36px; height:36px; background-color:var(--accent-color); border-radius:50%; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
-        .social-icon:hover{ background-color:var(--primary-color); transform:scale(1.1) rotate(10deg); }
-        .social-icon i{ color:var(--white); font-size:16px; }
-        .copyright{ text-align:center; padding-top:30px; border-top:1px solid #ffffff33; color:#ffffffaa; font-size:12px; }
-
-        /* responsive */
-        @media (max-width:768px){
-            .hero h1{ font-size:48px; } .hero p{ font-size:21px; }
-            .section-title{ font-size:40px; } .section-subtitle{ font-size:21px; }
-            .project-grid{ grid-template-columns:1fr; }
-            .contact-container{ grid-template-columns:1fr; gap:40px; } .footer-content{ grid-template-columns:1fr; gap:30px; }
-            .nav-links{ display:none; } .hero-buttons{ flex-direction:column; align-items:center; gap:15px; }
+        
+        .nav-links li {
+            margin-left: 24px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-size: 12px;
+            font-weight: 400;
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        /* 全屏英雄区域样式 */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4, #FFD166);
+            position: relative;
+            overflow: hidden;
+            padding: 0 20px;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+        }
+        
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.015em;
+            margin-bottom: 20px;
+            color: var(--white);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out forwards;
+        }
+        
+        .hero p {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 700px;
+            margin: 0 auto 40px;
+            line-height: 1.2;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.3s forwards;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 980px;
+            font-size: 17px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark-color);
+            color: var(--white);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--white);
+            font-size: 14px;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        
+        .scroll-indicator i {
+            margin-top: 5px;
+            display: block;
+            font-size: 20px;
+        }
+        
+        /* 内容区域样式 */
+        .section {
+            padding: 100px 0;
+            position: relative;
+        }
+        
+        .section-light {
+            background-color: var(--light-color);
+        }
+        
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 0 22px;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .section-title {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.07143;
+            letter-spacing: -0.005em;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+        
+        .section-subtitle {
+            font-size: 28px;
+            color: var(--dark-color);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.14286;
+            font-weight: 500;
+        }
+        
+        /* 卡片网格样式 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 40px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 3px dashed var(--secondary-color);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px) rotate(2deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .card-icon i {
+            font-size: 30px;
+            color: var(--white);
+        }
+        
+        .card h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--dark-color);
+        }
+        
+        .card p {
+            color: var(--dark-color);
+            font-size: 17px;
+            line-height: 1.47059;
+        }
+        
+        /* 项目展示样式 */
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+        }
+        
+        .project-card {
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            background: var(--white);
+            border: 3px solid var(--accent-color);
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .project-image {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .project-content {
+            padding: 30px;
+        }
+        
+        .project-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark-color);
+        }
+        
+        .project-description {
+            color: var(--dark-color);
+            font-size: 17px;
+            line-height: 1.47059;
+            margin-bottom: 20px;
+        }
+        
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tag {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid var(--secondary-color);
+        }
+        
+        /* 工具样式 */
+        .tool-container {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: var(--light-color);
+            border-radius: var(--radius);
+            text-align: center;
+        }
+        
+        .result-box {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: var(--radius);
+            border: 2px dashed var(--primary-color);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .food-image {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .cat-sound-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .cat-sound-btn {
+            padding: 8px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .cat-sound-btn:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg) }
+        }
+        
+        /* 联系表单样式 */
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+        
+        .contact-info h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--dark-color);
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .contact-icon {
+            width: 44px;
+            height: 44px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+        }
+        
+        .contact-icon i {
+            color: var(--white);
+            font-size: 18px;
+        }
+        
+        .contact-form {
+            background: var(--white);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 3px dashed var(--primary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 12px;
+            font-size: 17px;
+            transition: var(--transition);
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            transform: scale(1.02);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: var(--dark-color);
+            color: var(--white);
+            padding: 60px 0 30px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-logo {
+            font-size: 21px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--accent-color);
+        }
+        
+        .footer-about p {
+            color: #ffffffaa;
+            font-size: 17px;
+            line-height: 1.47059;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links h4 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            color: #ffffffaa;
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--accent-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .social-icon:hover {
+            background-color: var(--primary-color);
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .social-icon i {
+            color: var(--white);
+            font-size: 16px;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #ffffff33;
+            color: #ffffffaa;
+            font-size: 12px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 48px;
+            }
+            
+            .hero p {
+                font-size: 21px;
+            }
+            
+            .section-title {
+                font-size: 40px;
+            }
+            
+            .section-subtitle {
+                font-size: 21px;
+            }
+            
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-5px) translateX(-50%);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+        
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+        
+        .delay-3 {
+            animation-delay: 0.6s;
+        }
+        
+        .emoji {
+            font-size: 1.5em;
+            display: inline-block;
+            animation: wiggle 2s infinite;
+        }
+        
+        @keyframes wiggle {
+            0%, 7% {
+                transform: rotateZ(0);
+            }
+            15% {
+                transform: rotateZ(-10deg);
+            }
+            20% {
+                transform: rotateZ(8deg);
+            }
+            25% {
+                transform: rotateZ(-6deg);
+            }
+            30% {
+                transform: rotateZ(4deg);
+            }
+            35% {
+                transform: rotateZ(-2deg);
+            }
+            40%, 100% {
+                transform: rotateZ(0);
+            }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
-        /* animations */
-        @keyframes fadeInUp{ from{ opacity:0; transform:translateY(30px); } to{ opacity:1; transform:translateY(0); } }
-        @keyframes bounce{ 0%,20%,50%,80%,100%{ transform:translateY(0) translateX(-50%);} 40%{ transform:translateY(-10px) translateX(-50%);} 60%{ transform:translateY(-5px) translateX(-50%);} }
-        .fade-in{ animation:fadeInUp 0.8s ease-out forwards; } .delay-1{ animation-delay:0.2s; } .delay-2{ animation-delay:0.4s; } .delay-3{ animation-delay:0.6s; }
-        .emoji{ font-size:1.5em; display:inline-block; animation:wiggle 2s infinite; }
-        @keyframes wiggle{ 0%,7%{ transform:rotateZ(0);} 15%{ transform:rotateZ(-10deg);} 20%{ transform:rotateZ(8deg);} 25%{ transform:rotateZ(-6deg);} 30%{ transform:rotateZ(4deg);} 35%{ transform:rotateZ(-2deg);} 40%,100%{ transform:rotateZ(0);} }
-        .pulse{ animation:pulse 1.5s infinite; } @keyframes pulse{ 0%{ transform:scale(1);} 50%{ transform:scale(1.05);} 100%{ transform:scale(1);} }
+        /*
+         下面是仅作用于 “我搞的事情” 区域（#projects）的紧凑化规则
+         我限定了选择器范围为 #projects 开头，以保证**不影响其他页面**。
+        */
+        #projects {
+            /* 减少上下内边距，整体压缩该节高度 */
+            padding: 50px 0;
+        }
 
-        /* 仅针对 projects 区域的紧凑化（不影响其他区域） */
-        #projects{ padding:50px 0; }
-        #projects .project-grid{ gap:16px; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); }
-        #projects .project-image{ height:200px; font-size:20px; }
-        #projects .project-content{ padding:18px; }
-        #projects .project-title{ font-size:20px; } #projects .project-description{ font-size:14px; margin-bottom:12px; }
-        #projects .tool-container{ margin:12px 0; padding:12px; border-radius:10px; font-size:14px; }
-        #projects .result-box{ margin:12px 0; padding:10px; min-height:44px; font-size:15px; font-weight:600; border-radius:10px; }
-        #projects .food-image{ width:80px; height:80px; margin:6px auto; border-radius:50%; }
-        #projects .cat-sound-buttons{ gap:8px; margin:10px 0; } #projects .cat-sound-btn{ padding:6px 10px; font-size:13px; border-radius:16px; }
-        #projects .project-tags .tag{ padding:3px 8px; font-size:12px; } #projects .btn{ padding:10px 16px; font-size:14px; }
-        @media (min-width:1200px){ #projects .project-image{ height:220px; } #projects .project-content{ padding:20px; } }
+        /* 缩小项目网格间距并在宽屏上更紧凑 */
+        #projects .project-grid {
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        }
+
+        /* 缩小卡片内部显示区 */
+        #projects .project-image {
+            height: 200px; /* 从 280px 缩到 200px */
+            font-size: 20px;
+        }
+
+        #projects .project-content {
+            padding: 18px; /* 从 30px 缩小 */
+        }
+
+        #projects .project-title {
+            font-size: 20px;
+        }
+
+        #projects .project-description {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        /* 缩小工具容器和结果框 */
+        #projects .tool-container {
+            margin: 12px 0;
+            padding: 12px;
+            background-color: var(--light-color);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        #projects .result-box {
+            margin: 12px 0;
+            padding: 10px;
+            min-height: 44px; /* 从 60px 缩小 */
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+        }
+
+        #projects .food-image {
+            width: 80px;
+            height: 80px;
+            margin: 6px auto;
+            border-radius: 50%;
+        }
+
+        /* 缩小猫声按钮 */
+        #projects .cat-sound-buttons {
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        #projects .cat-sound-btn {
+            padding: 6px 10px;
+            font-size: 13px;
+            border-radius: 16px;
+        }
+
+        /* 缩小标签和按钮字体 */
+        #projects .project-tags .tag {
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        #projects .btn {
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        /* 在非常宽屏下再微调，避免单卡过高 */
+        @media (min-width: 1200px) {
+            #projects .project-image { height: 220px; }
+            #projects .project-content { padding: 20px; }
+        }
 
     </style>
 </head>
@@ -172,7 +834,7 @@
         </div>
     </nav>
 
-    <!-- hero -->
+    <!-- 全屏英雄区域 -->
     <section class="hero" id="home">
         <div class="hero-content">
             <h1>我不想上课 <span class="emoji">😫</span></h1>
@@ -188,71 +850,88 @@
         </div>
     </section>
 
-    <!-- about -->
-    <section class="section" id="about">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">关于我这个有趣的灵魂 <span class="emoji">😎</span></h2>
-                <p class="section-subtitle">一个不想上课只想吃粉的快乐人类</p>
+  <!-- 关于我区域 -->
+<section class="section" id="about">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">关于我这个有趣的灵魂 <span class="emoji">😎</span></h2>
+            <p class="section-subtitle">一个不想上课只想吃粉的快乐人类</p>
+        </div>
+        <div class="grid">
+            <div class="card fade-in">
+                <div class="card-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3>部落冲突高手 <span class="emoji">👑</span></h3>
+                <p>部落战从不缺席，能精准计算兵种搭配，带领部落走向胜利的顶级玩家。</p>
             </div>
-            <div class="grid">
-                <div class="card fade-in">
-                    <div class="card-icon"><i class="fas fa-crown"></i></div>
-                    <h3>部落冲突高手 <span class="emoji">👑</span></h3>
-                    <p>部落战从不缺席，能精准计算兵种搭配，带领部落走向胜利的顶级玩家。</p>
+            <div class="card fade-in delay-1">
+                <div class="card-icon">
+                    <i class="fas fa-bed"></i>
                 </div>
-                <div class="card fade-in delay-1">
-                    <div class="card-icon"><i class="fas fa-bed"></i></div>
-                    <h3>睡觉冠军 <span class="emoji">😴</span></h3>
-                    <p>随时躺下就可以睡着，不定闹钟也能准时起床，生物钟比原子钟还准。</p>
+                <h3>睡觉冠军 <span class="emoji">😴</span></h3>
+                <p>随时躺下就可以睡着，不定闹钟也能准时起床，生物钟比原子钟还准。</p>
+            </div>
+            <div class="card fade-in delay-2">
+                <div class="card-icon">
+                    <i class="fas fa-utensils"></i>
                 </div>
-                <div class="card fade-in delay-2">
-                    <div class="card-icon"><i class="fas fa-utensils"></i></div>
-                    <h3>美食探险家 <span class="emoji">🍖</span></h3>
-                    <p>能从100米外闻出哪家粉店用的是真骨头汤，还能精准定位全城最好吃的烤羊肉串和烤羊排。</p>
+                <h3>美食探险家 <span class="emoji">🍖</span></h3>
+                <p>能从100米外闻出哪家粉店用的是真骨头汤，还能精准定位全城最好吃的烤羊肉串和烤羊排。</p>
+            </div>
+            <div class="card fade-in delay-3">
+                <div class="card-icon">
+                    <i class="fas fa-film"></i>
                 </div>
-                <div class="card fade-in delay-3">
-                    <div class="card-icon"><i class="fas fa-film"></i></div>
-                    <h3>电影达人 <span class="emoji">🎬</span></h3>
-                    <p>阅片无数，尤其擅长在吃粉时看剧，能准确预测剧情发展并避免汤汁溅到屏幕和键盘上。</p>
-                </div>
+                <h3>电影达人 <span class="emoji">🎬</span></h3>
+                <p>阅片无数，尤其擅长在吃粉时看剧，能准确预测剧情发展并避免汤汁溅到屏幕和键盘上。</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- skills -->
-    <section class="section section-light" id="skills">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">我的超能力 <span class="emoji">🦸</span></h2>
-                <p class="section-subtitle">虽然不想上课，但这些技能我还是很厉害的</p>
+  <!-- 技能区域 -->
+<section class="section section-light" id="skills">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">我的超能力 <span class="emoji">🦸</span></h2>
+            <p class="section-subtitle">虽然不想上课，但这些技能我还是很厉害的</p>
+        </div>
+        <div class="grid">
+            <div class="card fade-in">
+                <div class="card-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">
+                    <i class="fas fa-copy"></i>
+                </div>
+                <h3>CV工程师 <span class="emoji">📋</span></h3>
+                <p>精通Ctrl+C和Ctrl+V的艺术，能从GitHub和Stack Overflow拼凑出能运行的代码。</p>
             </div>
-            <div class="grid">
-                <div class="card fade-in">
-                    <div class="card-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));"><i class="fas fa-copy"></i></div>
-                    <h3>CV工程师 <span class="emoji">📋</span></h3>
-                    <p>精通Ctrl+C和Ctrl+V的艺术，能从GitHub和Stack Overflow拼凑出能运行的代码。</p>
+            <div class="card fade-in delay-1">
+                <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));">
+                    <i class="fas fa-code"></i>
                 </div>
-                <div class="card fade-in delay-1">
-                    <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));"><i class="fas fa-code"></i></div>
-                    <h3>代码魔法 <span class="emoji">💻</span></h3>
-                    <p>能用代码变出各种有趣的东西，虽然有时候会有bug，但至少能运行！</p>
+                <h3>代码魔法 <span class="emoji">💻</span></h3>
+                <p>能用代码变出各种有趣的东西，虽然有时候会有bug，但至少能运行！</p>
+            </div>
+            <div class="card fade-in delay-2">
+                <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));">
+                    <i class="fas fa-paint-brush"></i>
                 </div>
-                <div class="card fade-in delay-2">
-                    <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));"><i class="fas fa-paint-brush"></i></div>
-                    <h3>灵魂画手 <span class="emoji">🎨</span></h3>
-                    <p>能用鼠标画出看起来像猫的狗，和看起来像狗的猫，抽象派大师。</p>
+                <h3>灵魂画手 <span class="emoji">🎨</span></h3>
+                <p>能用鼠标画出看起来像猫的狗，和看起来像狗的猫，抽象派大师。</p>
+            </div>
+            <div class="card fade-in delay-3">
+                <div class="card-icon" style="background: linear-gradient(135deg, #FF9A8B, #FF6A88);">
+                    <i class="fas fa-music"></i>
                 </div>
-                <div class="card fade-in delay-3">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #FF9A8B, #FF6A88);"><i class="fas fa-music"></i></div>
-                    <h3>浴室歌神 <span class="emoji">🎤</span></h3>
-                    <p>只有在浴室里才能发挥100%歌唱实力，出了浴室音准就会迷路。</p>
-                </div>
+                <h3>浴室歌神 <span class="emoji">🎤</span></h3>
+                <p>只有在浴室里才能发挥100%歌唱实力，出了浴室音准就会迷路。</p>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- =================== REPLACE_PROJECTS_START =================== -->
+    <!-- 下面整个 section 是"我搞的事情"区域，已做紧凑化（你可以直接替换原文件中同一区块） -->
     <section class="section" id="projects">
         <div class="container">
             <div class="section-header">
@@ -261,27 +940,32 @@
             </div>
             <div class="project-grid">
                 <div class="project-card fade-in">
-                    <div class="project-image">"今天吃什么"决策器</div>
+                    <div class="project-image">
+                        "今天吃什么"决策器
+                    </div>
                     <div class="project-content">
                         <h3 class="project-title">午餐救星 <span class="emoji">🤔</span></h3>
                         <p class="project-description">一个能帮你决定今天吃什么的APP，解决了"中午吃什么"这个世界难题。</p>
-
+                        
                         <div class="tool-container">
                             <p style="margin-bottom:8px;">点击按钮，让命运决定你今天吃什么！</p>
                             <button id="decideFood" class="btn btn-primary pulse" style="font-size:14px;">
                                 <span id="foodButtonText">帮我决定！</span>
-                                <span id="foodLoading" class="loading" style="display:none;margin-left:8px;"></span>
+                                <span id="foodLoading" class="loading" style="display: none; margin-left: 8px;"></span>
                             </button>
-                            <div id="foodResult" class="result-box">我还没想好...</div>
+                            <div id="foodResult" class="result-box">
+                                我还没想好...
+                            </div>
                             <div id="foodImage" class="food-image"></div>
-
-                            <div style="margin-top:8px;">
-                                <p style="font-size:13px;margin-bottom:6px;">或者，添加你想吃的食物：</p>
-                                <input type="text" id="newFood" placeholder="输入食物名称" style="padding:7px;border-radius:5px;border:1px solid #ccc;margin-right:8px;font-size:13px;">
-                                <button id="addFood" class="btn" style="padding:7px 10px;font-size:13px;">添加</button>
+                            
+                            <!-- 新增：用户自定义食物选项 -->
+                            <div style="margin-top: 8px;">
+                                <p style="font-size:13px; margin-bottom:6px;">或者，添加你想吃的食物：</p>
+                                <input type="text" id="newFood" placeholder="输入食物名称" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; margin-right: 8px; font-size:13px;">
+                                <button id="addFood" class="btn" style="padding:7px 10px; font-size:13px;">添加</button>
                             </div>
                         </div>
-
+                        
                         <div class="project-tags" style="margin-top:6px;">
                             <span class="tag">随机算法</span>
                             <span class="tag">美食数据库</span>
@@ -290,13 +974,14 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="project-card fade-in delay-1">
-                    <div class="project-image" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color));">猫咪翻译器</div>
+                    <div class="project-image" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color));">
+                        猫咪翻译器
+                    </div>
                     <div class="project-content">
                         <h3 class="project-title">喵语十级 <span class="emoji">🐱</span></h3>
                         <p class="project-description">通过AI分析猫咪的叫声，告诉你它到底是在说"我饿了"还是"你走开"。</p>
-
+                        
                         <div class="tool-container">
                             <p style="margin-bottom:8px;">点击不同的猫叫声，看看它在说什么！</p>
                             <div class="cat-sound-buttons">
@@ -305,21 +990,22 @@
                                 <button class="cat-sound-btn" data-sound="purr">呼噜声 🔊</button>
                                 <button class="cat-sound-btn" data-sound="angry">生气喵 🔊</button>
                             </div>
-
-                            <div id="catTranslation" class="result-box">喵喵喵？</div>
-                            <div id="catEmoji" style="font-size:36px;margin-top:8px;">🐱</div>
-
-                            <div style="margin-top:8px;">
-                                <p style="font-size:13px;margin-bottom:6px;">上传猫叫声分析（模拟）：</p>
-                                <input type="file" id="catSoundUpload" accept="audio/*" style="margin:6px 0;font-size:13px;">
-                                <button id="analyzeSound" class="btn" style="padding:7px 10px;font-size:13px;">
+                            <div id="catTranslation" class="result-box">
+                                喵喵喵？
+                            </div>
+                            <div id="catEmoji" style="font-size: 36px; margin-top: 8px;">🐱</div>
+                            
+                            <!-- 新增：用户上传猫叫声 -->
+                            <div style="margin-top: 8px;">
+                                <p style="font-size:13px; margin-bottom:6px;">上传猫叫声分析（模拟）：</p>
+                                <input type="file" id="catSoundUpload" accept="audio/*" style="margin: 6px 0; font-size:13px;">
+                                <button id="analyzeSound" class="btn" style="padding:7px 10px; font-size:13px;">
                                     <span id="analyzeButtonText">分析声音</span>
-                                    <span id="analyzeLoading" class="loading" style="display:none;margin-left:8px;"></span>
+                                    <span id="analyzeLoading" class="loading" style="display: none; margin-left: 8px;"></span>
                                 </button>
                             </div>
-                            <!-- 注意：已移除页面上的音量滑块（应你要求） -->
                         </div>
-
+                        
                         <div class="project-tags" style="margin-top:6px;">
                             <span class="tag">AI分析</span>
                             <span class="tag">猫语翻译</span>
@@ -333,7 +1019,7 @@
     </section>
     <!-- =================== REPLACE_PROJECTS_END =================== -->
 
-    <!-- contact -->
+    <!-- 联系区域 -->
     <section class="section section-light" id="contact">
         <div class="container">
             <div class="section-header">
@@ -344,49 +1030,78 @@
                 <div class="contact-info">
                     <h3>联系方式</h3>
                     <div class="contact-item">
-                        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-                        <div><h4>邮箱</h4><p>xxxv11xxxv@gmail.com</p></div>
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <h4>邮箱</h4>
+                            <p>xxxv11xxxv@gmail.com</p>
+                        </div>
                     </div>
                     <div class="contact-item">
-                        <div class="contact-icon"><i class="fas fa-phone"></i></div>
-                        <div><h4>电话</h4><p>+86 155 中间自己猜 9974</p></div>
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <h4>电话</h4>
+                            <p>+86 155 中间自己猜 9974</p>
+                        </div>
                     </div>
                     <div class="contact-item">
-                        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
-                        <div><h4>常驻地点</h4><p>各大教室、粉店、沙发、床</p></div>
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <h4>常驻地点</h4>
+                            <p>各大教室、粉店、沙发、床</p>
+                        </div>
                     </div>
                     <div class="social-links">
-                        <a href="#" class="social-icon"><i class="fab fa-weibo"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-weixin"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-bilibili"></i></a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-weibo"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-weixin"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-bilibili"></i>
+                        </a>
                     </div>
                 </div>
-
                <div class="contact-form">
                     <form id="contactForm">
-                        <div class="form-group"><input type="text" class="form-control" id="name" placeholder="你的大名" required></div>
-                        <div class="form-group"><input type="email" class="form-control" id="email" placeholder="你的邮箱" required></div>
-                        <div class="form-group"><input type="text" class="form-control" id="subject" placeholder="想聊啥" required></div>
-                        <div class="form-group"><textarea class="form-control" id="message" placeholder="详细说说" required></textarea></div>
-                        <button type="submit" class="btn btn-primary" style="width:100%;" id="submitBtn">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="name" placeholder="你的大名" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control" id="email" placeholder="你的邮箱" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="subject" placeholder="想聊啥" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="form-control" id="message" placeholder="详细说说" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
                             <span id="submitBtnText">发射消息</span>
-                            <span id="submitLoading" class="loading" style="display:none;margin-left:8px;"></span>
+                            <span id="submitLoading" class="loading" style="display: none; margin-left: 8px;"></span>
                         </button>
-                        <div id="formMessage" style="margin-top:15px;text-align:center;"></div>
+                        <div id="formMessage" style="margin-top: 15px; text-align: center;"></div>
                     </form>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- footer (已移除 “人生格言” 那一行) -->
+    <!-- 页脚 -->
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-about">
                     <div class="footer-logo">WYY的个人主页 <span class="emoji">🌍</span></div>
-                    <p>一个不想上课只想吃粉的快乐人类的个人主页。</p>
                 </div>
                 <div class="footer-links">
                     <h4>快速通道</h4>
@@ -425,305 +1140,546 @@
     <script>
         // API基础URL - 使用您的Worker地址
         const API_BASE_URL = 'https://api-worker.a15507719974.workers.dev';
-
-        // --- 食物决策器 ---
+        
+        // 食物决策器功能 - 使用后端API
         document.getElementById('decideFood').addEventListener('click', async function() {
             const button = this;
             const buttonText = document.getElementById('foodButtonText');
             const loading = document.getElementById('foodLoading');
-            button.disabled = true; buttonText.textContent = '思考中...'; loading.style.display = 'inline-block';
+            
+            // 显示加载状态
+            button.disabled = true;
+            buttonText.textContent = '思考中...';
+            loading.style.display = 'inline-block';
+            
             try {
+                // 调用后端API
                 const response = await fetch(`${API_BASE_URL}/api/food/random`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
+                
                 const resultElement = document.getElementById('foodResult');
                 resultElement.innerHTML = `
-                    <div style="text-align:center;">
-                        <div style="font-size:24px;">${data.emoji} ${data.name} ${data.emoji}</div>
-                        <div style="margin-top:10px;font-size:16px;">${data.description}</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px;">${data.emoji} ${data.name} ${data.emoji}</div>
+                        <div style="margin-top: 10px; font-size: 16px;">${data.description}</div>
                     </div>
                 `;
+                
+                // 添加一点动画效果
                 resultElement.style.animation = 'none';
-                setTimeout(()=>{ resultElement.style.animation = 'pulse 0.5s'; },10);
-                document.getElementById('foodImage').innerHTML = `<div style="font-size:60px;text-align:center;">${data.emoji}</div>`;
+                setTimeout(() => {
+                    resultElement.style.animation = 'pulse 0.5s';
+                }, 10);
+                
+                // 添加食物图片（使用emoji作为简单表示）
+                const foodImage = document.getElementById('foodImage');
+                foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${data.emoji}</div>`;
             } catch (error) {
                 console.error('获取食物失败:', error);
-                document.getElementById('foodResult').innerHTML = `<div style="text-align:center;color:var(--primary-color);">获取食物失败，请稍后再试！<br><small>错误信息: ${error.message}</small></div>`;
+                document.getElementById('foodResult').innerHTML = `
+                    <div style="text-align: center; color: var(--primary-color);">
+                        获取食物失败，请稍后再试！<br>
+                        <small>错误信息: ${error.message}</small>
+                    </div>
+                `;
             } finally {
-                button.disabled = false; buttonText.textContent = '帮我决定！'; loading.style.display = 'none';
+                // 恢复按钮状态
+                button.disabled = false;
+                buttonText.textContent = '帮我决定！';
+                loading.style.display = 'none';
             }
         });
-
+        
         // 添加自定义食物
         document.getElementById('addFood').addEventListener('click', async function() {
             const newFoodInput = document.getElementById('newFood');
             const foodName = newFoodInput.value.trim();
-            if (!foodName) { alert('请输入食物名称！'); return; }
+            
+            if (!foodName) {
+                alert('请输入食物名称！');
+                return;
+            }
+            
             const button = this;
-            button.disabled = true; button.textContent = '添加中...';
+            button.disabled = true;
+            button.textContent = '添加中...';
+            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/food`, {
-                    method:'POST', headers:{ 'Content-Type':'application/json' },
-                    body: JSON.stringify({ name: foodName, emoji:'🍽️', description:`看起来不错的${foodName}！` })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: foodName,
+                        emoji: '🍽️',
+                        description: `看起来不错的${foodName}！`
+                    })
                 });
-                if (response.ok) { alert(`成功添加 ${foodName} 到食物列表！`); newFoodInput.value = ''; }
-                else throw new Error('添加失败');
-            } catch (error) { console.error('添加食物失败:', error); alert('添加食物失败，请稍后再试！'); }
-            finally { button.disabled = false; button.textContent = '添加'; }
+                
+                if (response.ok) {
+                    alert(`成功添加 ${foodName} 到食物列表！`);
+                    newFoodInput.value = '';
+                } else {
+                    throw new Error('添加失败');
+                }
+            } catch (error) {
+                console.error('添加食物失败:', error);
+                alert('添加食物失败，请稍后再试！');
+            } finally {
+                button.disabled = false;
+                button.textContent = '添加';
+            }
         });
-
-        // --- 猫咪翻译器：按钮调用与 UI 更新 ---
+                
+        // 猫咪翻译器功能 - 使用合成猫叫（WebAudio）
         document.querySelectorAll('.cat-sound-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const soundType = this.getAttribute('data-sound');
+                
                 // 播放合成猫叫声
                 playRealCatSound(soundType);
+                
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/cat/translate`, {
-                        method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ soundType })
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ soundType })
                     });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const translation = await response.json();
+                    
                     const translationElement = document.getElementById('catTranslation');
-                    translationElement.innerHTML = `<div style="text-align:center;"><div style="font-size:20px;">${translation.text}</div></div>`;
+                    translationElement.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 20px;">${translation.text}</div>
+                        </div>
+                    `;
+                    
                     const catEmojiElement = document.getElementById('catEmoji');
                     catEmojiElement.textContent = translation.emoji;
-                    translationElement.style.animation = 'none'; catEmojiElement.style.animation = 'none';
-                    setTimeout(()=>{ translationElement.style.animation='pulse 0.5s'; catEmojiElement.style.animation='wiggle 0.5s'; },10);
+                    
+                    // 添加一点动画效果
+                    translationElement.style.animation = 'none';
+                    catEmojiElement.style.animation = 'none';
+                    setTimeout(() => {
+                        translationElement.style.animation = 'pulse 0.5s';
+                        catEmojiElement.style.animation = 'wiggle 0.5s';
+                    }, 10);
                 } catch (error) {
                     console.error('翻译猫语失败:', error);
-                    document.getElementById('catTranslation').innerHTML = `<div style="text-align:center;color:var(--primary-color);">翻译失败，请稍后再试！<br><small>错误信息: ${error.message}</small></div>`;
+                    document.getElementById('catTranslation').innerHTML = `
+                        <div style="text-align: center; color: var(--primary-color);">
+                            翻译失败，请稍后再试！<br>
+                            <small>错误信息: ${error.message}</small>
+                        </div>
+                    `;
                 }
             });
         });
-
-        // --- 合成的猫叫（改进参数：更真实） ---
+        
+        // 改进的猫叫声合成函数 - 更真实
         function playRealCatSound(soundType) {
-            // 创建并复用单一 AudioContext 和 master gain
+            // 创建音频上下文
             if (!window._wyyAudioCtx) {
                 window._wyyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                window._wyyMasterGain = window._wyyAudioCtx.createGain();
-                window._wyyMasterGain.gain.setValueAtTime(0.6, window._wyyAudioCtx.currentTime);
-                window._wyyMasterGain.connect(window._wyyAudioCtx.destination);
             }
             const ctx = window._wyyAudioCtx;
             const now = ctx.currentTime;
 
-            // 参数预设（更贴猫叫）
-            let duration = 0.6;
-            let startFreq = 900; // 起始基频（Hz）
-            let endFreq = 350;   // 下降后的基频
-            let noiseLevel = 0.35;
-            let lfoRate = 0; // 呼噜使用
-            let formant1 = 900, formant2 = 2200; // 形峰频率（模拟元音色）
-            let growl = false;
+            // 根据声音类型设置不同参数
+            let duration, baseFreq, freqRanges, vibratoRate, vibratoDepth, noiseAmount, formantFreqs;
 
-            switch (soundType) {
+            switch(soundType) {
                 case 'short':
                     duration = 0.5;
-                    startFreq = 1200;
-                    endFreq = 450;
-                    noiseLevel = 0.24;
-                    formant1 = 700; formant2 = 2000;
+                    baseFreq = 600;
+                    freqRanges = [600, 300];
+                    vibratoRate = 5;
+                    vibratoDepth = 30;
+                    noiseAmount = 0.1;
+                    formantFreqs = [1200, 2400, 3600];
                     break;
                 case 'long':
-                    duration = 1.0;
-                    startFreq = 1300;
-                    endFreq = 320;
-                    noiseLevel = 0.30;
-                    formant1 = 750; formant2 = 1800;
+                    duration = 1.2;
+                    baseFreq = 500;
+                    freqRanges = [500, 250];
+                    vibratoRate = 3;
+                    vibratoDepth = 40;
+                    noiseAmount = 0.15;
+                    formantFreqs = [1000, 2200, 3400];
                     break;
                 case 'purr':
                     duration = 2.0;
-                    startFreq = 140; // 低频持续
-                    endFreq = 140;
-                    noiseLevel = 0.06;
-                    lfoRate = 26; // 呼噜颤动 ~26Hz
-                    formant1 = 300; formant2 = 800;
+                    baseFreq = 120;
+                    freqRanges = [120, 120];
+                    vibratoRate = 25;
+                    vibratoDepth = 20;
+                    noiseAmount = 0.3;
+                    formantFreqs = [800, 1600, 2400];
                     break;
                 case 'angry':
-                    duration = 0.55;
-                    startFreq = 900;
-                    endFreq = 220;
-                    noiseLevel = 0.7; // 大量噪声
-                    formant1 = 900; formant2 = 2600;
-                    growl = true; // 添加低频“咆哮”成分
+                    duration = 0.8;
+                    baseFreq = 400;
+                    freqRanges = [400, 200];
+                    vibratoRate = 8;
+                    vibratoDepth = 60;
+                    noiseAmount = 0.25;
+                    formantFreqs = [1500, 2800, 4000];
                     break;
                 default:
-                    duration = 0.6; startFreq=900; endFreq=350; noiseLevel=0.35;
+                    duration = 0.6;
+                    baseFreq = 550;
+                    freqRanges = [550, 280];
+                    vibratoRate = 4;
+                    vibratoDepth = 35;
+                    noiseAmount = 0.12;
+                    formantFreqs = [1100, 2300, 3500];
             }
 
-            // 主振荡：两个振荡器（基频 + 2次谐波/宽度）增加丰富度
-            const osc1 = ctx.createOscillator();
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(startFreq, now);
-            const osc2 = ctx.createOscillator();
-            osc2.type = 'triangle';
-            osc2.frequency.setValueAtTime(startFreq * 1.95, now); // 近似二次谐波，微微失谐
-            osc2.detune.setValueAtTime(6, now); // 轻微失谐增加“活感”
+            // 创建主振荡器
+            const oscillator = ctx.createOscillator();
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(baseFreq, now);
+            
+            // 添加频率变化
+            oscillator.frequency.exponentialRampToValueAtTime(freqRanges[1], now + duration * 0.7);
 
-            // 频率滑降（类似猫叫的上冲或下滑）
-            osc1.frequency.exponentialRampToValueAtTime(Math.max(endFreq,40), now + Math.max(0.04, duration * 0.78));
-            osc2.frequency.exponentialRampToValueAtTime(Math.max(endFreq * 1.9,80), now + Math.max(0.04, duration * 0.78));
+            // 添加颤音
+            const vibrato = ctx.createOscillator();
+            vibrato.frequency.value = vibratoRate;
+            const vibratoGain = ctx.createGain();
+            vibratoGain.gain.value = vibratoDepth;
+            vibrato.connect(vibratoGain);
+            vibratoGain.connect(oscillator.frequency);
 
-            // 包络
-            const env = ctx.createGain();
-            env.gain.setValueAtTime(0.001, now);
-            // 更自然的 A/D/R 曲线
-            env.gain.linearRampToValueAtTime(0.9, now + Math.min(0.02, duration * 0.08));
-            env.gain.exponentialRampToValueAtTime(0.0005, now + duration);
+            // 创建噪声
+            const noise = ctx.createBufferSource();
+            const bufferSize = ctx.sampleRate * duration;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            noise.buffer = buffer;
+            
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 1500;
+            noiseFilter.Q.value = 1.0;
 
-            // 形峰滤波（两个带通，模拟元音共振峰）
-            const f1 = ctx.createBiquadFilter();
-            f1.type = 'bandpass'; f1.frequency.setValueAtTime(formant1, now); f1.Q.setValueAtTime(1.5, now);
-            const f2 = ctx.createBiquadFilter();
-            f2.type = 'bandpass'; f2.frequency.setValueAtTime(formant2, now); f2.Q.setValueAtTime(1.2, now);
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.value = noiseAmount;
 
-            // 噪声纹理（让“喵”的齿音更真实）
-            const bufSize = Math.max(1, Math.floor(ctx.sampleRate * duration));
-            const noiseBuffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-            const data = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * noiseLevel;
-            const noiseSource = ctx.createBufferSource(); noiseSource.buffer = noiseBuffer;
-            const noiseHP = ctx.createBiquadFilter();
-            noiseHP.type = 'highpass'; noiseHP.frequency.setValueAtTime(800, now); noiseHP.Q.setValueAtTime(0.8, now);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
 
-            // 将振荡器通过低通先柔化，再送入形峰滤波
-            const oscMix = ctx.createGain();
-            oscMix.gain.setValueAtTime(0.9, now);
-            osc1.connect(oscMix); osc2.connect(oscMix);
+            // 创建共振峰滤波器（模拟猫的声道）
+            const formantFilters = [];
+            formantFreqs.forEach((freq, index) => {
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = freq;
+                filter.Q.value = 8.0;
+                formantFilters.push(filter);
+            });
 
-            const oscLowpass = ctx.createBiquadFilter();
-            oscLowpass.type = 'lowpass'; oscLowpass.frequency.setValueAtTime(6000, now); oscLowpass.Q.setValueAtTime(0.7, now);
-            oscMix.connect(oscLowpass);
-            oscLowpass.connect(f1);
-            f1.connect(f2);
-            f2.connect(env);
-
-            // 噪声链路
-            noiseSource.connect(noiseHP);
-            noiseHP.connect(env);
-
-            // 可能的低频“咆哮”用于 angry
-            let growlOsc, growlGain;
-            if (growl) {
-                growlOsc = ctx.createOscillator();
-                growlOsc.type = 'sawtooth';
-                growlOsc.frequency.setValueAtTime(70, now); // 低频次谐
-                // 失谐与轻微频率抖动增加“咆哮”质感
-                growlOsc.frequency.exponentialRampToValueAtTime(60, now + duration * 0.6);
-                growlGain = ctx.createGain(); growlGain.gain.setValueAtTime(0.12, now);
-                const growlFilter = ctx.createBiquadFilter(); growlFilter.type='lowpass'; growlFilter.frequency.setValueAtTime(200, now);
-                growlOsc.connect(growlFilter); growlFilter.connect(growlGain); growlGain.connect(env);
+            // 创建包络
+            const envelope = ctx.createGain();
+            envelope.gain.setValueAtTime(0.001, now);
+            envelope.gain.exponentialRampToValueAtTime(0.7, now + 0.05);
+            
+            if (soundType === 'purr') {
+                // 呼噜声有特殊的脉冲包络
+                const pulseRate = 25;
+                const pulseCount = Math.floor(duration * pulseRate);
+                for (let i = 0; i < pulseCount; i++) {
+                    const pulseTime = now + i / pulseRate;
+                    envelope.gain.setValueAtTime(0.8, pulseTime);
+                    envelope.gain.exponentialRampToValueAtTime(0.1, pulseTime + 0.02);
+                }
+            } else {
+                envelope.gain.exponentialRampToValueAtTime(0.001, now + duration);
             }
 
-            // 输出到 master gain（之前已连接到 destination）
-            const outGain = ctx.createGain(); outGain.gain.setValueAtTime(0.9, now);
-            env.connect(outGain);
-            outGain.connect(window._wyyMasterGain);
+            // 连接所有节点
+            oscillator.connect(envelope);
+            noiseGain.connect(envelope);
+            
+            let currentInput = envelope;
+            formantFilters.forEach(filter => {
+                currentInput.connect(filter);
+                currentInput = filter;
+            });
+            
+            currentInput.connect(ctx.destination);
 
-            // 如果是呼噜，添加 LFO 调制 env.gain 产生颤动
-            let lfo, lfoGain;
-            if (lfoRate > 0) {
-                lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.setValueAtTime(lfoRate, now);
-                lfoGain = ctx.createGain(); lfoGain.gain.setValueAtTime(0.25, now); // 调制幅度
-                lfo.connect(lfoGain); lfoGain.connect(env.gain);
-                lfo.start(now); lfo.stop(now + duration + 0.06);
-            }
+            // 启动所有振荡器
+            oscillator.start(now);
+            vibrato.start(now);
+            noise.start(now);
+            
+            // 停止所有振荡器
+            oscillator.stop(now + duration + 0.1);
+            vibrato.stop(now + duration + 0.1);
+            noise.stop(now + duration + 0.1);
 
-            // 启动声音源
-            osc1.start(now); osc2.start(now); noiseSource.start(now);
-            if (growlOsc) growlOsc.start(now);
-
-            // 停止
-            osc1.stop(now + duration + 0.06); osc2.stop(now + duration + 0.06); noiseSource.stop(now + duration + 0.06);
-            if (growlOsc) growlOsc.stop(now + duration + 0.06);
-
-            // 清理节点，延迟确保播放完
-            setTimeout(() => {
-                try {
-                    osc1.disconnect(); osc2.disconnect(); oscMix.disconnect(); oscLowpass.disconnect();
-                    f1.disconnect(); f2.disconnect(); env.disconnect(); outGain.disconnect(); noiseSource.disconnect(); noiseHP.disconnect();
-                    if (growlOsc){ growlOsc.disconnect(); growlGain.disconnect(); }
-                    if (lfo){ lfo.disconnect(); lfoGain.disconnect(); }
-                } catch (e) {}
-            }, (duration + 0.25) * 1000);
-
-            // 如果 AudioContext 被挂起（浏览器策略），提示用户交互并尝试 resume
+            // 如果上下文处于暂停状态，尝试恢复
             if (ctx.state === 'suspended') {
                 showSoundPlayHint();
-                ctx.resume().catch(()=>{});
+                ctx.resume().catch(() => {});
             }
         }
 
-        // 播放权限提示（与之前逻辑相同）
-        function showSoundPlayHint(){
+        // 显示声音播放提示
+        function showSoundPlayHint() {
             const hint = document.createElement('div');
-            hint.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:20px;border-radius:10px;z-index:10000;text-align:center;max-width:300px;`;
-            hint.innerHTML = `<p>🔊 请点击任意位置启用音频播放</p><p style="font-size:12px;margin-top:10px;">部分浏览器需要用户交互后才能播放声音</p>`;
+            hint.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                z-index: 10000;
+                text-align: center;
+                max-width: 300px;
+            `;
+            hint.innerHTML = `
+                <p>🔊 请点击任意位置启用音频播放</p>
+                <p style="font-size: 12px; margin-top: 10px;">部分浏览器需要用户交互后才能播放声音</p>
+            `;
             document.body.appendChild(hint);
-            const removeHint = ()=>{ document.body.removeChild(hint); document.removeEventListener('click', removeHint); };
+            
+            // 点击任意位置移除提示
+            const removeHint = () => {
+                document.body.removeChild(hint);
+                document.removeEventListener('click', removeHint);
+            };
             document.addEventListener('click', removeHint);
+            
+            // 5秒后自动移除提示
             setTimeout(removeHint, 5000);
         }
-
-        // --- 分析上传的猫叫声（模拟） ---
+        
+        // 分析上传的猫叫声（模拟）- 改进版
         document.getElementById('analyzeSound').addEventListener('click', async function() {
             const fileInput = document.getElementById('catSoundUpload');
             const file = fileInput.files[0];
-            if (!file) { alert('请先选择音频文件！'); return; }
-            const button = this; const buttonText = document.getElementById('analyzeButtonText'); const loading = document.getElementById('analyzeLoading');
-            button.disabled = true; buttonText.textContent = '分析中...'; loading.style.display = 'inline-block';
+            
+            if (!file) {
+                alert('请先选择音频文件！');
+                return;
+            }
+            
+            const button = this;
+            const buttonText = document.getElementById('analyzeButtonText');
+            const loading = document.getElementById('analyzeLoading');
+            
+            // 显示加载状态
+            button.disabled = true;
+            buttonText.textContent = '分析中...';
+            loading.style.display = 'inline-block';
+            
             try {
-                // 播放上传的音频（供试听）
+                // 播放上传的音频文件（供用户听）
                 const audioURL = URL.createObjectURL(file);
                 const audio = new Audio(audioURL);
-                audio.play().catch(e => { console.log('自动播放被阻止，需要用户交互:', e); });
-
-                const formData = new FormData(); formData.append('audio', file);
-                const response = await fetch(`${API_BASE_URL}/api/cat/analyze`, { method:'POST', body: formData });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                audio.volume = 0.5;
+                audio.play().catch(e => {
+                    console.log('自动播放被阻止，需要用户交互:', e);
+                });
+                
+                // 创建FormData对象
+                const formData = new FormData();
+                formData.append('audio', file);
+                
+                // 调用后端API分析声音
+                const response = await fetch(`${API_BASE_URL}/api/cat/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const result = await response.json();
+                
                 const translationElement = document.getElementById('catTranslation');
-                translationElement.innerHTML = `<div style="text-align:center;"><div style="font-size:20px;">分析结果: ${result.text}</div><div style="margin-top:10px;font-size:14px;color:#666;">置信度: ${result.confidence}%</div></div>`;
-                document.getElementById('catEmoji').textContent = result.emoji;
-                translationElement.style.animation='none'; document.getElementById('catEmoji').style.animation='none';
-                setTimeout(()=>{ translationElement.style.animation='pulse 0.5s'; document.getElementById('catEmoji').style.animation='wiggle 0.5s'; },10);
+                translationElement.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 20px;">分析结果: ${result.text}</div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #666;">置信度: ${result.confidence}%</div>
+                    </div>
+                `;
+                
+                const catEmojiElement = document.getElementById('catEmoji');
+                catEmojiElement.textContent = result.emoji;
+                
+                // 添加一点动画效果
+                translationElement.style.animation = 'none';
+                catEmojiElement.style.animation = 'none';
+                setTimeout(() => {
+                    translationElement.style.animation = 'pulse 0.5s';
+                    catEmojiElement.style.animation = 'wiggle 0.5s';
+                }, 10);
             } catch (error) {
                 console.error('分析声音失败:', error);
-                document.getElementById('catTranslation').innerHTML = `<div style="text-align:center;color:var(--primary-color);">分析失败，请稍后再试！<br><small>错误信息: ${error.message}</small></div>`;
+                document.getElementById('catTranslation').innerHTML = `
+                    <div style="text-align: center; color: var(--primary-color);">
+                        分析失败，请稍后再试！<br>
+                        <small>错误信息: ${error.message}</small>
+                    </div>
+                `;
             } finally {
-                button.disabled = false; buttonText.textContent = '分析声音'; loading.style.display = 'none';
+                // 恢复按钮状态
+                button.disabled = false;
+                buttonText.textContent = '分析声音';
+                loading.style.display = 'none';
+            }
+        });
+        
+        // 表单提交处理
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
+            const submitLoading = document.getElementById('submitLoading');
+            const formMessage = document.getElementById('formMessage');
+            
+            // 获取表单数据
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                subject: document.getElementById('subject').value.trim(),
+                message: document.getElementById('message').value.trim()
+            };
+            
+            // 简单验证
+            if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                showMessage('请填写所有必填字段！', 'error');
+                return;
+            }
+            
+            // 邮箱格式验证
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                showMessage('请输入有效的邮箱地址！', 'error');
+                return;
+            }
+            
+            // 显示加载状态
+            submitBtn.disabled = true;
+            submitBtnText.textContent = '发送中...';
+            submitLoading.style.display = 'inline-block';
+            formMessage.style.display = 'none';
+            
+            try {
+                console.log('正在发送消息到:', `${API_BASE_URL}/api/contact`);
+                
+                // 发送到您的API
+                const response = await fetch(`${API_BASE_URL}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                console.log('收到响应，状态码:', response.status);
+                
+                const result = await response.json();
+                console.log('响应内容:', result);
+                
+                if (response.ok && result.success) {
+                    showMessage(result.message || '消息已成功发射！我会尽快回复你 😄', 'success');
+                    this.reset();
+                } else {
+                    throw new Error(result.error || '发送失败，服务器返回错误');
+                }
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                showMessage('发送失败: ' + error.message, 'error');
+            } finally {
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitBtnText.textContent = '发射消息';
+                submitLoading.style.display = 'none';
             }
         });
 
-        // --- 联系表单提交 ---
-        document.getElementById('contactForm').addEventListener('submit', async function(e){
-            e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn'); const submitBtnText = document.getElementById('submitBtnText');
-            const submitLoading = document.getElementById('submitLoading'); const formMessage = document.getElementById('formMessage');
-            const formData = { name: document.getElementById('name').value.trim(), email: document.getElementById('email').value.trim(), subject: document.getElementById('subject').value.trim(), message: document.getElementById('message').value.trim() };
-            if (!formData.name || !formData.email || !formData.subject || !formData.message) { showMessage('请填写所有必填字段！','error'); return; }
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(formData.email)) { showMessage('请输入有效的邮箱地址！','error'); return; }
-            submitBtn.disabled = true; submitBtnText.textContent = '发送中...'; submitLoading.style.display='inline-block'; formMessage.style.display='none';
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/contact`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(formData) });
-                const result = await response.json();
-                if (response.ok && result.success) { showMessage(result.message || '消息已成功发射！我会尽快回复你 😄','success'); this.reset(); }
-                else throw new Error(result.error || '发送失败，服务器返回错误');
-            } catch (error) { console.error('发送消息失败:', error); showMessage('发送失败: '+error.message,'error'); }
-            finally { submitBtn.disabled=false; submitBtnText.textContent='发射消息'; submitLoading.style.display='none'; }
+        // 显示消息函数
+        function showMessage(message, type) {
+            const formMessage = document.getElementById('formMessage');
+            formMessage.textContent = message;
+            formMessage.style.display = 'block';
+            
+            if (type === 'success') {
+                formMessage.style.color = '#4ECDC4';
+            } else if (type === 'error') {
+                formMessage.style.color = '#FF6B6B';
+            } else {
+                formMessage.style.color = '#1A535C';
+            }
+            
+            // 5秒后自动隐藏消息
+            setTimeout(() => {
+                formMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // 滚动时导航栏效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            } else {
+                navbar.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                navbar.style.boxShadow = 'none';
+            }
         });
-
-        function showMessage(message,type){ const formMessage=document.getElementById('formMessage'); formMessage.textContent=message; formMessage.style.display='block'; if(type==='success'){ formMessage.style.color='#4ECDC4'; } else if(type==='error'){ formMessage.style.color='#FF6B6B'; } else { formMessage.style.color='#1A535C'; } setTimeout(()=>{ formMessage.style.display='none'; },5000); }
-
-        // 滚动栏效果 & 交互动画（保持不变）
-        window.addEventListener('scroll', function(){ const navbar = document.querySelector('.navbar'); if(window.scrollY>50){ navbar.style.backgroundColor='rgba(255,255,255,0.95)'; navbar.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'; } else { navbar.style.backgroundColor='rgba(255,255,255,0.8)'; navbar.style.boxShadow='none'; }});
-        const observerOptions = { threshold:0.1, rootMargin:'0px 0px -50px 0px' };
-        const observer = new IntersectionObserver(entries=>{ entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('fade-in'); }); }, observerOptions);
-        document.querySelectorAll('.card, .project-card').forEach(el => observer.observe(el));
-        document.querySelectorAll('.btn').forEach(btn => { btn.addEventListener('mouseover', function() { this.style.transform = 'scale(1.05) rotate(2deg)'; }); btn.addEventListener('mouseout', function(){ this.style.transform='scale(1) rotate(0deg)'; }); });
-
+        
+        // 滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.card, .project-card').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // 添加一些交互趣味
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('mouseover', function() {
+                this.style.transform = 'scale(1.05) rotate(2deg)';
+            });
+            btn.addEventListener('mouseout', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
+        });
     </script>
 </body>
 </html>
