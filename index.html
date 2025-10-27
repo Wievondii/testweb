@@ -1144,10 +1144,13 @@
             }
         });
         
-        // 猫咪翻译器功能 - 使用后端API
+                // 猫咪翻译器功能 - 使用后端API并添加声音
         document.querySelectorAll('.cat-sound-btn').forEach(button => {
             button.addEventListener('click', async function() {
                 const soundType = this.getAttribute('data-sound');
+                
+                // 播放对应的猫叫声
+                playCatSound(soundType);
                 
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/cat/translate`, {
@@ -1193,7 +1196,79 @@
             });
         });
         
-        // 分析上传的猫叫声（模拟）
+        // 播放猫叫声函数
+        function playCatSound(soundType) {
+            // 创建音频上下文
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // 根据声音类型设置不同的振荡器参数
+            let oscillatorType = 'sine';
+            let frequency = 200;
+            let duration = 0.5;
+            
+            switch(soundType) {
+                case 'short':
+                    frequency = 300;
+                    duration = 0.3;
+                    break;
+                case 'long':
+                    frequency = 250;
+                    duration = 1.0;
+                    break;
+                case 'purr':
+                    oscillatorType = 'sawtooth';
+                    frequency = 120;
+                    duration = 1.5;
+                    break;
+                case 'angry':
+                    oscillatorType = 'square';
+                    frequency = 400;
+                    duration = 0.8;
+                    break;
+            }
+            
+            // 创建振荡器
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 设置振荡器参数
+            oscillator.type = oscillatorType;
+            oscillator.frequency.value = frequency;
+            
+            // 设置音量包络
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.05);
+            
+            // 对于呼噜声，创建颤音效果
+            if (soundType === 'purr') {
+                const vibrato = audioContext.createOscillator();
+                const vibratoGain = audioContext.createGain();
+                
+                vibrato.connect(vibratoGain);
+                vibratoGain.connect(oscillator.frequency);
+                
+                vibrato.type = 'sine';
+                vibrato.frequency.value = 10; // 颤音频率
+                vibratoGain.gain.value = 20; // 颤音深度
+                
+                vibrato.start();
+                vibrato.stop(audioContext.currentTime + duration);
+            }
+            
+            // 播放声音
+            oscillator.start();
+            
+            // 淡出效果
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            // 停止振荡器
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+                // 分析上传的猫叫声（模拟）- 改进版
         document.getElementById('analyzeSound').addEventListener('click', async function() {
             const fileInput = document.getElementById('catSoundUpload');
             const file = fileInput.files[0];
@@ -1213,6 +1288,13 @@
             loading.style.display = 'inline-block';
             
             try {
+                // 播放上传的音频文件
+                const audioURL = URL.createObjectURL(file);
+                const audio = new Audio(audioURL);
+                audio.play().catch(e => {
+                    console.log('自动播放被阻止，需要用户交互:', e);
+                });
+                
                 // 创建FormData对象
                 const formData = new FormData();
                 formData.append('audio', file);
