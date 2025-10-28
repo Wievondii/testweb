@@ -6,6 +6,7 @@
     <title>WYY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* （样式与原来完全相同，未改动） */
         * {
             margin: 0;
             padding: 0;
@@ -934,7 +935,7 @@
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">我搞的事情 <span class="emoji">🔧</span></h2>
-                <p class="section-subtitle">一些吃饱了撑的做出来的有趣项目</p>
+                <p class="section-subtitle"></p>
             </div>
             <div class="project-grid">
                 <div class="project-card fade-in">
@@ -962,6 +963,9 @@
                                 <input type="text" id="newFood" placeholder="输入食物名称" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; margin-right: 8px; font-size:13px;">
                                 <button id="addFood" class="btn" style="padding:7px 10px; font-size:13px;">添加</button>
                             </div>
+                            <p style="font-size:12px; color:#666; margin-top:6px;">
+                                提示：当你没有添加自定义食物时，决策器**不会**请求后端（响应更快）。添加自定义食物后，后端将参与决策（可保留你添加的项）。
+                            </p>
                         </div>
                         
                         <div class="project-tags" style="margin-top:6px;">
@@ -1022,7 +1026,7 @@
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">找我玩 <span class="emoji">📞</span></h2>
-                <p class="section-subtitle">约饭、聊天、一起搞事情，或者单纯分享好吃的粉店</p>
+                <p class="section-subtitle"></p>
             </div>
             <div class="contact-container">
                 <div class="contact-info">
@@ -1139,32 +1143,42 @@
         // API基础URL - 使用您的Worker地址
         const API_BASE_URL = 'https://api-worker.a15507719974.workers.dev';
         
-        // 音频管理对象
+        // ---------- 前端本地默认食物（与后端保持一致） ----------
+        const CLIENT_DEFAULT_FOODS = [
+          { id: 1, name: "老友粉", emoji: "🍜", description: "酸辣鲜香，一口入魂！" },
+          { id: 2, name: "螺蛳粉", emoji: "🥘", description: "闻着臭吃着香，越吃越上头！" },
+          { id: 3, name: "桂林米粉", emoji: "🍝", description: "滑嫩爽口，回味无穷！" },
+          { id: 4, name: "生榨米粉", emoji: "🍲", description: "鲜香浓郁，口感独特！" },
+          { id: 5, name: "麻辣烫", emoji: "🥵", description: "麻辣鲜香，过瘾！" },
+          { id: 6, name: "火锅", emoji: "🍲", description: "围炉而坐，暖心暖胃！" },
+          { id: 7, name: "烧烤", emoji: "🍢", description: "炭火香气，夜宵首选！" },
+          { id: 8, name: "炸鸡", emoji: "🍗", description: "外酥里嫩，快乐源泉！" },
+          { id: 9, name: "披萨", emoji: "🍕", description: "拉丝芝士，幸福满满！" },
+          { id: 10, name: "寿司", emoji: "🍣", description: "精致美味，日式风情！" },
+          { id: 11, name: "烤羊肉串", emoji: "🍖", description: "炭火烤制，香气四溢！" },
+          { id: 12, name: "烤羊排", emoji: "🥩", description: "外焦里嫩，肉质鲜美！" },
+        ];
+
+        // 本地追踪：前端已成功添加到后端的自定义食物（只要数组为空，我们就不会请求后端）
+        let clientUserFoods = []; // 当添加成功后 push 进来，并由此触发后端请求逻辑
+
+        // 音频管理对象（保持原样）
         const audioManager = {
             currentAudio: null,
             playSound: function(src, volume = 0.9) {
-                // 停止当前播放的声音
                 this.stopSound();
                 
                 try {
-                    // 创建新的音频对象
                     this.currentAudio = new Audio(src);
                     this.currentAudio.volume = volume;
-                    
-                    // 预加载音频以减少延迟
                     this.currentAudio.preload = 'auto';
-                    
-                    // 播放音频
                     this.currentAudio.play().catch(err => {
                         console.warn('播放猫叫失败（可能需要用户交互以允许播放）:', err);
                         showSoundPlayHint();
                     });
-                    
-                    // 音频播放结束后清理引用
                     this.currentAudio.onended = () => {
                         this.currentAudio = null;
                     };
-                    
                 } catch (e) {
                     console.error('创建 Audio 出错:', e);
                     this.currentAudio = null;
@@ -1178,51 +1192,65 @@
                 }
             }
         };
-        
-        // 食物决策器功能 - 使用后端API
+
+        // ---------- 食物决策器（改动点） ----------
         document.getElementById('decideFood').addEventListener('click', async function() {
             const button = this;
             const buttonText = document.getElementById('foodButtonText');
             const loading = document.getElementById('foodLoading');
-            
+            const resultElement = document.getElementById('foodResult');
+            const foodImage = document.getElementById('foodImage');
+
             // 显示加载状态
             button.disabled = true;
             buttonText.textContent = '思考中...';
             loading.style.display = 'inline-block';
-            
+
             try {
-                // 调用后端API
-                const response = await fetch(`${API_BASE_URL}/api/food/random`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // 如果没有自定义食物（clientUserFoods 为空），直接在前端随机选，不请求后端
+                if (clientUserFoods.length === 0) {
+                    // 浏览器本地选择，极速响应
+                    const allLocal = CLIENT_DEFAULT_FOODS;
+                    const idx = Math.floor(Math.random() * allLocal.length);
+                    const data = allLocal[idx];
+
+                    resultElement.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px;">${data.emoji} ${data.name} ${data.emoji}</div>
+                            <div style="margin-top: 10px; font-size: 16px;">${data.description}</div>
+                        </div>
+                    `;
+                    foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${data.emoji}</div>`;
+
+                    // 添加动画
+                    resultElement.style.animation = 'none';
+                    setTimeout(() => { resultElement.style.animation = 'pulse 0.5s'; }, 10);
+                } else {
+                    // 有自定义食物了 —— 走后端（后端会把默认 + 用户自定义合并后随机）
+                    const response = await fetch(`${API_BASE_URL}/api/food/random`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+
+                    resultElement.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px;">${data.emoji} ${data.name} ${data.emoji}</div>
+                            <div style="margin-top: 10px; font-size: 16px;">${data.description}</div>
+                        </div>
+                    `;
+                    foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${data.emoji}</div>`;
+
+                    resultElement.style.animation = 'none';
+                    setTimeout(() => { resultElement.style.animation = 'pulse 0.5s'; }, 10);
                 }
-                const data = await response.json();
-                
-                const resultElement = document.getElementById('foodResult');
-                resultElement.innerHTML = `
-                    <div style="text-align: center;">
-                        <div style="font-size: 24px;">${data.emoji} ${data.name} ${data.emoji}</div>
-                        <div style="margin-top: 10px; font-size: 16px;">${data.description}</div>
-                    </div>
-                `;
-                
-                // 添加一点动画效果
-                resultElement.style.animation = 'none';
-                setTimeout(() => {
-                    resultElement.style.animation = 'pulse 0.5s';
-                }, 10);
-                
-                // 添加食物图片（使用emoji作为简单表示）
-                const foodImage = document.getElementById('foodImage');
-                foodImage.innerHTML = `<div style="font-size: 60px; text-align: center;">${data.emoji}</div>`;
             } catch (error) {
                 console.error('获取食物失败:', error);
-                document.getElementById('foodResult').innerHTML = `
+                resultElement.innerHTML = `
                     <div style="text-align: center; color: var(--primary-color);">
                         获取食物失败，请稍后再试！<br>
                         <small>错误信息: ${error.message}</small>
                     </div>
                 `;
+                foodImage.innerHTML = '';
             } finally {
                 // 恢复按钮状态
                 button.disabled = false;
@@ -1230,36 +1258,51 @@
                 loading.style.display = 'none';
             }
         });
-        
-        // 添加自定义食物
+
+        // ---------- 添加自定义食物（改动点：成功后在前端记录并开启后端决策） ----------
         document.getElementById('addFood').addEventListener('click', async function() {
             const newFoodInput = document.getElementById('newFood');
             const foodName = newFoodInput.value.trim();
-            
+
             if (!foodName) {
                 alert('请输入食物名称！');
                 return;
             }
-            
+
             const button = this;
             button.disabled = true;
+            const originalText = button.textContent;
             button.textContent = '添加中...';
-            
+
             try {
+                const payload = {
+                    name: foodName,
+                    emoji: '🍽️',
+                    description: `看起来不错的${foodName}！`
+                };
+
                 const response = await fetch(`${API_BASE_URL}/api/food`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        name: foodName,
-                        emoji: '🍽️',
-                        description: `看起来不错的${foodName}！`
-                    })
+                    body: JSON.stringify(payload)
                 });
-                
+
                 if (response.ok) {
-                    alert(`成功添加 ${foodName} 到食物列表！`);
+                    const resJson = await response.json();
+                    // 添加成功后：把该项也加入前端的 clientUserFoods，并显示成功提示
+                    if (resJson && resJson.success && resJson.food) {
+                        clientUserFoods.push(resJson.food);
+                    } else if (resJson && resJson.food) {
+                        // 有些情况下后端返回 { success:true, food } 之类，兼容处理
+                        clientUserFoods.push(resJson.food);
+                    } else {
+                        // 如果后端没有返回 food（极端情况），我们仍把 payload 加到前端，用于触发后端决策逻辑
+                        clientUserFoods.push({ id: Date.now(), ...payload });
+                    }
+
+                    alert(`成功添加 ${foodName} 到食物列表！后续决策将通过后端（包含你添加的项）。`);
                     newFoodInput.value = '';
                 } else {
                     throw new Error('添加失败');
@@ -1269,7 +1312,7 @@
                 alert('添加食物失败，请稍后再试！');
             } finally {
                 button.disabled = false;
-                button.textContent = '添加';
+                button.textContent = originalText || '添加';
             }
         });
                 
@@ -1361,7 +1404,6 @@
             `;
             document.body.appendChild(hint);
             
-            // 点击任意位置移除提示
             const removeHint = () => {
                 if (document.body.contains(hint)) {
                     document.body.removeChild(hint);
@@ -1369,8 +1411,6 @@
                 document.removeEventListener('click', removeHint);
             };
             document.addEventListener('click', removeHint);
-            
-            // 5秒后自动移除提示
             setTimeout(removeHint, 5000);
         }
         
@@ -1448,7 +1488,7 @@
             }
         });
         
-        // 表单提交处理
+        // 表单提交处理（与原来保持一致）
         document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
