@@ -8,12 +8,20 @@ function corsHeaders() {
   };
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: corsHeaders() });
-}
-
-export async function onRequestPost(context) {
+export async function onRequest(context) {
   const { request } = context;
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders() });
+  }
+
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+    });
+  }
+
   try {
     const formData = await request.formData();
 
