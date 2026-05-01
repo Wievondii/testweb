@@ -3,10 +3,9 @@
  */
 (() => {
   const IMAGE_HOST = 'https://image.20041126.xyz';
-  const UPLOAD_URL = '/api/relay';
+  const UPLOAD_URL = IMAGE_HOST + '/upload';
   const API_PHOTOS = '/api/photos';
   const API_AUTH = '/api/auth';
-  const API_RELAY = '/api/data';
   const API_CONFIG = '/api/config';
 
   let photos = [];
@@ -266,38 +265,34 @@
     progressText.textContent = 'Uploading to image host...';
 
     try {
-      // Convert to base64
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(pendingCompressed);
-      });
-
-      progressBar.style.width = '30%';
+      progressBar.style.width = '20%';
       progressText.textContent = 'Uploading to image host...';
 
-      // Pack and encode to avoid CF WAF
-      const cleanB64 = base64.replace(/=+$/, '');
-      const inner = JSON.stringify({ d: cleanB64, n: pendingCompressed.name, t: pendingCompressed.type || 'image/jpeg' });
-      const encoded = btoa(inner).replace(/=+$/, '');
+      // Upload directly to image host (it has CORS support)
+      const formData = new FormData();
+      formData.append('file', pendingCompressed, pendingCompressed.name);
 
-      const formBody = new FormData();
-      formBody.append('content', encoded);
-
-      const res = await fetch(UPLOAD_URL, {
-        method: 'POST',
-        body: formBody,
+      const uploadResult = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', UPLOAD_URL);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round(e.loaded / e.total * 100);
+            progressBar.style.width = Math.max(20, pct) + '%';
+            progressText.textContent = `Uploading... ${pct}%`;
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch { reject(new Error('Invalid response')); }
+          } else { reject(new Error(`Upload failed: ${xhr.status}`)); }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
       });
 
-      progressBar.style.width = '80%';
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Upload failed: ${res.status}`);
-      }
-
-      const uploadResult = await res.json();
+      progressBar.style.width = '90%';
 
       let imageUrl = '';
       if (Array.isArray(uploadResult) && uploadResult[0]?.src) {
