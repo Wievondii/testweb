@@ -1,4 +1,4 @@
-const DEFAULT_PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
+const DEFAULT_PASS_HASH = 'c4aa2044827b56283f132e21068030b7b1846dbd552eb1d2ceefaba11dca6ce0'; // SHA-256 of "admin"
 const KV_KEY = 'gallery_photos';
 
 async function getPhotos(env) {

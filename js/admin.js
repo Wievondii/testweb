@@ -3,12 +3,12 @@
  */
 (() => {
   const IMAGE_HOST = 'https://image.20041126.xyz';
-  const UPLOAD_URL = IMAGE_HOST + '/upload';
+  const UPLOAD_URL = '/api/upload';
   const API_PHOTOS = '/api/photos';
   const API_CONFIG = '/api/config';
   const PASS_HASH_KEY = 'gallery_admin_pass';
 
-  const DEFAULT_PASS_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+  const DEFAULT_PASS_HASH = 'c4aa2044827b56283f132e21068030b7b1846dbd552eb1d2ceefaba11dca6ce0';
 
   let photos = [];
   let pendingFile = null;
