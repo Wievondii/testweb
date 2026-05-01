@@ -3,7 +3,7 @@
  */
 (() => {
   const IMAGE_HOST = 'https://image.20041126.xyz';
-  const UPLOAD_URL = IMAGE_HOST + '/upload';
+  const UPLOAD_URL = IMAGE_HOST + '/api/enableauthapi/tgchannel';
   const API_PHOTOS = '/api/photos';
   const API_AUTH = '/api/auth';
   const API_CONFIG = '/api/config';
@@ -294,14 +294,18 @@
 
       progressBar.style.width = '90%';
 
+      // Image host returns { url: "..." } or { status, url, ... }
       let imageUrl = '';
-      if (Array.isArray(uploadResult) && uploadResult[0]?.src) {
+      if (uploadResult?.url) {
+        imageUrl = uploadResult.url;
+        // If URL is relative, prepend host
+        if (imageUrl.startsWith('/')) imageUrl = IMAGE_HOST + imageUrl;
+      } else if (Array.isArray(uploadResult) && uploadResult[0]?.src) {
         imageUrl = IMAGE_HOST + uploadResult[0].src;
       } else if (uploadResult?.src) {
         imageUrl = IMAGE_HOST + uploadResult.src;
-      } else { throw new Error('Unexpected response format'); }
+      } else { throw new Error('Unexpected response: ' + JSON.stringify(uploadResult)); }
 
-      progressBar.style.width = '90%';
       progressText.textContent = 'Saving to gallery...';
 
       const tags = photoTags.value.split(',').map(t => t.trim()).filter(Boolean);
