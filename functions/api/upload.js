@@ -23,32 +23,30 @@ export async function onRequest(context) {
   }
 
   try {
-    const contentType = request.headers.get('content-type') || '';
-    let formData;
+    const { base64, filename, mimeType } = await request.json();
 
-    if (contentType.includes('multipart/form-data')) {
-      formData = await request.formData();
-    } else {
-      return new Response(JSON.stringify({ error: 'Content-Type must be multipart/form-data' }), {
+    if (!base64 || !filename) {
+      return new Response(JSON.stringify({ error: 'base64 and filename required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders() },
       });
     }
 
-    const file = formData.get('file');
-    if (!file) {
-      return new Response(JSON.stringify({ error: 'No file field in form data' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
-      });
+    // Decode base64 to binary
+    const binaryStr = atob(base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
     }
 
-    const upstreamFormData = new FormData();
-    upstreamFormData.append('file', file, file.name);
+    // Build FormData for upstream
+    const formData = new FormData();
+    const blob = new Blob([bytes], { type: mimeType || 'image/jpeg' });
+    formData.append('file', blob, filename);
 
     const upstream = await fetch(IMAGE_HOST + '/upload', {
       method: 'POST',
-      body: upstreamFormData,
+      body: formData,
     });
 
     const text = await upstream.text();

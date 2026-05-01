@@ -261,32 +261,42 @@
     uploadBtn.disabled = true;
     uploadBtn.textContent = 'Uploading...';
     uploadProgress.style.display = 'block';
-    progressBar.style.width = '0%';
-    progressText.textContent = 'Uploading to image host...';
+    progressBar.style.width = '10%';
+    progressText.textContent = 'Preparing image...';
 
     try {
-      const formData = new FormData();
-      formData.append('file', pendingCompressed, pendingCompressed.name);
-
-      const uploadResult = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', UPLOAD_URL);
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const pct = Math.round(e.loaded / e.total * 100);
-            progressBar.style.width = pct + '%';
-            progressText.textContent = `Uploading... ${pct}%`;
-          }
+      // Convert file to base64
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = reader.result.split(',')[1];
+          resolve(b64);
         };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try { resolve(JSON.parse(xhr.responseText)); }
-            catch { reject(new Error('Invalid response')); }
-          } else { reject(new Error(`Upload failed: ${xhr.status}`)); }
-        };
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(formData);
+        reader.onerror = reject;
+        reader.readAsDataURL(pendingCompressed);
       });
+
+      progressBar.style.width = '30%';
+      progressText.textContent = 'Uploading to image host...';
+
+      const res = await fetch(UPLOAD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64,
+          filename: pendingCompressed.name,
+          mimeType: pendingCompressed.type || 'image/jpeg',
+        }),
+      });
+
+      progressBar.style.width = '80%';
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Upload failed: ${res.status}`);
+      }
+
+      const uploadResult = await res.json();
 
       let imageUrl = '';
       if (Array.isArray(uploadResult) && uploadResult[0]?.src) {
@@ -295,6 +305,7 @@
         imageUrl = IMAGE_HOST + uploadResult.src;
       } else { throw new Error('Unexpected response format'); }
 
+      progressBar.style.width = '90%';
       progressText.textContent = 'Saving to gallery...';
 
       const tags = photoTags.value.split(',').map(t => t.trim()).filter(Boolean);
@@ -306,6 +317,7 @@
       };
 
       await addPhoto(photo);
+      progressBar.style.width = '100%';
       resetUpload();
       showToast('Photo uploaded and saved!', 'success');
     } catch (e) {
