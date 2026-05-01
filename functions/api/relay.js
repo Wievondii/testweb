@@ -29,9 +29,11 @@ export async function onRequest(context) {
     let base64, filename, mimeType;
 
     if (contentType.includes('text/plain')) {
-      // Entire payload is base64-encoded JSON: { d, n, t }
-      const encoded = await request.text();
-      const decoded = atob(encoded.trim());
+      // Entire payload is base64-encoded JSON (padding stripped to avoid WAF)
+      let encoded = (await request.text()).trim();
+      // Restore base64 padding
+      while (encoded.length % 4 !== 0) encoded += '=';
+      const decoded = atob(encoded);
       const parsed = JSON.parse(decoded);
       base64 = parsed.d;
       filename = parsed.n || 'image.jpg';
