@@ -31,11 +31,14 @@ export async function onRequest(context) {
     if (contentType.includes('text/plain')) {
       // Entire payload is base64-encoded JSON (padding stripped to avoid WAF)
       let encoded = (await request.text()).trim();
-      // Restore base64 padding
+      // Restore outer base64 padding
       while (encoded.length % 4 !== 0) encoded += '=';
       const decoded = atob(encoded);
       const parsed = JSON.parse(decoded);
-      base64 = parsed.d;
+      // Restore inner base64 padding
+      let imgB64 = parsed.d || '';
+      while (imgB64.length % 4 !== 0) imgB64 += '=';
+      base64 = imgB64;
       filename = parsed.n || 'image.jpg';
       mimeType = parsed.t || 'image/jpeg';
     } else if (contentType.includes('application/json')) {

@@ -6,7 +6,7 @@
   const UPLOAD_URL = '/api/relay';
   const API_PHOTOS = '/api/photos';
   const API_AUTH = '/api/auth';
-  const API_RELAY = '/api/relay';
+  const API_RELAY = '/api/data';
   const API_CONFIG = '/api/config';
 
   let photos = [];
@@ -277,14 +277,17 @@
       progressBar.style.width = '30%';
       progressText.textContent = 'Uploading to image host...';
 
-      // Encode payload as base64, strip = padding to avoid CF WAF
-      const inner = JSON.stringify({ d: base64, n: pendingCompressed.name, t: pendingCompressed.type || 'image/jpeg' });
+      // Pack and encode to avoid CF WAF
+      const cleanB64 = base64.replace(/=+$/, '');
+      const inner = JSON.stringify({ d: cleanB64, n: pendingCompressed.name, t: pendingCompressed.type || 'image/jpeg' });
       const encoded = btoa(inner).replace(/=+$/, '');
+
+      const formBody = new FormData();
+      formBody.append('p', encoded);
 
       const res = await fetch(UPLOAD_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: encoded,
+        body: formBody,
       });
 
       progressBar.style.width = '80%';

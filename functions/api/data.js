@@ -1,4 +1,4 @@
-// Image upload relay: accepts text/plain POST, forwards to image host
+// Image upload relay: accepts form-urlencoded POST, forwards to image host
 const IMAGE_HOST = 'https://image.20041126.xyz';
 
 function corsHeaders() {
@@ -24,72 +24,57 @@ export async function onRequest(context) {
   }
 
   try {
-    const contentType = request.headers.get('content-type') || '';
+    const formData = await request.formData();
+    const encoded = formData.get('p') || '';
 
-    let base64, filename, mimeType;
-
-    if (contentType.includes('text/plain')) {
-      // Entire payload is base64-encoded JSON (padding stripped to avoid WAF)
-      let encoded = (await request.text()).trim();
-      // Restore outer base64 padding
-      while (encoded.length % 4 !== 0) encoded += '=';
-      const decoded = atob(encoded);
-      const parsed = JSON.parse(decoded);
-      // Restore inner base64 padding
-      let imgB64 = parsed.d || '';
-      while (imgB64.length % 4 !== 0) imgB64 += '=';
-      base64 = imgB64;
-      filename = parsed.n || 'image.jpg';
-      mimeType = parsed.t || 'image/jpeg';
-    } else if (contentType.includes('application/json')) {
-      const parsed = await request.json();
-      base64 = parsed.pack;
-      filename = 'image.jpg';
-      mimeType = 'image/jpeg';
-    } else {
-      return new Response('Unsupported content type', {
-        status: 400,
-        headers: { 'Content-Type': 'text/plain', ...corsHeaders() },
-      });
-    }
-
-    if (!base64) {
+    if (!encoded) {
       return new Response('No data', {
         status: 400,
         headers: { 'Content-Type': 'text/plain', ...corsHeaders() },
       });
     }
 
-    // Decode base64
-    const raw = atob(base64);
+    // Restore base64 padding
+    let padded = encoded;
+    while (padded.length % 4 !== 0) padded += '=';
+
+    // Decode outer base64
+    const decoded = atob(padded);
+    const parsed = JSON.parse(decoded);
+
+    // Restore inner base64 padding
+    let imgB64 = parsed.d || '';
+    while (imgB64.length % 4 !== 0) imgB64 += '=';
+
+    const filename = parsed.n || 'image.jpg';
+    const mimeType = parsed.t || 'image/jpeg';
+
+    // Decode image base64
+    const raw = atob(imgB64);
     const bytes = new Uint8Array(raw.length);
     for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
 
-    // Build multipart form
+    // Build multipart form for upstream
     const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
     const crlf = '\r\n';
-    let header = '';
-    header += `--${boundary}${crlf}`;
-    header += `Content-Disposition: form-data; name="file"; filename="${filename}"${crlf}`;
-    header += `Content-Type: ${mimeType}${crlf}${crlf}`;
+    let header = `--${boundary}${crlf}Content-Disposition: form-data; name="file"; filename="${filename}"${crlf}Content-Type: ${mimeType}${crlf}${crlf}`;
 
     const encoder = new TextEncoder();
     const headerBytes = encoder.encode(header);
     const footerBytes = encoder.encode(`${crlf}--${boundary}--${crlf}`);
 
-    const multipartBody = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);
-    multipartBody.set(headerBytes, 0);
-    multipartBody.set(bytes, headerBytes.length);
-    multipartBody.set(footerBytes, headerBytes.length + bytes.length);
+    const body = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);
+    body.set(headerBytes, 0);
+    body.set(bytes, headerBytes.length);
+    body.set(footerBytes, headerBytes.length + bytes.length);
 
     const upstream = await fetch(IMAGE_HOST + '/upload', {
       method: 'POST',
       headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-      body: multipartBody,
+      body,
     });
 
     const text = await upstream.text();
-
     return new Response(text, {
       status: upstream.status,
       headers: { 'Content-Type': 'application/json', ...corsHeaders() },
