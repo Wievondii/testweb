@@ -1,4 +1,4 @@
-// Image upload relay: accepts packed JSON, forwards to image host as multipart
+// Image upload relay: accepts text/plain POST, forwards to image host
 const IMAGE_HOST = 'https://image.20041126.xyz';
 
 function corsHeaders() {
@@ -17,34 +17,40 @@ export async function onRequest(context) {
   }
 
   if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'POST only' }), {
+    return new Response('POST only', {
       status: 405,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+      headers: { 'Content-Type': 'text/plain', ...corsHeaders() },
     });
   }
 
   try {
-    const body = await request.text();
-    const parsed = JSON.parse(body);
+    const contentType = request.headers.get('content-type') || '';
 
-    // Accept packed format: { pack: "base64|filename|mime" }
-    const pack = parsed.pack;
-    if (!pack) {
-      return new Response(JSON.stringify({ error: 'pack field required' }), {
+    let base64, filename, mimeType;
+
+    if (contentType.includes('text/plain')) {
+      // Text format: first line = filename, second line = mime, rest = base64
+      const text = await request.text();
+      const lines = text.split('\n');
+      filename = (lines[0] || 'image.jpg').trim();
+      mimeType = (lines[1] || 'image/jpeg').trim();
+      base64 = (lines[2] || '').trim();
+    } else if (contentType.includes('application/json')) {
+      const parsed = await request.json();
+      base64 = parsed.pack;
+      filename = 'image.jpg';
+      mimeType = 'image/jpeg';
+    } else {
+      return new Response('Unsupported content type', {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+        headers: { 'Content-Type': 'text/plain', ...corsHeaders() },
       });
     }
 
-    const parts = pack.split('|');
-    const base64 = parts[0];
-    const filename = parts[1] || 'image.jpg';
-    const mimeType = parts[2] || 'image/jpeg';
-
     if (!base64) {
-      return new Response(JSON.stringify({ error: 'invalid pack format' }), {
+      return new Response('No data', {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+        headers: { 'Content-Type': 'text/plain', ...corsHeaders() },
       });
     }
 
