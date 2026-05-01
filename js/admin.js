@@ -271,7 +271,7 @@
       // Upload via proxy - use fetch with Blob (no custom headers = no preflight)
       const fname = encodeURIComponent(pendingCompressed.name);
       const mime = encodeURIComponent(pendingCompressed.type || 'image/jpeg');
-      const blob = new Blob([await pendingCompressed.arrayBuffer()], { type: 'application/octet-stream' });
+      const blob = new Blob([await pendingCompressed.arrayBuffer()], { type: 'text/plain' });
 
       progressBar.style.width = '20%';
       progressText.textContent = 'Uploading to image host...';
