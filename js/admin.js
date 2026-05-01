@@ -281,9 +281,9 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          d: base64,
-          n: pendingCompressed.name,
-          t: pendingCompressed.type || 'image/jpeg',
+          data: base64,
+          name: pendingCompressed.name,
+          mime: pendingCompressed.type || 'image/jpeg',
         }),
       });
 
