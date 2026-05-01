@@ -1,336 +1,68 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>WYY</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photography Exhibition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="#" class="logo">WYY的主页 <span class="emoji">🚀</span></a>
-            <ul class="nav-links">
-                <li><a href="#about">关于我</a></li>
-                <li><a href="#skills">超能力</a></li>
-                <li><a href="#projects">搞事情</a></li>
-                <li><a href="#contact">找我玩</a></li>
-            </ul>
-        </div>
+
+  <!-- Header -->
+  <header class="site-header" id="header">
+    <a href="#" class="site-title"><span>Photo</span>graphy</a>
+    <nav class="header-nav">
+      <a href="#gallery">Gallery</a>
+      <a href="admin.html">Admin</a>
     </nav>
+  </header>
 
-    <!-- 全屏英雄区域 -->
-    <section class="hero" id="home">
-        <div class="hero-content">
-            <h1>我不想上课 <span class="emoji">😫</span></h1>
-            <p>我想回家吃老友粉桂林米粉螺蛳粉生榨米粉 <span class="emoji">🍜</span></p>
-            <div class="hero-buttons">
-                <a href="#projects" class="btn btn-primary">看看我搞了啥</a>
-                <a href="#contact" class="btn btn-secondary">一起搞事情</a>
-            </div>
-        </div>
-        <div class="scroll-indicator">
-            往下滑，没有惊喜
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </section>
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <h1 class="hero-title" id="heroTitle">Photography Exhibition</h1>
+    <div class="hero-divider"></div>
+    <p class="hero-subtitle" id="heroSubtitle">A curated collection of captured moments</p>
+  </section>
 
-  <!-- 关于我区域 -->
-<section class="section" id="about">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title"> <span class="emoji">😎</span></h2>
-        </div>
-        <div class="grid">
-            <div class="card fade-in">
-                <div class="card-icon">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <h3>部落冲突高手 <span class="emoji">👑</span></h3>
-                <p>部落战从不缺席，能精准计算兵种搭配，带领部落走向胜利的顶级玩家。</p>
-            </div>
-            <div class="card fade-in delay-1">
-                <div class="card-icon">
-                    <i class="fas fa-bed"></i>
-                </div>
-                <h3>睡觉冠军 <span class="emoji">😴</span></h3>
-                <p>随时躺下就可以睡着，不定闹钟也能准时起床，生物钟比原子钟还准。</p>
-            </div>
-            <div class="card fade-in delay-2">
-                <div class="card-icon">
-                    <i class="fas fa-utensils"></i>
-                </div>
-                <h3>美食探险家 <span class="emoji">🍖</span></h3>
-                <p>能从100米外闻出哪家粉店用的是真骨头汤，还能精准定位全城最好吃的烤羊肉串和烤羊排。</p>
-            </div>
-            <div class="card fade-in delay-3">
-                <div class="card-icon">
-                    <i class="fas fa-film"></i>
-                </div>
-                <h3>电影达人 <span class="emoji">🎬</span></h3>
-                <p>阅片无数，尤其擅长在吃粉时看剧，能准确预测剧情发展并避免汤汁溅到屏幕和键盘上。</p>
-            </div>
-        </div>
+  <!-- Tag Filter -->
+  <div class="tag-filter" id="tagFilter"></div>
+
+  <!-- Gallery -->
+  <section class="gallery" id="gallery">
+    <div class="masonry" id="masonry"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      <h3>No photos yet</h3>
+      <p>Photos will appear here once they are added via the admin panel.</p>
     </div>
-</section>
+  </section>
 
-  <!-- 技能区域 -->
-<section class="section section-light" id="skills">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title"><span class="emoji">🦸</span></h2>
-        </div>
-        <div class="grid">
-            <div class="card fade-in">
-                <div class="card-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">
-                    <i class="fas fa-copy"></i>
-                </div>
-                <h3>CV工程师 <span class="emoji">📋</span></h3>
-                <p>精通Ctrl+C和Ctrl+V的艺术，能从GitHub和Stack Overflow拼凑出能运行的代码。</p>
-            </div>
-            <div class="card fade-in delay-1">
-                <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));">
-                    <i class="fas fa-code"></i>
-                </div>
-                <h3>代码魔法 <span class="emoji">💻</span></h3>
-                <p>能用代码变出各种有趣的东西，虽然有时候会有bug，但至少能运行！</p>
-            </div>
-            <div class="card fade-in delay-2">
-                <div class="card-icon" style="background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));">
-                    <i class="fas fa-paint-brush"></i>
-                </div>
-                <h3>灵魂画手 <span class="emoji">🎨</span></h3>
-                <p>能用鼠标画出看起来像猫的狗，和看起来像狗的猫，抽象派大师。</p>
-            </div>
-            <div class="card fade-in delay-3">
-                <div class="card-icon" style="background: linear-gradient(135deg, #FF9A8B, #FF6A88);">
-                    <i class="fas fa-music"></i>
-                </div>
-                <h3>浴室歌神 <span class="emoji">🎤</span></h3>
-                <p>只有在浴室里才能发挥100%歌唱实力，出了浴室音准就会迷路。</p>
-            </div>
-        </div>
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <span class="lightbox-counter" id="lbCounter"></span>
+    <button class="lightbox-close" id="lbClose">&times;</button>
+    <button class="lightbox-nav lightbox-prev" id="lbPrev">&#8249;</button>
+    <button class="lightbox-nav lightbox-next" id="lbNext">&#8250;</button>
+    <img class="lightbox-img" id="lbImg" src="" alt="">
+    <div class="lightbox-info">
+      <h3 id="lbTitle"></h3>
+      <p id="lbDesc"></p>
     </div>
-</section>
+  </div>
 
-    <!-- =================== REPLACE_PROJECTS_START =================== -->
-    <!-- 下面整个 section 是"我搞的事情"区域，已做紧凑化（你可以直接替换原文件中同一区块） -->
-    <section class="section" id="projects">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">我搞的事情 <span class="emoji">🔧</span></h2>
-            </div>
-            <div class="project-grid">
-                <div class="project-card fade-in">
-                    <div class="project-image">
-                        "今天吃什么"决策器
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">午餐救星 <span class="emoji">🤔</span></h3>
-                        <p class="project-description">一个能帮你决定今天吃什么的APP，解决了"中午吃什么"这个世界难题。</p>
-                        
-                        <div class="tool-container">
-                            <p style="margin-bottom:8px;">点击按钮，让命运决定你今天吃什么！</p>
-                            <button id="decideFood" class="btn btn-primary pulse" style="font-size:14px;">
-                                <span id="foodButtonText">帮我决定！</span>
-                                <span id="foodLoading" class="loading" style="display: none; margin-left: 8px;"></span>
-                            </button>
-                            <div id="foodResult" class="result-box" aria-live="polite">
-                                我还没想好...
-                            </div>
-                            <div id="foodImage" class="food-image"></div>
-                            
-                            <!-- 新增：用户自定义食物选项 -->
-                            <div style="margin-top: 8px;">
-                                <p style="font-size:13px; margin-bottom:6px;">或者，添加你想吃的食物：</p>
-                                <input type="text" id="newFood" placeholder="输入食物名称" style="padding: 7px; border-radius: 5px; border: 1px solid #ccc; margin-right: 8px; font-size:13px;">
-                                <button id="addFood" class="btn" style="padding:7px 10px; font-size:13px;">添加</button>
-                            </div>
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>&copy; Photography Exhibition &mdash; All rights reserved</p>
+  </footer>
 
-                            <!-- 用户已添加列表 -->
-                            <div style="margin-top: 8px;">
-                                <p style="font-size:13px; margin-bottom:6px;">你已添加的食物：</p>
-                                <ul id="userFoodsList" class="user-foods-list">
-                                    <li style="color:#888;padding:6px 8px;border-radius:8px;background:#fafafa">加载中...</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="project-tags" style="margin-top:6px;">
-                            <span class="tag">随机算法</span>
-                            <span class="tag">美食数据库</span>
-                            <span class="tag">选择困难症克星</span>
-                            <span class="tag">后端支持</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="project-card fade-in delay-1">
-                    <div class="project-image" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color));">
-                        猫咪翻译器
-                    </div>
-                    <div class="project-content">
-                        <h3 class="project-title">喵语十级 <span class="emoji">🐱</span></h3>
-                        <p class="project-description">通过AI分析猫咪的叫声，告诉你它到底是在说"我饿了"还是"你走开"。</p>
-                        
-                        <div class="tool-container">
-                            <p style="margin-bottom:8px;">点击不同的猫叫声，看看它在说什么！</p>
-                            <div class="cat-sound-buttons">
-                                <button class="cat-sound-btn" data-sound="short">短喵 🔊</button>
-                                <button class="cat-sound-btn" data-sound="long">长喵 🔊</button>
-                                <button class="cat-sound-btn" data-sound="purr">呼噜声 🔊</button>
-                                <button class="cat-sound-btn" data-sound="angry">生气喵 🔊</button>
-                            </div>
-                            <div id="catTranslation" class="result-box">
-                                喵喵喵？
-                            </div>
-                            <div id="catEmoji" style="font-size: 36px; margin-top: 8px;">🐱</div>
-                            
-                            <!-- 新增：用户上传猫叫声 -->
-                            <div style="margin-top: 8px;">
-                                <p style="font-size:13px; margin-bottom:6px;">上传猫叫声分析（模拟）：</p>
-                                <input type="file" id="catSoundUpload" accept="audio/*" style="margin: 6px 0; font-size:13px;">
-                                <button id="analyzeSound" class="btn" style="padding:7px 10px; font-size:13px;">
-                                    <span id="analyzeButtonText">分析声音</span>
-                                </button>
-                                <div id="analyzeProgress" style="display:none;margin-top:8px;font-size:13px;color:#666">
-                                    上传中… <span id="analyzePercent">0%</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="project-tags" style="margin-top:6px;">
-                            <span class="tag">AI分析</span>
-                            <span class="tag">猫语翻译</span>
-                            <span class="tag">人猫沟通</span>
-                            <span class="tag">后端支持</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- =================== REPLACE_PROJECTS_END =================== -->
-
-    <!-- 联系区域 -->
-    <section class="section section-light" id="contact">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">找我玩 <span class="emoji">📞</span></h2>
-                <p class="section-subtitle">约饭、聊天、一起搞事情，或者单纯分享好吃的粉店</p>
-            </div>
-            <div class="contact-container">
-                <div class="contact-info">
-                    <h3>联系方式</h3>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div>
-                            <h4>邮箱</h4>
-                            <p>xxxv11xxxv@gmail.com</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div>
-                            <h4>电话</h4>
-                            <p>+86 155 中间自己猜 9974</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div>
-                            <h4>常驻地点</h4>
-                            <p>各大教室、粉店、沙发、床</p>
-                        </div>
-                    </div>
-                    <div class="social-links">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-weibo"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-weixin"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-bilibili"></i>
-                        </a>
-                    </div>
-                </div>
-               <div class="contact-form">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="name" placeholder="你的大名" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" class="form-control" id="email" placeholder="你的邮箱" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="subject" placeholder="想聊啥" required>
-                        </div>
-                        <div class="form-group">
-                            <textarea class="form-control" id="message" placeholder="详细说说" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;" id="submitBtn">
-                            <span id="submitBtnText">发射消息</span>
-                            <span id="submitLoading" class="loading" style="display: none; margin-left: 8px;"></span>
-                        </button>
-                        <div id="formMessage" style="margin-top: 15px; text-align: center;"></div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 页脚 -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-about">
-                    <div class="footer-logo">WYY的个人主页 <span class="emoji">🌍</span></div>
-                </div>
-                <div class="footer-links">
-                    <h4>快速通道</h4>
-                    <ul>
-                        <li><a href="#home">回顶部吃粉</a></li>
-                        <li><a href="#about">了解我这个有趣的灵魂</a></li>
-                        <li><a href="#skills">看看我的超能力</a></li>
-                        <li><a href="#projects">围观我搞的事情</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>粉店推荐</h4>
-                    <ul>
-                        <li><a href="#">老友粉TOP10</a></li>
-                        <li><a href="#">螺蛳粉避坑指南</a></li>
-                        <li><a href="#">桂林米粉探店</a></li>
-                        <li><a href="#">生榨米粉全攻略</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h4>快乐资源</h4>
-                    <ul>
-                        <li><a href="#">搞笑视频合集</a></li>
-                        <li><a href="#">躺平姿势大全</a></li>
-                        <li><a href="#">游戏通关秘籍</a></li>
-                        <li><a href="#">摸鱼技巧分享</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; WYY的个人主页保留所有权利. </p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="js/main.js"></script>
+  <script src="js/compressor.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
