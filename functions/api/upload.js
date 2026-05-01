@@ -23,11 +23,32 @@ export async function onRequest(context) {
   }
 
   try {
-    const formData = await request.formData();
+    const contentType = request.headers.get('content-type') || '';
+    let formData;
+
+    if (contentType.includes('multipart/form-data')) {
+      formData = await request.formData();
+    } else {
+      return new Response(JSON.stringify({ error: 'Content-Type must be multipart/form-data' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+      });
+    }
+
+    const file = formData.get('file');
+    if (!file) {
+      return new Response(JSON.stringify({ error: 'No file field in form data' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+      });
+    }
+
+    const upstreamFormData = new FormData();
+    upstreamFormData.append('file', file, file.name);
 
     const upstream = await fetch(IMAGE_HOST + '/upload', {
       method: 'POST',
-      body: formData,
+      body: upstreamFormData,
     });
 
     const text = await upstream.text();
