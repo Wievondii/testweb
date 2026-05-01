@@ -25,7 +25,7 @@ export async function onRequest(context) {
 
   try {
     const formData = await request.formData();
-    const encoded = formData.get('p') || '';
+    const encoded = formData.get('content') || '';
 
     if (!encoded) {
       return new Response('No data', {

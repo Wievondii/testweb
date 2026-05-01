@@ -283,7 +283,7 @@
       const encoded = btoa(inner).replace(/=+$/, '');
 
       const formBody = new FormData();
-      formBody.append('p', encoded);
+      formBody.append('content', encoded);
 
       const res = await fetch(UPLOAD_URL, {
         method: 'POST',
