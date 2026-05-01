@@ -2,7 +2,7 @@
  * Photography Exhibition - Gallery Page (KV-backed)
  */
 (() => {
-  const API_PHOTOS = '/api/photos';
+  const API_GALLERY = '/api/gallery';
   const API_CONFIG = '/api/config';
 
   let photos = [];
@@ -40,7 +40,7 @@
   // Load photos
   async function loadPhotos() {
     try {
-      const res = await fetch(API_PHOTOS);
+      const res = await fetch(API_GALLERY);
       if (!res.ok) throw new Error('API failed');
       photos = await res.json();
     } catch (e) {

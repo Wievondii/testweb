@@ -3,12 +3,11 @@
  */
 (() => {
   const IMAGE_HOST = 'https://image.20041126.xyz';
-  const UPLOAD_URL = '/api/upload';
+  const UPLOAD_URL = '/api/relay';
   const API_PHOTOS = '/api/photos';
+  const API_AUTH = '/api/auth';
+  const API_RELAY = '/api/relay';
   const API_CONFIG = '/api/config';
-  const PASS_HASH_KEY = 'gallery_admin_pass';
-
-  const DEFAULT_PASS_HASH = 'c4aa2044827b56283f132e21068030b7b1846dbd552eb1d2ceefaba11dca6ce0';
 
   let photos = [];
   let pendingFile = null;
@@ -73,10 +72,12 @@
 
   async function tryAuth() {
     try {
-      const res = await fetch(API_PHOTOS, {
+      const res = await fetch(API_AUTH, {
         headers: { 'Authorization': 'Bearer ' + currentHash },
       });
-      return res.ok;
+      if (!res.ok) return false;
+      const data = await res.json();
+      return data.valid === true;
     } catch {
       return false;
     }
@@ -265,29 +266,35 @@
     progressText.textContent = 'Uploading to image host...';
 
     try {
-      const formData = new FormData();
-      formData.append('file', pendingCompressed, pendingCompressed.name);
-
-      // Upload directly to image host (no custom headers = no CORS preflight)
-      const uploadResult = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', IMAGE_HOST + '/upload');
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const pct = Math.round(e.loaded / e.total * 100);
-            progressBar.style.width = pct + '%';
-            progressText.textContent = `Uploading... ${pct}%`;
-          }
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try { resolve(JSON.parse(xhr.responseText)); }
-            catch { reject(new Error('Invalid response')); }
-          } else { reject(new Error(`Upload failed: ${xhr.status}`)); }
-        };
-        xhr.onerror = () => reject(new Error('Network error - check console'));
-        xhr.send(formData);
+      // Convert to base64
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(pendingCompressed);
       });
+
+      progressBar.style.width = '30%';
+      progressText.textContent = 'Uploading to image host...';
+
+      const res = await fetch(UPLOAD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64,
+          filename: pendingCompressed.name,
+          mimeType: pendingCompressed.type || 'image/jpeg',
+        }),
+      });
+
+      progressBar.style.width = '80%';
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Upload failed: ${res.status}`);
+      }
+
+      const uploadResult = await res.json();
 
       let imageUrl = '';
       if (Array.isArray(uploadResult) && uploadResult[0]?.src) {
