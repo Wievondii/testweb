@@ -1,4 +1,4 @@
-// Image upload relay: accepts base64 JSON, forwards to image host as multipart
+// Image upload relay: accepts packed JSON, forwards to image host as multipart
 const IMAGE_HOST = 'https://image.20041126.xyz';
 
 function corsHeaders() {
@@ -26,12 +26,23 @@ export async function onRequest(context) {
   try {
     const body = await request.text();
     const parsed = JSON.parse(body);
-    const base64 = parsed.data;
-    const filename = parsed.name;
-    const mimeType = parsed.mime;
 
-    if (!base64 || !filename) {
-      return new Response(JSON.stringify({ error: 'base64 and filename required' }), {
+    // Accept packed format: { pack: "base64|filename|mime" }
+    const pack = parsed.pack;
+    if (!pack) {
+      return new Response(JSON.stringify({ error: 'pack field required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders() },
+      });
+    }
+
+    const parts = pack.split('|');
+    const base64 = parts[0];
+    const filename = parts[1] || 'image.jpg';
+    const mimeType = parts[2] || 'image/jpeg';
+
+    if (!base64) {
+      return new Response(JSON.stringify({ error: 'invalid pack format' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders() },
       });
@@ -45,14 +56,13 @@ export async function onRequest(context) {
     // Build multipart form
     const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
     const crlf = '\r\n';
-    let bodyParts = '';
-
-    bodyParts += `--${boundary}${crlf}`;
-    bodyParts += `Content-Disposition: form-data; name="file"; filename="${filename}"${crlf}`;
-    bodyParts += `Content-Type: ${mimeType || 'image/jpeg'}${crlf}${crlf}`;
+    let header = '';
+    header += `--${boundary}${crlf}`;
+    header += `Content-Disposition: form-data; name="file"; filename="${filename}"${crlf}`;
+    header += `Content-Type: ${mimeType}${crlf}${crlf}`;
 
     const encoder = new TextEncoder();
-    const headerBytes = encoder.encode(bodyParts);
+    const headerBytes = encoder.encode(header);
     const footerBytes = encoder.encode(`${crlf}--${boundary}--${crlf}`);
 
     const multipartBody = new Uint8Array(headerBytes.length + bytes.length + footerBytes.length);

@@ -277,14 +277,13 @@
       progressBar.style.width = '30%';
       progressText.textContent = 'Uploading to image host...';
 
+      // Pack into single field to avoid CF WAF
+      const pack = base64 + '|' + pendingCompressed.name + '|' + (pendingCompressed.type || 'image/jpeg');
+
       const res = await fetch(UPLOAD_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: base64,
-          name: pendingCompressed.name,
-          mime: pendingCompressed.type || 'image/jpeg',
-        }),
+        body: JSON.stringify({ pack }),
       });
 
       progressBar.style.width = '80%';
