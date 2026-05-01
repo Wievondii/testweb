@@ -265,16 +265,20 @@
     progressText.textContent = 'Uploading to image host...';
 
     try {
+      progressBar.style.width = '10%';
+      progressText.textContent = 'Preparing upload...';
+
+      // Upload via our proxy (sends raw binary to avoid WAF)
+      const fileData = await pendingCompressed.arrayBuffer();
+
       progressBar.style.width = '20%';
       progressText.textContent = 'Uploading to image host...';
 
-      // Upload directly to image host (it has CORS support)
-      const formData = new FormData();
-      formData.append('file', pendingCompressed, pendingCompressed.name);
-
       const uploadResult = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', UPLOAD_URL);
+        xhr.open('POST', '/api/data');
+        xhr.setRequestHeader('X-Filename', pendingCompressed.name);
+        xhr.setRequestHeader('X-Mime', pendingCompressed.type || 'image/jpeg');
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const pct = Math.round(e.loaded / e.total * 100);
@@ -289,7 +293,7 @@
           } else { reject(new Error(`Upload failed: ${xhr.status}`)); }
         };
         xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(formData);
+        xhr.send(fileData);
       });
 
       progressBar.style.width = '90%';
