@@ -1,8 +1,10 @@
 /**
- * Photography Exhibition - Gallery Page
+ * Photography Exhibition - Gallery Page (KV-backed)
  */
 (() => {
-  const IMAGE_HOST = 'https://image.20041126.xyz';
+  const API_PHOTOS = '/api/photos';
+  const API_CONFIG = '/api/config';
+
   let photos = [];
   let filteredPhotos = [];
   let currentTag = 'all';
@@ -21,58 +23,64 @@
   const lbDesc = document.getElementById('lbDesc');
   const lbCounter = document.getElementById('lbCounter');
 
-  // Load photos.json
+  // Load config
+  async function loadConfig() {
+    try {
+      const res = await fetch(API_CONFIG);
+      if (!res.ok) return;
+      const config = await res.json();
+      if (config.galleryTitle) {
+        heroTitle.textContent = config.galleryTitle;
+        document.title = config.galleryTitle;
+      }
+      if (config.gallerySubtitle) heroSubtitle.textContent = config.gallerySubtitle;
+    } catch { /* use defaults */ }
+  }
+
+  // Load photos
   async function loadPhotos() {
     try {
-      const res = await fetch('photos.json?t=' + Date.now());
-      if (!res.ok) throw new Error('Failed to load');
-      const data = await res.json();
-      photos = data.photos || [];
-      if (data.config) {
-        if (data.config.galleryTitle) heroTitle.textContent = data.config.galleryTitle;
-        if (data.config.gallerySubtitle) heroSubtitle.textContent = data.config.gallerySubtitle;
-        document.title = data.config.galleryTitle || 'Photography Exhibition';
-      }
+      const res = await fetch(API_PHOTOS);
+      if (!res.ok) throw new Error('API failed');
+      photos = await res.json();
     } catch (e) {
-      console.warn('Could not load photos.json:', e);
-      photos = [];
+      console.warn('API unavailable, trying photos.json fallback:', e);
+      try {
+        const res = await fetch('photos.json?t=' + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          photos = data.photos || [];
+        }
+      } catch { photos = []; }
     }
     filteredPhotos = [...photos];
     renderTags();
     renderGallery();
   }
 
-  // Extract all unique tags
   function getAllTags() {
     const tagSet = new Set();
     photos.forEach(p => (p.tags || []).forEach(t => tagSet.add(t)));
     return [...tagSet].sort();
   }
 
-  // Render tag filter buttons
   function renderTags() {
     const tags = getAllTags();
-    if (tags.length === 0) {
-      tagFilter.style.display = 'none';
-      return;
-    }
+    if (tags.length === 0) { tagFilter.style.display = 'none'; return; }
     tagFilter.style.display = 'flex';
     tagFilter.innerHTML = `<button class="tag-btn active" data-tag="all">All</button>` +
       tags.map(t => `<button class="tag-btn" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
   }
 
-  // Filter photos by tag
   function filterByTag(tag) {
     currentTag = tag;
     filteredPhotos = tag === 'all' ? [...photos] : photos.filter(p => (p.tags || []).includes(tag));
     renderGallery();
-    // Update active button
     tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tag === tag);
     });
   }
 
-  // Render masonry gallery
   function renderGallery() {
     if (filteredPhotos.length === 0) {
       masonry.innerHTML = '';
@@ -91,7 +99,6 @@
       </div>
     `).join('');
 
-    // Lazy load with IntersectionObserver
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -100,15 +107,8 @@
           if (img.dataset.src) {
             img.src = img.dataset.src;
             img.removeAttribute('data-src');
-            img.onload = () => {
-              item.classList.remove('loading');
-              item.classList.add('visible');
-            };
-            img.onerror = () => {
-              item.classList.remove('loading');
-              item.classList.add('visible');
-              img.style.display = 'none';
-            };
+            img.onload = () => { item.classList.remove('loading'); item.classList.add('visible'); };
+            img.onerror = () => { item.classList.remove('loading'); item.classList.add('visible'); img.style.display = 'none'; };
           }
           observer.unobserve(item);
         }
@@ -147,28 +147,14 @@
     lbCounter.textContent = `${lightboxIndex + 1} / ${filteredPhotos.length}`;
   }
 
-  // Event listeners
-  // Tag filter delegation
-  tagFilter.addEventListener('click', (e) => {
-    const btn = e.target.closest('.tag-btn');
-    if (btn) filterByTag(btn.dataset.tag);
-  });
-
-  // Gallery click delegation
-  masonry.addEventListener('click', (e) => {
-    const item = e.target.closest('.photo-item');
-    if (item) openLightbox(parseInt(item.dataset.index, 10));
-  });
-
-  // Lightbox controls
+  // Events
+  tagFilter.addEventListener('click', (e) => { const btn = e.target.closest('.tag-btn'); if (btn) filterByTag(btn.dataset.tag); });
+  masonry.addEventListener('click', (e) => { const item = e.target.closest('.photo-item'); if (item) openLightbox(parseInt(item.dataset.index, 10)); });
   document.getElementById('lbClose').addEventListener('click', closeLightbox);
   document.getElementById('lbPrev').addEventListener('click', () => navigateLightbox(-1));
   document.getElementById('lbNext').addEventListener('click', () => navigateLightbox(1));
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) closeLightbox();
-  });
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
 
-  // Keyboard navigation
   document.addEventListener('keydown', (e) => {
     if (!lightbox.classList.contains('active')) return;
     if (e.key === 'Escape') closeLightbox();
@@ -176,32 +162,16 @@
     if (e.key === 'ArrowRight') navigateLightbox(1);
   });
 
-  // Touch swipe for lightbox
   let touchStartX = 0;
-  lightbox.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-  }, { passive: true });
-  lightbox.addEventListener('touchend', (e) => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? 1 : -1);
-  }, { passive: true });
+  lightbox.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  lightbox.addEventListener('touchend', (e) => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? 1 : -1); }, { passive: true });
 
-  // Header scroll effect
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 100);
-  }, { passive: true });
+  window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 100); }, { passive: true });
 
-  // Helpers
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function escapeAttr(str) {
-    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
+  function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function escapeAttr(str) { return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
   // Init
+  loadConfig();
   loadPhotos();
 })();

@@ -38,6 +38,22 @@
 
     <main class="admin-content">
 
+      <!-- Gallery Settings -->
+      <details style="margin-bottom:2rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.5rem;">
+        <summary style="cursor:pointer; font-family:var(--font-display); font-size:1rem; color:var(--text);">Gallery Settings</summary>
+        <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+          <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
+            <label>Gallery Title</label>
+            <input type="text" id="cfgTitle" placeholder="Photography Exhibition">
+          </div>
+          <div class="form-group" style="flex:2; min-width:200px; margin-bottom:0;">
+            <label>Subtitle</label>
+            <input type="text" id="cfgSubtitle" placeholder="A curated collection of captured moments">
+          </div>
+          <button class="btn btn-primary" id="cfgSave" style="height:38px;">Save Settings</button>
+        </div>
+      </details>
+
       <!-- Upload Zone -->
       <div class="upload-zone" id="uploadZone">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
