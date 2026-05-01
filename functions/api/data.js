@@ -5,12 +5,12 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Filename, X-Mime',
+    'Access-Control-Allow-Headers': 'Content-Type',
   };
 }
 
 export async function onRequest(context) {
-  const { request, url } = context;
+  const { request } = context;
 
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders() });
@@ -24,8 +24,9 @@ export async function onRequest(context) {
   }
 
   try {
-    const filename = request.headers.get('X-Filename') || 'image.jpg';
-    const mimeType = request.headers.get('X-Mime') || 'image/jpeg';
+    const url = new URL(request.url);
+    const filename = decodeURIComponent(url.searchParams.get('n') || 'image.jpg');
+    const mimeType = decodeURIComponent(url.searchParams.get('t') || 'image/jpeg');
     const body = await request.arrayBuffer();
 
     if (!body || body.byteLength === 0) {

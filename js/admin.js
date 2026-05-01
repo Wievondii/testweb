@@ -268,33 +268,27 @@
       progressBar.style.width = '10%';
       progressText.textContent = 'Preparing upload...';
 
-      // Upload via our proxy (sends raw binary to avoid WAF)
-      const fileData = await pendingCompressed.arrayBuffer();
+      // Upload via proxy - use fetch with Blob (no custom headers = no preflight)
+      const fname = encodeURIComponent(pendingCompressed.name);
+      const mime = encodeURIComponent(pendingCompressed.type || 'image/jpeg');
+      const blob = new Blob([await pendingCompressed.arrayBuffer()], { type: 'application/octet-stream' });
 
       progressBar.style.width = '20%';
       progressText.textContent = 'Uploading to image host...';
 
-      const uploadResult = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/data');
-        xhr.setRequestHeader('X-Filename', pendingCompressed.name);
-        xhr.setRequestHeader('X-Mime', pendingCompressed.type || 'image/jpeg');
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) {
-            const pct = Math.round(e.loaded / e.total * 100);
-            progressBar.style.width = Math.max(20, pct) + '%';
-            progressText.textContent = `Uploading... ${pct}%`;
-          }
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try { resolve(JSON.parse(xhr.responseText)); }
-            catch { reject(new Error('Invalid response')); }
-          } else { reject(new Error(`Upload failed: ${xhr.status}`)); }
-        };
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(fileData);
+      const res = await fetch(`/api/data?n=${fname}&t=${mime}`, {
+        method: 'POST',
+        body: blob,
       });
+
+      progressBar.style.width = '80%';
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Upload failed: ${res.status}`);
+      }
+
+      const uploadResult = await res.json();
 
       progressBar.style.width = '90%';
 
