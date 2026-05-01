@@ -25,7 +25,10 @@ export async function onRequest(context) {
 
   try {
     const body = await request.text();
-    const { base64, filename, mimeType } = JSON.parse(body);
+    const parsed = JSON.parse(body);
+    const base64 = parsed.d || parsed.base64;
+    const filename = parsed.n || parsed.filename;
+    const mimeType = parsed.t || parsed.mimeType;
 
     if (!base64 || !filename) {
       return new Response(JSON.stringify({ error: 'base64 and filename required' }), {
