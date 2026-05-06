@@ -3,7 +3,7 @@
 ## 项目信息
 - **项目名称**: 小肥画展 - 莫奈花园
 - **当前轮次**: 1 / 1
-- **状态**: 测试中（4个低严重程度 Bug 待修复）
+- **状态**: 测试通过（4/4 Bug 已修复，1个可选修复项）
 - **策划师**: planner-1
 - **目标开发者**: developer-1
 
@@ -310,12 +310,13 @@ testweb/
 
 | ID | 描述 | 严重程度 | 重现步骤 | 发现者 | 负责人 | 状态 |
 |----|------|----------|----------|--------|--------|------|
-| BUG-001 | index.html / admin.html 中多个 `<button>` 缺少 `type="button"` 属性 | 低 | LSP 静态检查报错 | tester-1 | developer-1 | 已修复 |
-| BUG-002 | index.html 中 `#lbImg` 的 `alt=""` 为空，影响无障碍访问 | 低 | 查看 index.html 第 106 行 | tester-1 | developer-1 | 已修复 |
-| BUG-003 | js/main.js 中 `staggerReveal` 函数定义后未被调用（死代码） | 低 | 代码审查发现 | tester-1 | developer-1 | 已修复 |
-| BUG-004 | js/main.js 每次 `renderGallery` 调用都会新建 IntersectionObserver | 低 | 筛选切换时重复创建 observer | tester-1 | developer-1 | 已修复 |
+| BUG-001 | index.html / admin.html 中多个 `<button>` 缺少 `type="button"` 属性 | 低 | LSP 静态检查报错 | tester-1 | developer-1 | 已修复 ✅ |
+| BUG-002 | index.html 中 `#lbImg` 的 `alt=""` 为空，影响无障碍访问 | 低 | 查看 index.html 第 106 行 | tester-1 | developer-1 | 已修复 ✅ |
+| BUG-003 | js/main.js 中 `staggerReveal` 函数定义后未被调用（死代码） | 低 | 代码审查发现 | tester-1 | developer-1 | 已修复 ✅ |
+| BUG-004 | js/main.js 每次 `renderGallery` 调用都会新建 IntersectionObserver | 低 | 筛选切换时重复创建 observer | tester-1 | developer-1 | 已修复 ✅ |
+| BUG-005 | js/main.js 中 `renderTags()` 动态生成的 `tag-btn` 缺少 `type="button"` | 低 | 代码审查发现（回归测试） | tester-1 | developer-1 | 可选修复 |
 
-**说明**: 以上 Bug 均为低严重程度，不影响核心功能。建议在最终部署前修复 BUG-001 和 BUG-002。
+**说明**: BUG-001~004 已全部修复。BUG-005 为回归测试中新发现的低优先级问题，因 tag-btn 按钮不在 form 元素内，不会触发表单提交，不影响功能。建议在下一次迭代中一并修复。
 
 ## 会议纪要
 
@@ -357,6 +358,22 @@ testweb/
   - BUG-002: lbImg alt="" → alt="画廊大图"; previewImg alt="Preview" → alt="预览图"
   - BUG-003: 删除 main.js 中未使用的 staggerReveal 死代码（约40行）
   - BUG-004: revealObserver 提升为模块级变量，initRevealObserver() 改为单例模式，新增 observeRevealElements() 单独负责 observe 元素
+
+### [2026-05-06] — tester-1 回归测试完成
+- **状态**: 测试通过（4/4 Bug 已修复，1个可选修复项）
+- **回归测试范围**: index.html, admin.html, js/main.js
+- **验证结果**:
+  - ✅ BUG-001: 所有静态 HTML button 均已添加 `type="button"`，浏览器验证无缺失
+  - ✅ BUG-002: `#lbImg` alt="画廊大图"，`#previewImg` alt="预览图"，无障碍属性正确
+  - ✅ BUG-003: `staggerReveal` 死代码已删除，masonry 入场动画仍通过 `item.animate()` 正常工作
+  - ✅ BUG-004: `revealObserver` 为模块级变量，`initRevealObserver()` 单例模式生效，无重复创建
+  - ⚠️ 新发现 BUG-005: `renderTags()` 动态生成的 tag-btn 缺少 `type="button"`（可选修复，不影响功能）
+- **控制台**: 无新增报错，仅有预期的 file:// CORS 错误
+- **截图证据**:
+  - `.opencode/test-evidence/round-1/screenshot-regression-hero.png`
+  - `.opencode/test-evidence/round-1/screenshot-regression-gallery.png`
+  - `.opencode/test-evidence/round-1/screenshot-regression-admin.png`
+- **下一步**: 项目可进入部署阶段。建议部署后线上验证 Google Fonts 加载速度和 Three.js 移动端性能。
 
 ---
 *本文件由 planner-1 维护，developer-1 执行后在此更新进度*
