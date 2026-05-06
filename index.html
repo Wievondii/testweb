@@ -6,61 +6,99 @@
   <title>Photography Exhibition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
+  <!-- Film grain overlay -->
+  <div class="grain-overlay"></div>
+
   <!-- Header -->
   <header class="site-header" id="header">
-    <a href="#" class="site-title"><span>Photo</span>graphy</a>
+    <a href="#" class="site-logo">
+      <span class="logo-mark">PHOTO</span><span class="logo-light">GRAPHY</span>
+    </a>
     <nav class="header-nav">
       <a href="#gallery">Gallery</a>
+      <span class="nav-divider"></span>
       <a href="admin.html">Admin</a>
     </nav>
   </header>
 
   <!-- Hero -->
   <section class="hero" id="home">
-    <div class="hero-particles" id="heroParticles"></div>
-    <h1 class="hero-title" id="heroTitle">Photography Exhibition</h1>
-    <div class="hero-divider"></div>
-    <p class="hero-subtitle" id="heroSubtitle">A curated collection of captured moments</p>
+    <div class="hero-bg-lines"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">A Curated Exhibition</p>
+      <h1 class="hero-title" id="heroTitle">Photography<br>Exhibition</h1>
+      <div class="hero-rule"></div>
+      <p class="hero-subtitle" id="heroSubtitle">Captured moments, preserved in light</p>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Scroll to explore</span>
+      <div class="scroll-line"></div>
+    </div>
   </section>
 
-  <!-- Category Filter -->
-  <div class="category-filter" id="categoryFilter">
-    <button class="cat-btn active" data-cat="all">全部</button>
-    <button class="cat-btn" data-cat="人像">人像</button>
-    <button class="cat-btn" data-cat="花草">花草</button>
-    <button class="cat-btn" data-cat="城市风景">城市风景</button>
-  </div>
-
-  <!-- Tag Filter -->
-  <div class="tag-filter" id="tagFilter"></div>
+  <!-- Filters -->
+  <section class="filters-section" id="filtersSection">
+    <div class="filters-inner">
+      <div class="category-filter" id="categoryFilter">
+        <button class="filter-pill active" data-cat="all">
+          <span class="pill-label">All Works</span>
+        </button>
+        <button class="filter-pill" data-cat="人像">
+          <span class="pill-label">Portrait</span>
+          <span class="pill-count" data-count-cat="人像"></span>
+        </button>
+        <button class="filter-pill" data-cat="花草">
+          <span class="pill-label">Flora</span>
+          <span class="pill-count" data-count-cat="花草"></span>
+        </button>
+        <button class="filter-pill" data-cat="城市风景">
+          <span class="pill-label">Urban</span>
+          <span class="pill-count" data-count-cat="城市风景"></span>
+        </button>
+      </div>
+      <div class="tag-filter" id="tagFilter"></div>
+    </div>
+  </section>
 
   <!-- Gallery -->
   <section class="gallery" id="gallery">
+    <div class="gallery-count" id="galleryCount"></div>
     <div class="masonry" id="masonry"></div>
     <div class="empty-state" id="emptyState" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-      <h3>No photos yet</h3>
-      <p>Photos will appear here once they are added via the admin panel.</p>
+      <div class="empty-icon">
+        <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1">
+          <rect x="8" y="8" width="64" height="64" rx="2"/>
+          <circle cx="28" cy="28" r="6"/>
+          <path d="M8 56l18-18 14 14 10-10 22 18"/>
+        </svg>
+      </div>
+      <h3>No works yet</h3>
+      <p>Photographs will appear here once added via the admin panel.</p>
     </div>
   </section>
 
   <!-- Lightbox -->
   <div class="lightbox" id="lightbox">
+    <div class="lightbox-backdrop"></div>
     <span class="lightbox-counter" id="lbCounter"></span>
-    <button class="lightbox-close" id="lbClose">&times;</button>
-    <button class="lightbox-nav lightbox-prev" id="lbPrev">&#8249;</button>
-    <button class="lightbox-nav lightbox-next" id="lbNext">&#8250;</button>
-    <img class="lightbox-img" id="lbImg" src="" alt="">
+    <button class="lightbox-close" id="lbClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <button class="lightbox-nav lightbox-prev" id="lbPrev">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="lightbox-nav lightbox-next" id="lbNext">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+    <div class="lightbox-img-wrap">
+      <img class="lightbox-img" id="lbImg" src="" alt="">
+    </div>
     <div class="lightbox-info">
       <h3 id="lbTitle"></h3>
       <p id="lbDesc"></p>
@@ -69,13 +107,11 @@
 
   <!-- Footer -->
   <footer class="site-footer">
-    <p>&copy; Photography Exhibition &mdash; All rights reserved</p>
+    <div class="footer-rule"></div>
+    <p class="footer-text">&copy; Photography Exhibition</p>
   </footer>
 
-  <!-- Film Grain Texture -->
-  <div class="film-grain"></div>
-
   <script src="js/compressor.js?v=2"></script>
-  <script src="js/main.js?v=5"></script>
+  <script src="js/main.js?v=6"></script>
 </body>
 </html>

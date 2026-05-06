@@ -1,5 +1,5 @@
 /**
- * Photography Exhibition - Gallery Page (KV-backed)
+ * Photography Exhibition — Gallery Page
  */
 (() => {
   const API_GALLERY = '/api/gallery';
@@ -11,7 +11,6 @@
   let currentCategory = 'all';
   let lightboxIndex = -1;
 
-  // Artistic animation pool
   const ANIMATIONS = ['fadeUp', 'slideFromLeft', 'slideFromRight', 'scaleIn', 'rotateIn', 'floatIn'];
   const SIZE_CLASSES = ['tall', 'wide', 'featured'];
 
@@ -20,16 +19,15 @@
   }
 
   function pickSizeClass(index) {
-    // Create visual rhythm: not every photo gets a special size
     const r = Math.random();
-    if (r < 0.15) return 'tall';
-    if (r < 0.25) return 'wide';
-    if (r < 0.32) return 'featured';
+    if (r < 0.12) return 'tall';
+    if (r < 0.22) return 'wide';
+    if (r < 0.30) return 'featured';
     return '';
   }
 
   function randomDelay() {
-    return (Math.random() * 0.6).toFixed(2);
+    return (Math.random() * 0.5).toFixed(2);
   }
 
   // DOM refs
@@ -39,6 +37,7 @@
   const tagFilter = document.getElementById('tagFilter');
   const masonry = document.getElementById('masonry');
   const emptyState = document.getElementById('emptyState');
+  const galleryCount = document.getElementById('galleryCount');
   const lightbox = document.getElementById('lightbox');
   const lbImg = document.getElementById('lbImg');
   const lbTitle = document.getElementById('lbTitle');
@@ -52,7 +51,7 @@
       if (!res.ok) return;
       const config = await res.json();
       if (config.galleryTitle) {
-        heroTitle.textContent = config.galleryTitle;
+        heroTitle.innerHTML = config.galleryTitle.replace(/\s/g, '<br>');
         document.title = config.galleryTitle;
       }
       if (config.gallerySubtitle) heroSubtitle.textContent = config.gallerySubtitle;
@@ -76,13 +75,30 @@
       } catch { photos = []; }
     }
     filteredPhotos = [...photos];
+    updateCategoryCounts();
     renderTags();
     renderGallery();
   }
 
+  function updateCategoryCounts() {
+    const counts = { '人像': 0, '花草': 0, '城市风景': 0 };
+    photos.forEach(p => {
+      (p.tags || []).forEach(t => { if (counts[t] !== undefined) counts[t]++; });
+    });
+    document.querySelectorAll('[data-count-cat]').forEach(el => {
+      const cat = el.dataset.countCat;
+      el.textContent = counts[cat] || 0;
+    });
+  }
+
   function getAllTags() {
     const tagSet = new Set();
-    photos.forEach(p => (p.tags || []).forEach(t => tagSet.add(t)));
+    const source = currentCategory !== 'all'
+      ? photos.filter(p => (p.tags || []).includes(currentCategory))
+      : photos;
+    source.forEach(p => (p.tags || []).forEach(t => {
+      if (t !== currentCategory) tagSet.add(t);
+    }));
     return [...tagSet].sort();
   }
 
@@ -102,6 +118,7 @@
     if (currentTag !== 'all') {
       filteredPhotos = filteredPhotos.filter(p => (p.tags || []).includes(currentTag));
     }
+    galleryCount.textContent = `${filteredPhotos.length} ${filteredPhotos.length === 1 ? 'work' : 'works'}`;
     renderGallery();
   }
 
@@ -117,10 +134,9 @@
     currentCategory = cat;
     currentTag = 'all';
     applyFilters();
-    document.querySelectorAll('.cat-btn').forEach(btn => {
+    document.querySelectorAll('.filter-pill').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.cat === cat);
     });
-    // Re-render tags for the filtered category
     renderTags();
     tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tag === 'all');
@@ -151,17 +167,15 @@
       </div>`;
     }).join('');
 
-    // Sequential loader: images appear in order, no "cutting in line"
+    // Sequential loader
     const items = masonry.querySelectorAll('.photo-item');
     let loadIndex = 0;
-    const BATCH = 3; // load 3 at a time for smooth flow
+    const BATCH = 3;
 
     function loadNext() {
       if (loadIndex >= items.length) return;
       const end = Math.min(loadIndex + BATCH, items.length);
-      for (let i = loadIndex; i < end; i++) {
-        loadItem(items[i]);
-      }
+      for (let i = loadIndex; i < end; i++) loadItem(items[i]);
       loadIndex = end;
     }
 
@@ -180,19 +194,19 @@
           fadeUp: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'translateY(0)' }],
           slideFromLeft: [{ opacity: 0, transform: 'translateX(-60px)' }, { opacity: 1, transform: 'translateX(0)' }],
           slideFromRight: [{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          scaleIn: [{ opacity: 0, transform: 'scale(0.85)' }, { opacity: 1, transform: 'scale(1)' }],
-          rotateIn: [{ opacity: 0, transform: 'rotate(-3deg) scale(0.9)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
+          scaleIn: [{ opacity: 0, transform: 'scale(0.88)' }, { opacity: 1, transform: 'scale(1)' }],
+          rotateIn: [{ opacity: 0, transform: 'rotate(-2deg) scale(0.92)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
           floatIn: [
-            { opacity: 0, transform: 'translateY(-40px) translateX(15px)' },
-            { opacity: 0.8, transform: 'translateY(5px) translateX(-3px)', offset: 0.6 },
+            { opacity: 0, transform: 'translateY(-30px) translateX(10px)' },
+            { opacity: 0.8, transform: 'translateY(4px) translateX(-2px)', offset: 0.6 },
             { opacity: 1, transform: 'translateY(0) translateX(0)' },
           ],
         };
         const kf = keyframes[animName] || keyframes.fadeUp;
         const anim = item.animate(kf, {
-          duration: 800,
+          duration: 900,
           delay: animDelay * 1000,
-          easing: 'ease',
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards',
         });
         setTimeout(() => {
@@ -200,18 +214,15 @@
           item.style.opacity = '1';
           item.style.transform = 'none';
           item.classList.add('visible');
-        }, (animDelay + 0.8) * 1000);
+        }, (animDelay + 0.9) * 100);
       };
       img.onload = onReady;
       img.onerror = () => { onReady(); img.style.display = 'none'; };
     }
 
-    // Start loading: first batch immediately, rest on scroll
     loadNext();
     const scrollObserver = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) {
-        loadNext();
-      }
+      if (entries.some(e => e.isIntersecting)) loadNext();
     }, { rootMargin: '400px' });
     scrollObserver.observe(masonry);
   }
@@ -224,7 +235,7 @@
     lbImg.src = photo.url;
     lbTitle.textContent = photo.title || '';
     lbDesc.textContent = photo.description || '';
-    lbCounter.textContent = `${index + 1} / ${filteredPhotos.length}`;
+    lbCounter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(filteredPhotos.length).padStart(2, '0')}`;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
@@ -242,17 +253,26 @@
     lbImg.src = photo.url;
     lbTitle.textContent = photo.title || '';
     lbDesc.textContent = photo.description || '';
-    lbCounter.textContent = `${lightboxIndex + 1} / ${filteredPhotos.length}`;
+    lbCounter.textContent = `${String(lightboxIndex + 1).padStart(2, '0')} / ${String(filteredPhotos.length).padStart(2, '0')}`;
   }
 
   // Events
-  document.getElementById('categoryFilter').addEventListener('click', (e) => { const btn = e.target.closest('.cat-btn'); if (btn) filterByCategory(btn.dataset.cat); });
-  tagFilter.addEventListener('click', (e) => { const btn = e.target.closest('.tag-btn'); if (btn) filterByTag(btn.dataset.tag); });
-  masonry.addEventListener('click', (e) => { const item = e.target.closest('.photo-item'); if (item) openLightbox(parseInt(item.dataset.index, 10)); });
+  document.getElementById('categoryFilter').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-pill');
+    if (btn) filterByCategory(btn.dataset.cat);
+  });
+  tagFilter.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tag-btn');
+    if (btn) filterByTag(btn.dataset.tag);
+  });
+  masonry.addEventListener('click', (e) => {
+    const item = e.target.closest('.photo-item');
+    if (item) openLightbox(parseInt(item.dataset.index, 10));
+  });
   document.getElementById('lbClose').addEventListener('click', closeLightbox);
   document.getElementById('lbPrev').addEventListener('click', () => navigateLightbox(-1));
   document.getElementById('lbNext').addEventListener('click', () => navigateLightbox(1));
-  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox || e.target.classList.contains('lightbox-backdrop')) closeLightbox(); });
 
   document.addEventListener('keydown', (e) => {
     if (!lightbox.classList.contains('active')) return;
@@ -263,9 +283,14 @@
 
   let touchStartX = 0;
   lightbox.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  lightbox.addEventListener('touchend', (e) => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? 1 : -1); }, { passive: true });
+  lightbox.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? 1 : -1);
+  }, { passive: true });
 
-  window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 100); }, { passive: true });
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 80);
+  }, { passive: true });
 
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
   function escapeAttr(str) { return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -273,21 +298,4 @@
   // Init
   loadConfig();
   loadPhotos();
-  initHeroParticles();
-
-  function initHeroParticles() {
-    const container = document.getElementById('heroParticles');
-    if (!container) return;
-    const count = 15;
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-      p.className = 'hero-particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDuration = (6 + Math.random() * 8) + 's';
-      p.style.animationDelay = (Math.random() * 10) + 's';
-      p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
-      p.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
-      container.appendChild(p);
-    }
-  }
 })();
