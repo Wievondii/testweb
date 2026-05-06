@@ -81,7 +81,7 @@
   }
 
   function updateCategoryCounts() {
-    const counts = { '人像': 0, '花草': 0, '城市风景': 0 };
+    const counts = { '人像': 0, '花草': 0, '城市风景': 0, '其他': 0 };
     photos.forEach(p => {
       (p.tags || []).forEach(t => { if (counts[t] !== undefined) counts[t]++; });
     });
