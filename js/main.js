@@ -157,43 +157,30 @@
     const items = masonry.querySelectorAll('.photo-item');
     if (items.length === 0) return;
 
-    // Reset masonry height
-    masonry.style.position = 'relative';
-    masonry.style.height = '';
+    const gap = 20;
+    const containerW = masonry.offsetWidth;
 
     if (cols === 1) {
-      // Single column: just stack naturally
       let y = 0;
       items.forEach(item => {
-        item.style.position = '';
-        item.style.left = '';
-        item.style.top = '';
+        item.style.left = '0px';
+        item.style.top = y + 'px';
         item.style.width = '100%';
-        const h = item.offsetHeight || 300;
-        item.style.position = 'relative';
-        y += h + parseFloat(getComputedStyle(item).marginBottom);
+        y += (item.offsetHeight || 320) + gap;
       });
       masonry.style.height = y + 'px';
       return;
     }
 
-    const gap = parseFloat(getComputedStyle(masonry).gap) || 20;
-    const containerW = masonry.offsetWidth;
     const colW = (containerW - gap * (cols - 1)) / cols;
     const colHeights = new Array(cols).fill(0);
 
     items.forEach(item => {
-      // Find shortest column
       const minCol = colHeights.indexOf(Math.min(...colHeights));
-      const x = minCol * (colW + gap);
-
-      item.style.position = 'absolute';
-      item.style.left = x + 'px';
+      item.style.left = (minCol * (colW + gap)) + 'px';
       item.style.top = colHeights[minCol] + 'px';
       item.style.width = colW + 'px';
-
-      const h = item.offsetHeight || 300;
-      colHeights[minCol] += h + gap;
+      colHeights[minCol] += (item.offsetHeight || 320) + gap;
     });
 
     masonry.style.height = Math.max(...colHeights) + 'px';
@@ -222,15 +209,23 @@
       </div>`;
     }).join('');
 
-    // Load images sequentially, then animate entrance
+    // Load images sequentially
     const items = masonry.querySelectorAll('.photo-item');
     let loaded = 0;
 
     function loadNext() {
       if (loaded >= items.length) {
-        // All loaded — do layout and staggered reveal
+        // All images loaded — make them visible, measure, then layout + animate
         requestAnimationFrame(() => {
+          // Make all items visible (still opacity:0 from CSS but remove shimmer)
+          items.forEach(item => {
+            item.classList.remove('loading');
+            item.style.position = 'absolute'; // prepare for layout
+          });
+          // Force browser to compute layout with real image sizes
+          void masonry.offsetHeight;
           layoutMasonry();
+          // Now stagger the entrance animations
           staggerReveal(items);
         });
         return;
