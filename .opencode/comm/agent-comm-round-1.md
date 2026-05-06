@@ -3,7 +3,7 @@
 ## 项目信息
 - **项目名称**: 小肥画展 - 莫奈花园
 - **当前轮次**: 1 / 1
-- **状态**: 待测试
+- **状态**: 测试中（4个低严重程度 Bug 待修复）
 - **策划师**: planner-1
 - **目标开发者**: developer-1
 
@@ -269,6 +269,54 @@ testweb/
 - Google Fonts中文字体加载速度待线上验证
 - Three.js水波shader在低端设备上的流畅度待测试
 
+## 测试记录
+
+**测试执行者**: tester-1
+**测试时间**: 2026-05-06
+**测试环境**: Windows 11, Chromium (Playwright), 1440x900 viewport, 本地 file:// 协议
+**测试范围**: index.html, admin.html, css/style.css, css/animations.css, js/three-bg.js, js/main.js, js/admin.js
+
+### 静态代码审查结果
+- index.html: 标签闭合正确，引号匹配，中文字符正确
+- admin.html: 标签闭合正确，引号匹配，中文字符正确
+- css/style.css (前100行): 变量定义正确，莫奈色系变量已添加
+- css/animations.css: @keyframes 语法正确，括号匹配
+- js/three-bg.js: Shader 语法正确，无未闭合引号或括号
+- js/main.js: IntersectionObserver 代码正确，stagger 动画逻辑正确
+- js/admin.js: 中文字符串正确，引号匹配
+
+### 浏览器测试结果
+| 验收项 | 结果 | 备注 |
+|--------|------|------|
+| Hero 区域显示"小肥画展"标题 | ✅ 通过 | ZCOOL XiaoWei 字体正确加载 |
+| 标题使用书法字体 | ✅ 通过 | font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif |
+| Three.js 画布存在 | ✅ 通过 | #threeCanvas 元素存在 |
+| 导航栏显示"画廊"和"管理" | ✅ 通过 | 文本正确 |
+| Filter pills 显示中文 | ✅ 通过 | 全部作品/人像/花草/城市风景/其他 |
+| 滚动到画廊区域 | ⚠️ 受限 | 本地无图片，仅验证空状态和文案 |
+| 鼠标悬停图片光晕效果 | ⚠️ 受限 | 无图片，无法验证 |
+| Lightbox 点击打开 | ⚠️ 受限 | 无图片，无法验证 |
+| Admin 页面标题 | ✅ 通过 | "管理后台 - 小肥画展" |
+| Admin 登录框 | ✅ 通过 | "管理登录"文案正确 |
+| 无中文乱码/截断 | ✅ 通过 | 所有中文字符正常显示 |
+| 控制台无报错 | ⚠️ 受限 | 仅有预期中的 file:// CORS 错误（生产环境不会出现） |
+
+### 截图证据
+- Hero 区域: `.opencode/test-evidence/round-1/screenshot-test-hero.png`
+- 画廊区域: `.opencode/test-evidence/round-1/screenshot-test-gallery.png`
+- Admin 页面: `.opencode/test-evidence/round-1/screenshot-test-admin.png`
+
+## Bug追踪
+
+| ID | 描述 | 严重程度 | 重现步骤 | 发现者 | 负责人 | 状态 |
+|----|------|----------|----------|--------|--------|------|
+| BUG-001 | index.html / admin.html 中多个 `<button>` 缺少 `type="button"` 属性 | 低 | LSP 静态检查报错 | tester-1 | developer-1 | 已修复 |
+| BUG-002 | index.html 中 `#lbImg` 的 `alt=""` 为空，影响无障碍访问 | 低 | 查看 index.html 第 106 行 | tester-1 | developer-1 | 已修复 |
+| BUG-003 | js/main.js 中 `staggerReveal` 函数定义后未被调用（死代码） | 低 | 代码审查发现 | tester-1 | developer-1 | 已修复 |
+| BUG-004 | js/main.js 每次 `renderGallery` 调用都会新建 IntersectionObserver | 低 | 筛选切换时重复创建 observer | tester-1 | developer-1 | 已修复 |
+
+**说明**: 以上 Bug 均为低严重程度，不影响核心功能。建议在最终部署前修复 BUG-001 和 BUG-002。
+
 ## 会议纪要
 
 ### 2026-05-06 — planner-1 制定计划完成
@@ -290,6 +338,25 @@ testweb/
 - **状态**: 待测试
 - **变更文件**: index.html, admin.html, css/style.css, css/animations.css, js/three-bg.js, js/main.js, js/admin.js
 - **备注**: 全部前端改造完成，等待 tester-1 测试
+
+### [2026-05-06] — tester-1 测试完成
+- **状态**: 测试中（4个低严重程度 Bug 待修复）
+- **测试文件**: 全部 7 个变更文件均已测试
+- **核心功能**: 全部通过（Hero标题、中文字体、Three.js场景、导航、Filter pills、Admin页面）
+- **待修复问题**:
+  1. 多个 button 缺少 type 属性（LSP规范问题）
+  2. lightbox 图片 alt 为空（无障碍问题）
+  3. main.js 中死代码和 observer 重复创建（代码质量）
+- **备注**: 建议 developer-1 修复 BUG-001 和 BUG-002 后重新提交测试。线上部署前需验证 Google Fonts 加载速度和 Three.js 在移动端的流畅度。
+
+### [2026-05-06] — developer-1 修复 Bug
+- **修复内容**: BUG-001 ~ BUG-004
+- **状态**: 已修复，等待回归测试
+- **详细修改**:
+  - BUG-001: index.html 5个button + admin.html 11个button 全部添加 type="button"
+  - BUG-002: lbImg alt="" → alt="画廊大图"; previewImg alt="Preview" → alt="预览图"
+  - BUG-003: 删除 main.js 中未使用的 staggerReveal 死代码（约40行）
+  - BUG-004: revealObserver 提升为模块级变量，initRevealObserver() 改为单例模式，新增 observeRevealElements() 单独负责 observe 元素
 
 ---
 *本文件由 planner-1 维护，developer-1 执行后在此更新进度*

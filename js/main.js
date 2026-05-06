@@ -10,6 +10,7 @@
   let currentTag = 'all';
   let currentCategory = 'all';
   let lightboxIndex = -1;
+  let revealObserver = null;
 
   const ANIMATIONS = ['fadeUp', 'slideFromLeft', 'slideFromRight', 'scaleIn', 'rotateIn', 'floatIn'];
   const SIZE_CLASSES = ['tall', 'wide', 'featured'];
@@ -101,9 +102,11 @@
     const source = currentCategory !== 'all'
       ? photos.filter(p => (p.tags || []).includes(currentCategory))
       : photos;
-    source.forEach(p => (p.tags || []).forEach(t => {
-      if (t !== currentCategory) tagSet.add(t);
-    }));
+    source.forEach(p => {
+      (p.tags || []).forEach(t => {
+        if (t !== currentCategory) { tagSet.add(t); }
+      });
+    });
     return [...tagSet].sort();
   }
 
@@ -296,12 +299,13 @@
     }
 
     loadNext();
-    initRevealObserver();
+    observeRevealElements();
   }
 
-  // Scroll reveal animation via IntersectionObserver
+  // Scroll reveal animation via IntersectionObserver (singleton)
   function initRevealObserver() {
-    const revealObserver = new IntersectionObserver((entries) => {
+    if (revealObserver) return;
+    revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
@@ -309,48 +313,12 @@
         }
       });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   }
 
-  function staggerReveal(items) {
-    const cols = getColumnCount();
-    // Group items by column position (top-to-bottom within each column)
-    // Since layout is absolute-positioned by column, items are already in column order in DOM
-    // We want to reveal them in visual order: col0-row0, col1-row0, col2-row0, col0-row1, ...
-
-    // For staggered reveal, just reveal in DOM order with a small cascade delay
-    items.forEach((item, i) => {
-      const animName = pickAnimation();
-      const baseDelay = (i % cols) * 80; // cascade across columns
-      const totalDelay = baseDelay;
-
-      setTimeout(() => {
-        const keyframes = {
-          fadeUp: [{ opacity: 0, transform: 'translateY(30px)' }, { opacity: 1, transform: 'translateY(0)' }],
-          slideFromLeft: [{ opacity: 0, transform: 'translateX(-40px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          slideFromRight: [{ opacity: 0, transform: 'translateX(40px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          scaleIn: [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'scale(1)' }],
-          rotateIn: [{ opacity: 0, transform: 'rotate(-1.5deg) scale(0.94)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
-          floatIn: [
-            { opacity: 0, transform: 'translateY(-20px) translateX(8px)' },
-            { opacity: 0.8, transform: 'translateY(3px) translateX(-2px)', offset: 0.6 },
-            { opacity: 1, transform: 'translateY(0) translateX(0)' },
-          ],
-        };
-        const kf = keyframes[animName] || keyframes.fadeUp;
-        const anim = item.animate(kf, {
-          duration: 700,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'forwards',
-        });
-        item.classList.remove('loading');
-        setTimeout(() => {
-          anim.cancel();
-          item.style.opacity = '1';
-          item.style.transform = 'none';
-          item.classList.add('visible');
-        }, 750);
-      }, totalDelay);
+  function observeRevealElements() {
+    initRevealObserver();
+    document.querySelectorAll('.reveal').forEach(el => {
+      revealObserver.observe(el);
     });
   }
 

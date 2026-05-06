@@ -21,7 +21,7 @@
       <p>请输入密码管理画廊作品</p>
       <div class="login-error" id="loginError">密码错误</div>
       <input type="password" id="loginPassword" placeholder="请输入密码" autocomplete="current-password">
-      <button class="btn btn-primary" style="width:100%;" id="loginBtn">进入</button>
+      <button type="button" class="btn btn-primary" style="width:100%;" id="loginBtn">进入</button>
     </div>
   </div>
 
@@ -33,9 +33,9 @@
       <h1>作品管理</h1>
       <div class="admin-header-actions">
         <a href="index.html" class="btn btn-sm">查看画廊</a>
-        <button class="btn btn-sm" id="exportBtn">导出 JSON</button>
-        <button class="btn btn-sm" id="importBtn">导入 JSON</button>
-        <button class="btn btn-sm btn-danger" id="logoutBtn">退出登录</button>
+        <button type="button" class="btn btn-sm" id="exportBtn">导出 JSON</button>
+        <button type="button" class="btn btn-sm" id="importBtn">导入 JSON</button>
+        <button type="button" class="btn btn-sm btn-danger" id="logoutBtn">退出登录</button>
       </div>
     </header>
 
@@ -53,7 +53,7 @@
             <label>副标题</label>
             <input type="text" id="cfgSubtitle" placeholder="用光影定格每一个诗意瞬间">
           </div>
-          <button class="btn btn-primary" id="cfgSave" style="height:38px;">保存设置</button>
+          <button type="button" class="btn btn-primary" id="cfgSave" style="height:38px;">保存设置</button>
         </div>
       </details>
 
@@ -78,7 +78,7 @@
       <!-- Upload Preview & Form -->
       <div class="upload-preview" id="uploadPreview">
         <div class="upload-preview-grid">
-          <img class="upload-preview-img" id="previewImg" src="" alt="Preview">
+          <img class="upload-preview-img" id="previewImg" src="" alt="预览图">
           <div class="upload-preview-form">
             <div class="form-group">
               <label>标题</label>
@@ -93,8 +93,8 @@
               <input type="text" id="photoTags" placeholder="人像, 花草, 城市风景">
             </div>
             <div style="display:flex; gap:0.8rem;">
-              <button class="btn btn-primary" id="uploadBtn">上传并保存</button>
-              <button class="btn" id="cancelUpload">取消</button>
+              <button type="button" class="btn btn-primary" id="uploadBtn">上传并保存</button>
+              <button type="button" class="btn" id="cancelUpload">取消</button>
             </div>
           </div>
         </div>
@@ -136,8 +136,8 @@
         <input type="text" id="editTags">
       </div>
       <div class="modal-actions">
-        <button class="btn" id="editCancel">取消</button>
-        <button class="btn btn-primary" id="editSave">保存</button>
+        <button type="button" class="btn" id="editCancel">取消</button>
+        <button type="button" class="btn btn-primary" id="editSave">保存</button>
       </div>
     </div>
   </div>
@@ -148,8 +148,8 @@
       <h3>删除作品</h3>
       <p style="color:var(--text-muted); font-size:0.9rem;">确定要从画廊中删除这张作品吗？图片文件在图床服务器上不会被删除。</p>
       <div class="modal-actions">
-        <button class="btn" id="deleteCancel">取消</button>
-        <button class="btn btn-danger" id="deleteConfirm">删除</button>
+        <button type="button" class="btn" id="deleteCancel">取消</button>
+        <button type="button" class="btn btn-danger" id="deleteConfirm">删除</button>
       </div>
     </div>
   </div>
