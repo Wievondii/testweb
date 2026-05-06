@@ -159,6 +159,7 @@
 
     const gap = 20;
     const containerW = masonry.offsetWidth;
+    console.log('layoutMasonry: cols=' + cols + ' containerW=' + containerW + ' items=' + items.length);
 
     if (cols === 1) {
       let y = 0;
@@ -253,16 +254,22 @@
     }
 
     function onAllLoaded() {
+      // Use double rAF to ensure DOM is fully settled before measuring
       requestAnimationFrame(() => {
         items.forEach(item => {
           item.classList.remove('loading');
           item.style.opacity = '1';
           item.style.position = 'absolute';
         });
-        void masonry.offsetHeight;
-        layoutMasonry();
-        items.forEach(item => { item.style.opacity = '0'; });
-        staggerReveal(items);
+        requestAnimationFrame(() => {
+          // Force layout computation
+          masonry.getBoundingClientRect();
+          layoutMasonry();
+          // Debug: log column count
+          console.log('Masonry layout:', items.length, 'items,', getColumnCount(), 'columns,', masonry.offsetWidth, 'px wide');
+          items.forEach(item => { item.style.opacity = '0'; });
+          staggerReveal(items);
+        });
       });
     }
 
