@@ -209,68 +209,88 @@
       </div>`;
     }).join('');
 
-    // Preload images with throttle + short timeout, layout when ready
+    // Load images one by one, each appears as it loads
     const items = masonry.querySelectorAll('.photo-item');
-    const CONCURRENT = 6;
-    const TIMEOUT = 5000;
-    let loaded = 0;
-    let active = 0;
+    const DELAY = 300; // ms between each image load
     let nextIdx = 0;
-    let layoutDone = false;
+    const colHeights = [];
+    const colCount = getColumnCount();
+    for (let i = 0; i < colCount; i++) colHeights.push(0);
 
-    function markDone() {
-      active--;
-      loaded++;
-      tryLoad();
-      // Layout when all requested images have resolved (loaded or timed out)
-      if (!layoutDone && nextIdx >= items.length && active === 0) {
-        layoutDone = true;
-        onAllLoaded();
-      }
+    // Prepare masonry for absolute positioning
+    masonry.style.position = 'relative';
+
+    function loadNext() {
+      if (nextIdx >= items.length) return;
+      const idx = nextIdx++;
+      const item = items[idx];
+      const img = item.querySelector('img');
+      if (!img.dataset.src) { loadNext(); return; }
+
+      // Set up for measurement
+      item.classList.remove('loading');
+      item.style.position = 'absolute';
+      item.style.visibility = 'hidden';
+      item.style.opacity = '1';
+
+      const src = img.dataset.src;
+      img.removeAttribute('data-src');
+
+      const onReady = () => {
+        // Calculate column width
+        const containerW = masonry.offsetWidth;
+        const gap = 20;
+        const cols = getColumnCount();
+        const colW = (containerW - gap * (cols - 1)) / cols;
+
+        // Ensure colHeights array matches current column count
+        while (colHeights.length < cols) colHeights.push(0);
+
+        // Find shortest column
+        const minCol = colHeights.indexOf(Math.min(...colHeights));
+        const x = minCol * (colW + gap);
+
+        // Position item
+        item.style.left = x + 'px';
+        item.style.top = colHeights[minCol] + 'px';
+        item.style.width = colW + 'px';
+        item.style.visibility = '';
+
+        // Update column height
+        colHeights[minCol] += (item.offsetHeight || 300) + gap;
+        masonry.style.height = Math.max(...colHeights) + 'px';
+
+        // Animate entrance
+        const animName = pickAnimation();
+        const keyframes = {
+          fadeUp: [{ opacity: 0, transform: 'translateY(25px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          slideFromLeft: [{ opacity: 0, transform: 'translateX(-30px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          slideFromRight: [{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          scaleIn: [{ opacity: 0, transform: 'scale(0.93)' }, { opacity: 1, transform: 'scale(1)' }],
+          rotateIn: [{ opacity: 0, transform: 'rotate(-1deg) scale(0.95)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
+          floatIn: [
+            { opacity: 0, transform: 'translateY(-15px) translateX(6px)' },
+            { opacity: 0.8, transform: 'translateY(2px) translateX(-1px)', offset: 0.6 },
+            { opacity: 1, transform: 'translateY(0) translateX(0)' },
+          ],
+        };
+        const kf = keyframes[animName] || keyframes.fadeUp;
+        item.animate(kf, { duration: 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        setTimeout(() => { item.classList.add('visible'); }, 650);
+
+        // Load next after delay
+        setTimeout(loadNext, DELAY);
+      };
+
+      img.onload = onReady;
+      img.onerror = () => {
+        item.style.display = 'none';
+        setTimeout(loadNext, DELAY);
+      };
+      img.src = src;
     }
 
-    function tryLoad() {
-      while (active < CONCURRENT && nextIdx < items.length) {
-        const idx = nextIdx++;
-        const item = items[idx];
-        const img = item.querySelector('img');
-        if (img.dataset.src) {
-          active++;
-          const src = img.dataset.src;
-          img.removeAttribute('data-src');
-          const timer = setTimeout(() => { img.onload = null; img.onerror = null; markDone(); }, TIMEOUT);
-          img.onload = img.onerror = () => { clearTimeout(timer); markDone(); };
-          img.src = src;
-        } else {
-          // Already loaded (no data-src)
-        }
-      }
-      // Check if everything is done
-      if (!layoutDone && nextIdx >= items.length && active === 0) {
-        layoutDone = true;
-        onAllLoaded();
-      }
-    }
-
-    function onAllLoaded() {
-      // Use double rAF to ensure DOM is fully settled before measuring
-      requestAnimationFrame(() => {
-        items.forEach(item => {
-          item.classList.remove('loading');
-          item.style.opacity = '1';
-          item.style.position = 'absolute';
-        });
-        requestAnimationFrame(() => {
-          // Force layout computation
-          masonry.getBoundingClientRect();
-          layoutMasonry();
-          items.forEach(item => { item.style.opacity = '0'; });
-          staggerReveal(items);
-        });
-      });
-    }
-
-    tryLoad();
+    loadNext();
   }
 
   function staggerReveal(items) {
