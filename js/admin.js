@@ -127,7 +127,7 @@
   async function loadPhotos() {
     try {
       const res = await fetch(API_PHOTOS, { headers: authHeaders() });
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error('加载失败');
       photos = await res.json();
     } catch (e) {
       console.warn('Failed to load from API, trying fallback:', e);
@@ -146,7 +146,7 @@
         headers: authHeaders(),
         body: JSON.stringify(photo),
       });
-      if (!res.ok) throw new Error('Failed to save');
+      if (!res.ok) throw new Error('保存失败');
       const saved = await res.json();
       photos.unshift(saved);
       renderPhotoGrid();
@@ -169,7 +169,7 @@
         headers: authHeaders(),
         body: JSON.stringify(photo),
       });
-      if (!res.ok) throw new Error('Failed to update');
+      if (!res.ok) throw new Error('更新失败');
       const updated = await res.json();
       const idx = photos.findIndex(p => p.id === updated.id);
       if (idx !== -1) photos[idx] = updated;
@@ -189,7 +189,7 @@
         headers: authHeaders(),
         body: JSON.stringify({ id }),
       });
-      if (!res.ok) throw new Error('Failed to delete');
+      if (!res.ok) throw new Error('删除失败');
     } catch { /* proceed with local removal */ }
     photos = photos.filter(p => p.id !== id);
     localStorage.setItem('gallery_photos', JSON.stringify(photos));
@@ -210,19 +210,19 @@
   });
 
   async function handleFileSelect(file) {
-    if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+    if (!file.type.startsWith('image/')) { showToast('请先选择图片', 'error'); return; }
 
     compressInfo.classList.add('show');
-    document.getElementById('compressOriginal').textContent = 'Original: ' + ImageCompressor.formatSize(file.size);
+    document.getElementById('compressOriginal').textContent = '原图: ' + ImageCompressor.formatSize(file.size);
 
     try {
       const result = await ImageCompressor.compress(file);
       pendingFile = file;
       pendingCompressed = result.file;
 
-      document.getElementById('compressResult').textContent = 'Compressed: ' + ImageCompressor.formatSize(result.compressedSize);
+      document.getElementById('compressResult').textContent = '压缩后: ' + ImageCompressor.formatSize(result.compressedSize);
       if (result.skipped) {
-        document.getElementById('compressSaving').textContent = '(no compression needed)';
+        document.getElementById('compressSaving').textContent = '（无需压缩）';
       } else {
         const saving = Math.round((1 - result.compressedSize / result.originalSize) * 100);
         document.getElementById('compressSaving').textContent = `(-${saving}%)`;
@@ -234,7 +234,7 @@
       photoDesc.value = '';
       photoTags.value = '';
     } catch (e) {
-      showToast('Failed to process image: ' + e.message, 'error');
+      showToast('压缩失败: ' + e.message, 'error');
     }
   }
 
@@ -256,17 +256,17 @@
   uploadBtn.addEventListener('click', async () => {
     if (!pendingCompressed) return;
     const title = photoTitle.value.trim();
-    if (!title) { showToast('Please enter a title', 'error'); return; }
+    if (!title) { showToast('请输入作品标题', 'error'); return; }
 
     uploadBtn.disabled = true;
-    uploadBtn.textContent = 'Uploading...';
+    uploadBtn.textContent = '上传中...';
     uploadProgress.style.display = 'block';
     progressBar.style.width = '0%';
-    progressText.textContent = 'Uploading to image host...';
+    progressText.textContent = '正在上传到图床...';
 
     try {
       progressBar.style.width = '10%';
-      progressText.textContent = 'Preparing upload...';
+      progressText.textContent = '准备上传...';
 
       // Upload via proxy - use fetch with Blob (no custom headers = no preflight)
       const fname = encodeURIComponent(pendingCompressed.name);
@@ -274,7 +274,7 @@
       const blob = new Blob([await pendingCompressed.arrayBuffer()], { type: 'text/plain' });
 
       progressBar.style.width = '20%';
-      progressText.textContent = 'Uploading to image host...';
+      progressText.textContent = '正在上传到图床...';
 
       const res = await fetch(`/api/data?n=${fname}&t=${mime}`, {
         method: 'POST',
@@ -285,7 +285,7 @@
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Upload failed: ${res.status}`);
+        throw new Error(errData.error || `上传失败: ${res.status}`);
       }
 
       const uploadResult = await res.json();
@@ -302,9 +302,9 @@
         imageUrl = IMAGE_HOST + uploadResult[0].src;
       } else if (uploadResult?.src) {
         imageUrl = IMAGE_HOST + uploadResult.src;
-      } else { throw new Error('Unexpected response: ' + JSON.stringify(uploadResult)); }
+      } else { throw new Error('服务器返回异常: ' + JSON.stringify(uploadResult)); }
 
-      progressText.textContent = 'Saving to gallery...';
+      progressText.textContent = '保存到画廊...';
 
       const tags = photoTags.value.split(',').map(t => t.trim()).filter(Boolean);
       const photo = {
@@ -317,21 +317,21 @@
       await addPhoto(photo);
       progressBar.style.width = '100%';
       resetUpload();
-      showToast('Photo uploaded and saved!', 'success');
+      showToast('作品上传成功', 'success');
     } catch (e) {
-      showToast('Upload failed: ' + e.message, 'error');
+      showToast('上传失败: ' + e.message, 'error');
     } finally {
       uploadBtn.disabled = false;
-      uploadBtn.textContent = 'Upload & Save';
+      uploadBtn.textContent = '上传并保存';
       uploadProgress.style.display = 'none';
     }
   });
 
   // ======== Photo Grid ========
   function renderPhotoGrid() {
-    photoCount.textContent = `${photos.length} photo${photos.length !== 1 ? 's' : ''}`;
+    photoCount.textContent = `${photos.length} 张作品`;
     if (photos.length === 0) {
-      photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">No photos yet.</p>';
+      photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无作品</p>';
       return;
     }
     photoGrid.innerHTML = photos.map(p => `
@@ -342,8 +342,8 @@
           <p>${escapeHtml(p.description || '')}</p>
           <div class="photo-card-tags">${(p.tags || []).map(t => `<span class="photo-card-tag">${escapeHtml(t)}</span>`).join('')}</div>
           <div class="photo-card-actions">
-            <button class="btn btn-sm edit-btn" data-id="${p.id}">Edit</button>
-            <button class="btn btn-sm btn-danger delete-btn" data-id="${p.id}">Delete</button>
+            <button class="btn btn-sm edit-btn" data-id="${p.id}">编辑</button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${p.id}">删除</button>
           </div>
         </div>
       </div>
@@ -378,7 +378,7 @@
     });
     editModal.classList.remove('active');
     editingId = null;
-    showToast('Photo updated', 'success');
+    showToast('作品已更新', 'success');
   });
 
   editCancel.addEventListener('click', () => { editModal.classList.remove('active'); editingId = null; });
@@ -392,7 +392,7 @@
     await deletePhoto(deletingId);
     deleteModal.classList.remove('active');
     deletingId = null;
-    showToast('Photo removed', 'success');
+    showToast('作品已删除', 'success');
   });
 
   deleteCancel.addEventListener('click', () => { deleteModal.classList.remove('active'); deletingId = null; });
@@ -403,9 +403,9 @@
     const blob = new Blob([JSON.stringify({ photos }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'photos.json'; a.click();
+    a.href = url; a.download = 'xiaofei-gallery-backup.json'; a.click();
     URL.revokeObjectURL(url);
-    showToast('Exported photos.json', 'success');
+    showToast('已导出备份文件', 'success');
   });
 
   importBtn.addEventListener('click', () => importFile.click());
@@ -420,9 +420,9 @@
           for (const photo of data.photos) {
             await addPhoto(photo);
           }
-          showToast(`Imported ${data.photos.length} photos`, 'success');
-        } else { throw new Error('Invalid format'); }
-      } catch { showToast('Failed to import: invalid JSON', 'error'); }
+          showToast(`成功导入 ${data.photos.length} 张作品`, 'success');
+        } else { throw new Error('格式无效'); }
+      } catch { showToast('导入失败：JSON 格式无效', 'error'); }
     };
     reader.readAsText(file);
     importFile.value = '';
@@ -461,14 +461,14 @@
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
-          galleryTitle: cfgTitle.value.trim() || 'Photography Exhibition',
+          galleryTitle: cfgTitle.value.trim() || '小肥画展',
           gallerySubtitle: cfgSubtitle.value.trim(),
         }),
       });
-      if (!res.ok) throw new Error('Failed to save');
-      showToast('Settings saved', 'success');
+      if (!res.ok) throw new Error('保存失败');
+      showToast('设置已保存', 'success');
     } catch (e) {
-      showToast('Failed to save settings: ' + e.message, 'error');
+      showToast('保存设置失败: ' + e.message, 'error');
     }
   });
 

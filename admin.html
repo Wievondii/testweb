@@ -3,24 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Photography Exhibition</title>
+  <title>管理后台 - 小肥画展</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/animations.css?v=1">
 </head>
 <body class="admin-body">
 
   <!-- Login Gate -->
   <div class="login-gate" id="loginGate">
     <div class="login-box">
-      <h2>Admin Access</h2>
-      <p>Enter password to manage photos</p>
-      <div class="login-error" id="loginError">Incorrect password</div>
-      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-      <button class="btn btn-primary" style="width:100%;" id="loginBtn">Enter</button>
+      <h2>管理登录</h2>
+      <p>请输入密码管理画廊作品</p>
+      <div class="login-error" id="loginError">密码错误</div>
+      <input type="password" id="loginPassword" placeholder="请输入密码" autocomplete="current-password">
+      <button class="btn btn-primary" style="width:100%;" id="loginBtn">进入</button>
     </div>
   </div>
 
@@ -29,12 +30,12 @@
 
     <!-- Admin Header -->
     <header class="admin-header">
-      <h1>Photo Manager</h1>
+      <h1>作品管理</h1>
       <div class="admin-header-actions">
-        <a href="index.html" class="btn btn-sm">View Gallery</a>
-        <button class="btn btn-sm" id="exportBtn">Export JSON</button>
-        <button class="btn btn-sm" id="importBtn">Import JSON</button>
-        <button class="btn btn-sm btn-danger" id="logoutBtn">Logout</button>
+        <a href="index.html" class="btn btn-sm">查看画廊</a>
+        <button class="btn btn-sm" id="exportBtn">导出 JSON</button>
+        <button class="btn btn-sm" id="importBtn">导入 JSON</button>
+        <button class="btn btn-sm btn-danger" id="logoutBtn">退出登录</button>
       </div>
     </header>
 
@@ -42,17 +43,17 @@
 
       <!-- Gallery Settings -->
       <details style="margin-bottom:2rem; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.5rem;">
-        <summary style="cursor:pointer; font-family:var(--font-display); font-size:1rem; color:var(--text);">Gallery Settings</summary>
+        <summary style="cursor:pointer; font-family:var(--font-display); font-size:1rem; color:var(--text);">画廊设置</summary>
         <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
           <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
-            <label>Gallery Title</label>
-            <input type="text" id="cfgTitle" placeholder="Photography Exhibition">
+            <label>画廊标题</label>
+            <input type="text" id="cfgTitle" placeholder="小肥画展">
           </div>
           <div class="form-group" style="flex:2; min-width:200px; margin-bottom:0;">
-            <label>Subtitle</label>
-            <input type="text" id="cfgSubtitle" placeholder="A curated collection of captured moments">
+            <label>副标题</label>
+            <input type="text" id="cfgSubtitle" placeholder="用光影定格每一个诗意瞬间">
           </div>
-          <button class="btn btn-primary" id="cfgSave" style="height:38px;">Save Settings</button>
+          <button class="btn btn-primary" id="cfgSave" style="height:38px;">保存设置</button>
         </div>
       </details>
 
@@ -63,8 +64,8 @@
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
-        <h3>Drop image here or click to upload</h3>
-        <p>Supports JPG, PNG, WebP &mdash; Auto-compressed to under 5MB</p>
+        <h3>拖拽图片到此处或点击上传</h3>
+        <p>支持 JPG、PNG、WebP 格式 — 自动压缩至 5MB 以下</p>
         <input type="file" id="fileInput" accept="image/*" multiple>
       </div>
 
@@ -80,20 +81,20 @@
           <img class="upload-preview-img" id="previewImg" src="" alt="Preview">
           <div class="upload-preview-form">
             <div class="form-group">
-              <label>Title</label>
-              <input type="text" id="photoTitle" placeholder="Photo title">
+              <label>标题</label>
+              <input type="text" id="photoTitle" placeholder="作品标题">
             </div>
             <div class="form-group">
-              <label>Description</label>
-              <textarea id="photoDesc" placeholder="Optional description"></textarea>
+              <label>描述</label>
+              <textarea id="photoDesc" placeholder="可选描述"></textarea>
             </div>
             <div class="form-group">
-              <label>Tags (comma separated)</label>
-              <input type="text" id="photoTags" placeholder="landscape, sunset, nature">
+              <label>标签（用逗号分隔）</label>
+              <input type="text" id="photoTags" placeholder="人像, 花草, 城市风景">
             </div>
             <div style="display:flex; gap:0.8rem;">
-              <button class="btn btn-primary" id="uploadBtn">Upload & Save</button>
-              <button class="btn" id="cancelUpload">Cancel</button>
+              <button class="btn btn-primary" id="uploadBtn">上传并保存</button>
+              <button class="btn" id="cancelUpload">取消</button>
             </div>
           </div>
         </div>
@@ -104,13 +105,13 @@
         <div style="background:var(--bg-surface); border-radius:var(--radius); overflow:hidden; height:4px;">
           <div id="progressBar" style="height:100%; background:var(--accent); width:0%; transition:width 0.3s ease;"></div>
         </div>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;" id="progressText">Uploading...</p>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;" id="progressText">正在上传...</p>
       </div>
 
       <!-- Photo List -->
       <div class="photo-list-header">
-        <h2>Gallery Photos</h2>
-        <span class="photo-count" id="photoCount">0 photos</span>
+        <h2>画廊作品</h2>
+        <span class="photo-count" id="photoCount">0 张作品</span>
       </div>
 
       <div class="photo-grid" id="photoGrid"></div>
@@ -121,22 +122,22 @@
   <!-- Edit Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
-      <h3>Edit Photo</h3>
+      <h3>编辑作品</h3>
       <div class="form-group">
-        <label>Title</label>
+        <label>标题</label>
         <input type="text" id="editTitle">
       </div>
       <div class="form-group">
-        <label>Description</label>
+        <label>描述</label>
         <textarea id="editDesc"></textarea>
       </div>
       <div class="form-group">
-        <label>Tags (comma separated)</label>
+        <label>标签（用逗号分隔）</label>
         <input type="text" id="editTags">
       </div>
       <div class="modal-actions">
-        <button class="btn" id="editCancel">Cancel</button>
-        <button class="btn btn-primary" id="editSave">Save</button>
+        <button class="btn" id="editCancel">取消</button>
+        <button class="btn btn-primary" id="editSave">保存</button>
       </div>
     </div>
   </div>
@@ -144,11 +145,11 @@
   <!-- Delete Confirm Modal -->
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
-      <h3>Delete Photo</h3>
-      <p style="color:var(--text-muted); font-size:0.9rem;">Are you sure you want to remove this photo from the gallery? The image file on the hosting will not be deleted.</p>
+      <h3>删除作品</h3>
+      <p style="color:var(--text-muted); font-size:0.9rem;">确定要从画廊中删除这张作品吗？图片文件在图床服务器上不会被删除。</p>
       <div class="modal-actions">
-        <button class="btn" id="deleteCancel">Cancel</button>
-        <button class="btn btn-danger" id="deleteConfirm">Delete</button>
+        <button class="btn" id="deleteCancel">取消</button>
+        <button class="btn btn-danger" id="deleteConfirm">删除</button>
       </div>
     </div>
   </div>
@@ -160,6 +161,6 @@
   <input type="file" id="importFile" accept=".json" style="display:none;">
 
   <script src="js/compressor.js?v=2"></script>
-  <script src="js/admin.js?v=2"></script>
+  <script src="js/admin.js?v=3"></script>
 </body>
 </html>

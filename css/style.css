@@ -3,29 +3,36 @@
    ================================================ */
 
 :root {
-  /* Palette: Monet's Garden — Impressionist purple + rose + sage */
-  --bg: #0c0914;
-  --bg-elevated: #140f20;
-  --bg-card: #1a1428;
-  --surface: #221a34;
-  --text: #ede6f4;
-  --text-dim: #9a8aad;
-  --text-muted: #6a5d7a;
+  /* 莫奈花园印象派调色板 */
+  --bg: #0a0e17;
+  --bg-elevated: #0f1420;
+  --bg-card: #151b2e;
+  --surface: #1c233a;
+  --text: #f0e8f8;
+  --text-dim: #a89bc4;
+  --text-muted: #6b5d8a;
   --accent: #c4a8d8;
-  --accent-glow: rgba(196, 168, 216, 0.10);
+  --accent-glow: rgba(196, 168, 216, 0.12);
   --accent-strong: #d8c0e8;
-  --accent-rose: #deb0c4;
-  --accent-sage: #9ab8a0;
-  --border: rgba(196, 168, 216, 0.08);
-  --border-accent: rgba(196, 168, 216, 0.22);
+  --accent-rose: #e8b4d0;
+  --accent-sage: #a8c9a0;
+  --monet-lavender: #b8a1d9;
+  --monet-rose: #e8b4d0;
+  --monet-water: #7eb5d6;
+  --monet-gold: #e8d5a3;
+  --monet-leaf: #a8c9a0;
+  --monet-mist: rgba(200, 190, 220, 0.15);
+  --border: rgba(196, 168, 216, 0.10);
+  --border-accent: rgba(196, 168, 216, 0.25);
 
   /* Typography */
-  --font-display: 'Cormorant Garamond', 'Georgia', serif;
-  --font-body: 'Outfit', -apple-system, sans-serif;
+  --font-display: 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
+  --font-body: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-en: 'Cormorant Garamond', serif;
 
   /* Spacing */
   --gap: 1.25rem;
-  --radius: 6px;
+  --radius: 8px;
   --page-pad: clamp(1.5rem, 4vw, 4rem);
 
   /* Transitions */
@@ -43,14 +50,14 @@ body {
   font-weight: 300;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.65;
+  line-height: 1.75;
   overflow-x: hidden;
   min-height: 100vh;
   letter-spacing: 0.01em;
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--monet-rose);
   color: var(--bg);
 }
 
@@ -81,8 +88,8 @@ body {
 }
 
 .site-header.scrolled {
-  background: rgba(12, 9, 20, 0.92);
-  backdrop-filter: blur(24px) saturate(1.2);
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(12px);
   padding: 1rem var(--page-pad);
   border-bottom: 1px solid var(--border);
 }
@@ -148,6 +155,7 @@ body {
   text-align: center;
   position: relative;
   overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, rgba(184, 161, 217, 0.08) 0%, transparent 60%);
 }
 
 #threeCanvas {
@@ -201,7 +209,7 @@ body {
 .hero-title {
   font-family: var(--font-display);
   font-size: clamp(3rem, 8vw, 7rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: var(--text);
@@ -209,6 +217,7 @@ body {
   opacity: 0;
   transform: translateY(40px);
   animation: heroReveal 1.2s var(--ease-out) 0.4s forwards;
+  text-shadow: 0 0 40px rgba(196, 168, 216, 0.3), 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .hero-rule {
@@ -306,7 +315,6 @@ body {
   font-size: 0.7rem;
   font-weight: 300;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.4s var(--ease-out);
 }
@@ -314,6 +322,7 @@ body {
 .filter-pill:hover {
   border-color: var(--border-accent);
   color: var(--text);
+  background: linear-gradient(135deg, rgba(196, 168, 216, 0.06), rgba(232, 180, 208, 0.04));
 }
 
 .filter-pill.active {
@@ -399,13 +408,13 @@ body {
 }
 
 .photo-item:hover img {
-  transform: scale(1.06);
-  filter: brightness(1.08) saturate(1.1);
+  transform: scale(1.04);
+  filter: brightness(1.06) saturate(1.12);
 }
 
 .photo-item:hover {
   z-index: 2;
-  box-shadow: 0 8px 40px rgba(176, 140, 200, 0.2);
+  box-shadow: 0 20px 60px var(--monet-mist);
 }
 
 /* Hover vignette + info reveal */
@@ -498,8 +507,8 @@ body {
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(12, 9, 20, 0.96);
-  backdrop-filter: blur(40px);
+  background: rgba(10, 14, 23, 0.96);
+  backdrop-filter: blur(20px);
 }
 
 .lightbox-img-wrap {
@@ -773,7 +782,7 @@ body {
   right: 0;
   z-index: 100;
   padding: 1rem var(--page-pad);
-  background: rgba(12, 9, 20, 0.95);
+  background: rgba(10, 14, 23, 0.95);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
   display: flex;

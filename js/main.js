@@ -55,7 +55,12 @@
         document.title = config.galleryTitle;
       }
       if (config.gallerySubtitle) heroSubtitle.textContent = config.gallerySubtitle;
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+      if (!document.title || document.title === 'Photography Exhibition') {
+        document.title = '小肥画展';
+      }
+    }
   }
 
   // Load photos
@@ -106,7 +111,7 @@
     const tags = getAllTags();
     if (tags.length === 0) { tagFilter.style.display = 'none'; return; }
     tagFilter.style.display = 'flex';
-    tagFilter.innerHTML = `<button class="tag-btn active" data-tag="all">All</button>` +
+    tagFilter.innerHTML = `<button class="tag-btn active" data-tag="all">全部</button>` +
       tags.map(t => `<button class="tag-btn" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
   }
 
@@ -118,7 +123,7 @@
     if (currentTag !== 'all') {
       filteredPhotos = filteredPhotos.filter(p => (p.tags || []).includes(currentTag));
     }
-    galleryCount.textContent = `${filteredPhotos.length} ${filteredPhotos.length === 1 ? 'work' : 'works'}`;
+    galleryCount.textContent = `${filteredPhotos.length} 张作品`;
     renderGallery();
   }
 
@@ -198,7 +203,7 @@
     // Create all items (hidden)
     masonry.innerHTML = filteredPhotos.map((photo, i) => {
       const sizeClass = pickSizeClass();
-      const classes = ['photo-item', 'loading', sizeClass].filter(Boolean).join(' ');
+      const classes = ['photo-item', 'loading', 'reveal', sizeClass].filter(Boolean).join(' ');
       return `
       <div class="${classes}" data-index="${i}" data-id="${photo.id}">
         <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}">
@@ -275,8 +280,8 @@
           ],
         };
         const kf = keyframes[animName] || keyframes.fadeUp;
-        item.animate(kf, { duration: 600, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
-        setTimeout(() => { item.classList.add('visible'); }, 650);
+        item.animate(kf, { duration: 600, delay: idx * 50, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        setTimeout(() => { item.classList.add('visible'); }, 650 + idx * 50);
 
         // Load next after delay
         setTimeout(loadNext, DELAY);
@@ -291,6 +296,20 @@
     }
 
     loadNext();
+    initRevealObserver();
+  }
+
+  // Scroll reveal animation via IntersectionObserver
+  function initRevealObserver() {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   }
 
   function staggerReveal(items) {
@@ -353,12 +372,16 @@
     lbCounter.textContent = `${String(index + 1).padStart(2, '0')} / ${String(filteredPhotos.length).padStart(2, '0')}`;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => lightbox.classList.add('open'));
   }
 
   function closeLightbox() {
-    lightbox.classList.remove('active');
-    document.body.style.overflow = '';
-    lightboxIndex = -1;
+    lightbox.classList.remove('open');
+    setTimeout(() => {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+      lightboxIndex = -1;
+    }, 400);
   }
 
   function navigateLightbox(dir) {

@@ -6,9 +6,10 @@
   <title>小肥画展</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/animations.css?v=1">
 </head>
 <body>
 
@@ -18,12 +19,12 @@
   <!-- Header -->
   <header class="site-header" id="header">
     <a href="#" class="site-logo">
-      <span class="logo-mark">PHOTO</span><span class="logo-light">GRAPHY</span>
+      <span class="logo-mark">小肥</span><span class="logo-light">画展</span>
     </a>
     <nav class="header-nav">
-      <a href="#gallery">Gallery</a>
+      <a href="#gallery">画廊</a>
       <span class="nav-divider"></span>
-      <a href="admin.html">Admin</a>
+      <a href="admin.html">管理</a>
     </nav>
   </header>
 
@@ -32,13 +33,13 @@
     <canvas id="threeCanvas"></canvas>
     <div class="hero-bg-lines"></div>
     <div class="hero-content">
-      <p class="hero-eyebrow">A Curated Exhibition</p>
+      <p class="hero-eyebrow">一场印象派的视觉之旅</p>
       <h1 class="hero-title" id="heroTitle">小肥<br>画展</h1>
       <div class="hero-rule"></div>
-      <p class="hero-subtitle" id="heroSubtitle">Captured moments, preserved in light</p>
+      <p class="hero-subtitle" id="heroSubtitle">用光影定格每一个诗意瞬间</p>
     </div>
     <div class="hero-scroll-hint">
-      <span>Scroll to explore</span>
+      <span>向下滑动，探索花园</span>
       <div class="scroll-line"></div>
     </div>
   </section>
@@ -48,22 +49,22 @@
     <div class="filters-inner">
       <div class="category-filter" id="categoryFilter">
         <button class="filter-pill active" data-cat="all">
-          <span class="pill-label">All Works</span>
+          <span class="pill-label">全部作品</span>
         </button>
         <button class="filter-pill" data-cat="人像">
-          <span class="pill-label">Portrait</span>
+          <span class="pill-label">人像</span>
           <span class="pill-count" data-count-cat="人像"></span>
         </button>
         <button class="filter-pill" data-cat="花草">
-          <span class="pill-label">Flora</span>
+          <span class="pill-label">花草</span>
           <span class="pill-count" data-count-cat="花草"></span>
         </button>
         <button class="filter-pill" data-cat="城市风景">
-          <span class="pill-label">Urban</span>
+          <span class="pill-label">城市风景</span>
           <span class="pill-count" data-count-cat="城市风景"></span>
         </button>
         <button class="filter-pill" data-cat="其他">
-          <span class="pill-label">Other</span>
+          <span class="pill-label">其他</span>
           <span class="pill-count" data-count-cat="其他"></span>
         </button>
       </div>
@@ -83,8 +84,8 @@
           <path d="M8 56l18-18 14 14 10-10 22 18"/>
         </svg>
       </div>
-      <h3>No works yet</h3>
-      <p>Photographs will appear here once added via the admin panel.</p>
+      <h3>暂无作品</h3>
+      <p>通过管理面板添加照片后，作品将显示在这里。</p>
     </div>
   </section>
 
@@ -113,12 +114,12 @@
   <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-rule"></div>
-    <p class="footer-text">&copy; Photography Exhibition</p>
+    <p class="footer-text">&copy; 小肥画展 · 用光影书写诗意</p>
   </footer>
 
   <script src="js/compressor.js?v=2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/three-bg.js?v=1"></script>
-  <script src="js/main.js?v=6"></script>
+  <script src="js/three-bg.js?v=2"></script>
+  <script src="js/main.js?v=7"></script>
 </body>
 </html>
