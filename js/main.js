@@ -209,12 +209,25 @@
       </div>`;
     }).join('');
 
-    // Preload all images in background (throttled), then layout + animate
+    // Preload images with throttle + timeout, then layout + animate
     const items = masonry.querySelectorAll('.photo-item');
     const CONCURRENT = 4;
+    const TIMEOUT = 15000; // 15s per image
     let loaded = 0;
     let active = 0;
     let nextIdx = 0;
+    let layoutDone = false;
+
+    function markDone() {
+      active--;
+      loaded++;
+      if (loaded >= items.length && !layoutDone) {
+        layoutDone = true;
+        onAllLoaded();
+      } else {
+        tryLoad();
+      }
+    }
 
     function tryLoad() {
       while (active < CONCURRENT && nextIdx < items.length) {
@@ -223,17 +236,17 @@
         const img = item.querySelector('img');
         if (img.dataset.src) {
           active++;
-          img.src = img.dataset.src;
+          const src = img.dataset.src;
           img.removeAttribute('data-src');
-          img.onload = img.onerror = () => {
-            active--;
-            loaded++;
-            if (loaded === items.length) onAllLoaded();
-            else tryLoad();
-          };
+          const timer = setTimeout(() => { img.onload = null; img.onerror = null; markDone(); }, TIMEOUT);
+          img.onload = img.onerror = () => { clearTimeout(timer); markDone(); };
+          img.src = src;
         } else {
           loaded++;
-          if (loaded === items.length) onAllLoaded();
+          if (loaded >= items.length && !layoutDone) {
+            layoutDone = true;
+            onAllLoaded();
+          }
         }
       }
     }
