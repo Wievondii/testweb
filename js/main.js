@@ -8,7 +8,29 @@
   let photos = [];
   let filteredPhotos = [];
   let currentTag = 'all';
+  let currentCategory = 'all';
   let lightboxIndex = -1;
+
+  // Artistic animation pool
+  const ANIMATIONS = ['fadeUp', 'slideFromLeft', 'slideFromRight', 'scaleIn', 'rotateIn', 'floatIn'];
+  const SIZE_CLASSES = ['tall', 'wide', 'featured'];
+
+  function pickAnimation() {
+    return ANIMATIONS[Math.floor(Math.random() * ANIMATIONS.length)];
+  }
+
+  function pickSizeClass(index) {
+    // Create visual rhythm: not every photo gets a special size
+    const r = Math.random();
+    if (r < 0.15) return 'tall';
+    if (r < 0.25) return 'wide';
+    if (r < 0.32) return 'featured';
+    return '';
+  }
+
+  function randomDelay() {
+    return (Math.random() * 0.6).toFixed(2);
+  }
 
   // DOM refs
   const header = document.getElementById('header');
@@ -72,12 +94,36 @@
       tags.map(t => `<button class="tag-btn" data-tag="${escapeAttr(t)}">${escapeHtml(t)}</button>`).join('');
   }
 
+  function applyFilters() {
+    filteredPhotos = [...photos];
+    if (currentCategory !== 'all') {
+      filteredPhotos = filteredPhotos.filter(p => (p.tags || []).includes(currentCategory));
+    }
+    if (currentTag !== 'all') {
+      filteredPhotos = filteredPhotos.filter(p => (p.tags || []).includes(currentTag));
+    }
+    renderGallery();
+  }
+
   function filterByTag(tag) {
     currentTag = tag;
-    filteredPhotos = tag === 'all' ? [...photos] : photos.filter(p => (p.tags || []).includes(tag));
-    renderGallery();
+    applyFilters();
     tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tag === tag);
+    });
+  }
+
+  function filterByCategory(cat) {
+    currentCategory = cat;
+    currentTag = 'all';
+    applyFilters();
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cat === cat);
+    });
+    // Re-render tags for the filtered category
+    renderTags();
+    tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tag === 'all');
     });
   }
 
@@ -89,26 +135,65 @@
     }
     emptyState.style.display = 'none';
 
-    masonry.innerHTML = filteredPhotos.map((photo, i) => `
-      <div class="photo-item loading" data-index="${i}" data-id="${photo.id}">
+    masonry.innerHTML = filteredPhotos.map((photo, i) => {
+      const anim = pickAnimation();
+      const delay = randomDelay();
+      const sizeClass = pickSizeClass(i);
+      const classes = ['photo-item', 'loading', sizeClass].filter(Boolean).join(' ');
+      return `
+      <div class="${classes}" data-index="${i}" data-id="${photo.id}"
+           style="--anim-name:${anim}; --anim-delay:${delay}s;">
         <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}" loading="lazy">
         <div class="photo-overlay">
           <h3>${escapeHtml(photo.title || '')}</h3>
           <p>${escapeHtml(photo.description || '')}</p>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const item = entry.target;
           const img = item.querySelector('img');
+          const animName = item.style.getPropertyValue('--anim-name');
+          const animDelay = parseFloat(item.style.getPropertyValue('--anim-delay')) || 0;
           if (img.dataset.src) {
             img.src = img.dataset.src;
             img.removeAttribute('data-src');
-            img.onload = () => { item.classList.remove('loading'); item.classList.add('visible'); };
-            img.onerror = () => { item.classList.remove('loading'); item.classList.add('visible'); img.style.display = 'none'; };
+            const onReady = () => {
+              item.classList.remove('loading');
+              // Use Web Animations API — no class swap, no flicker
+              const keyframes = {
+                fadeUp: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'translateY(0)' }],
+                slideFromLeft: [{ opacity: 0, transform: 'translateX(-60px)' }, { opacity: 1, transform: 'translateX(0)' }],
+                slideFromRight: [{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }],
+                scaleIn: [{ opacity: 0, transform: 'scale(0.85)' }, { opacity: 1, transform: 'scale(1)' }],
+                rotateIn: [{ opacity: 0, transform: 'rotate(-3deg) scale(0.9)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
+                floatIn: [
+                  { opacity: 0, transform: 'translateY(-40px) translateX(15px)' },
+                  { opacity: 0.8, transform: 'translateY(5px) translateX(-3px)', offset: 0.6 },
+                  { opacity: 1, transform: 'translateY(0) translateX(0)' },
+                ],
+              };
+              const kf = keyframes[animName] || keyframes.fadeUp;
+              const anim = item.animate(kf, {
+                duration: 800,
+                delay: animDelay * 1000,
+                easing: 'ease',
+                fill: 'forwards',
+              });
+              // After animation, transfer state to inline styles and cancel animation
+              // so CSS :hover transforms are not blocked by animation fill
+              setTimeout(() => {
+                anim.cancel();
+                item.style.opacity = '1';
+                item.style.transform = 'none';
+                item.classList.add('visible');
+              }, (animDelay + 0.8) * 1000);
+            };
+            img.onload = onReady;
+            img.onerror = () => { onReady(); img.style.display = 'none'; };
           }
           observer.unobserve(item);
         }
@@ -148,6 +233,7 @@
   }
 
   // Events
+  document.getElementById('categoryFilter').addEventListener('click', (e) => { const btn = e.target.closest('.cat-btn'); if (btn) filterByCategory(btn.dataset.cat); });
   tagFilter.addEventListener('click', (e) => { const btn = e.target.closest('.tag-btn'); if (btn) filterByTag(btn.dataset.tag); });
   masonry.addEventListener('click', (e) => { const item = e.target.closest('.photo-item'); if (item) openLightbox(parseInt(item.dataset.index, 10)); });
   document.getElementById('lbClose').addEventListener('click', closeLightbox);
@@ -174,4 +260,21 @@
   // Init
   loadConfig();
   loadPhotos();
+  initHeroParticles();
+
+  function initHeroParticles() {
+    const container = document.getElementById('heroParticles');
+    if (!container) return;
+    const count = 15;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'hero-particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (6 + Math.random() * 8) + 's';
+      p.style.animationDelay = (Math.random() * 10) + 's';
+      p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+      p.style.setProperty('--drift', (Math.random() * 60 - 30) + 'px');
+      container.appendChild(p);
+    }
+  }
 })();

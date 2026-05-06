@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <link rel="stylesheet" href="css/style.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
@@ -23,10 +23,19 @@
 
   <!-- Hero -->
   <section class="hero" id="home">
+    <div class="hero-particles" id="heroParticles"></div>
     <h1 class="hero-title" id="heroTitle">Photography Exhibition</h1>
     <div class="hero-divider"></div>
     <p class="hero-subtitle" id="heroSubtitle">A curated collection of captured moments</p>
   </section>
+
+  <!-- Category Filter -->
+  <div class="category-filter" id="categoryFilter">
+    <button class="cat-btn active" data-cat="all">全部</button>
+    <button class="cat-btn" data-cat="人像">人像</button>
+    <button class="cat-btn" data-cat="花草">花草</button>
+    <button class="cat-btn" data-cat="城市风景">城市风景</button>
+  </div>
 
   <!-- Tag Filter -->
   <div class="tag-filter" id="tagFilter"></div>
@@ -63,7 +72,10 @@
     <p>&copy; Photography Exhibition &mdash; All rights reserved</p>
   </footer>
 
+  <!-- Film Grain Texture -->
+  <div class="film-grain"></div>
+
   <script src="js/compressor.js?v=2"></script>
-  <script src="js/main.js?v=2"></script>
+  <script src="js/main.js?v=4"></script>
 </body>
 </html>

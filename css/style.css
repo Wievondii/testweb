@@ -91,7 +91,18 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(212,165,116,0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(212,165,116,0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(transparent, var(--bg));
   pointer-events: none;
 }
 
@@ -127,6 +138,70 @@ body {
 
 @keyframes fadeUp {
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideFromLeft {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideFromRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rotateIn {
+  from { opacity: 0; transform: rotate(-3deg) scale(0.9); }
+  to { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+@keyframes floatIn {
+  0% { opacity: 0; transform: translateY(-40px) translateX(15px); }
+  60% { opacity: 0.8; transform: translateY(5px) translateX(-3px); }
+  100% { opacity: 1; transform: translateY(0) translateX(0); }
+}
+
+/* Animation classes - applied via JS with --anim-delay */
+.anim-fadeUp { animation: fadeUp 0.8s ease var(--anim-delay, 0s) both; }
+.anim-slideFromLeft { animation: slideFromLeft 0.8s ease var(--anim-delay, 0s) both; }
+.anim-slideFromRight { animation: slideFromRight 0.8s ease var(--anim-delay, 0s) both; }
+.anim-scaleIn { animation: scaleIn 0.8s ease var(--anim-delay, 0s) both; }
+.anim-rotateIn { animation: rotateIn 0.8s ease var(--anim-delay, 0s) both; }
+.anim-floatIn { animation: floatIn 0.8s ease var(--anim-delay, 0s) both; }
+
+/* ===================== CATEGORY FILTER ===================== */
+.category-filter {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  padding: 2.5rem 2rem 0.5rem;
+  opacity: 0;
+  animation: fadeUp 1s ease 0.6s forwards;
+}
+
+.cat-btn {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font);
+}
+
+.cat-btn:hover,
+.cat-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
 }
 
 /* ===================== TAG FILTER ===================== */
@@ -183,32 +258,43 @@ body {
   position: relative;
   cursor: pointer;
   opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: box-shadow 0.4s ease;
 }
 
 .photo-item.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
 .photo-item img {
   width: 100%;
   display: block;
-  transition: transform 0.6s ease;
+  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease;
 }
 
-.photo-item:hover img { transform: scale(1.03); }
+.photo-item:hover img {
+  transform: scale(1.05);
+  filter: brightness(1.08) contrast(1.02);
+}
+
+.photo-item:hover {
+  box-shadow: 0 8px 40px rgba(212, 165, 116, 0.12), 0 2px 12px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+}
+
+.photo-item.visible:hover {
+  transform: translateY(-2px);
+}
 
 .photo-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2rem 1rem 1rem;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  padding: 2.5rem 1.2rem 1.2rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
   opacity: 0;
-  transition: opacity var(--transition);
+  transition: opacity 0.4s ease;
 }
 
 .photo-item:hover .photo-overlay { opacity: 1; }
@@ -223,6 +309,77 @@ body {
 .photo-overlay p {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+/* ===================== FILM GRAIN TEXTURE ===================== */
+.film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  mix-blend-mode: overlay;
+}
+
+/* ===================== HERO PARTICLES ===================== */
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat linear infinite;
+}
+
+@keyframes particleFloat {
+  0% { opacity: 0; transform: translateY(100%) translateX(0); }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-100vh) translateX(var(--drift)); }
+}
+
+/* ===================== PHOTO SIZE VARIATIONS ===================== */
+.photo-item.tall img {
+  min-height: 320px;
+  object-fit: cover;
+}
+
+.photo-item.wide {
+  break-inside: avoid;
+}
+
+.photo-item.wide img {
+  min-height: 180px;
+  object-fit: cover;
+}
+
+.photo-item.featured {
+  break-inside: avoid;
+}
+
+.photo-item.featured img {
+  min-height: 280px;
+  object-fit: cover;
+}
+
+.photo-item.featured::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(212, 165, 116, 0.15);
+  border-radius: var(--radius);
+  pointer-events: none;
 }
 
 /* ===================== LIGHTBOX ===================== */
@@ -366,10 +523,11 @@ body {
 }
 
 .photo-item.loading {
-  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-surface) 50%, var(--bg-card) 75%);
+  background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-surface) 50%, var(--bg-card) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 2s ease-in-out infinite;
   min-height: 200px;
+  border: 1px solid rgba(255,255,255,0.02);
 }
 
 /* ===================== RESPONSIVE ===================== */
