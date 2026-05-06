@@ -209,10 +209,10 @@
       </div>`;
     }).join('');
 
-    // Preload images with throttle + timeout, then layout + animate
+    // Preload images with throttle + short timeout, layout when ready
     const items = masonry.querySelectorAll('.photo-item');
-    const CONCURRENT = 4;
-    const TIMEOUT = 15000; // 15s per image
+    const CONCURRENT = 6;
+    const TIMEOUT = 5000;
     let loaded = 0;
     let active = 0;
     let nextIdx = 0;
@@ -221,11 +221,11 @@
     function markDone() {
       active--;
       loaded++;
-      if (loaded >= items.length && !layoutDone) {
+      tryLoad();
+      // Layout when all requested images have resolved (loaded or timed out)
+      if (!layoutDone && nextIdx >= items.length && active === 0) {
         layoutDone = true;
         onAllLoaded();
-      } else {
-        tryLoad();
       }
     }
 
@@ -242,12 +242,13 @@
           img.onload = img.onerror = () => { clearTimeout(timer); markDone(); };
           img.src = src;
         } else {
-          loaded++;
-          if (loaded >= items.length && !layoutDone) {
-            layoutDone = true;
-            onAllLoaded();
-          }
+          // Already loaded (no data-src)
         }
+      }
+      // Check if everything is done
+      if (!layoutDone && nextIdx >= items.length && active === 0) {
+        layoutDone = true;
+        onAllLoaded();
       }
     }
 
