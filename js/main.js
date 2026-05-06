@@ -209,45 +209,50 @@
       </div>`;
     }).join('');
 
-    // Load images sequentially
+    // Preload all images in background (throttled), then layout + animate
     const items = masonry.querySelectorAll('.photo-item');
+    const CONCURRENT = 4;
     let loaded = 0;
+    let active = 0;
+    let nextIdx = 0;
 
-    function loadNext() {
-      if (loaded >= items.length) {
-        // All images loaded — reveal, measure, layout, then animate
-        requestAnimationFrame(() => {
-          // Step 1: Remove shimmer, make items visible for measurement
-          items.forEach(item => {
-            item.classList.remove('loading');
-            item.style.opacity = '1';
-            item.style.position = 'absolute';
-          });
-          // Step 2: Force reflow so browser computes real image heights
-          void masonry.offsetHeight;
-          // Step 3: Position items in masonry columns
-          layoutMasonry();
-          // Step 4: Reset opacity to 0 for entrance animation
-          items.forEach(item => { item.style.opacity = '0'; });
-          // Step 5: Staggered reveal
-          staggerReveal(items);
-        });
-        return;
-      }
-      const item = items[loaded];
-      const img = item.querySelector('img');
-      if (img.dataset.src) {
-        img.src = img.dataset.src;
-        img.removeAttribute('data-src');
-        img.onload = () => { loaded++; loadNext(); };
-        img.onerror = () => { loaded++; loadNext(); };
-      } else {
-        loaded++;
-        loadNext();
+    function tryLoad() {
+      while (active < CONCURRENT && nextIdx < items.length) {
+        const idx = nextIdx++;
+        const item = items[idx];
+        const img = item.querySelector('img');
+        if (img.dataset.src) {
+          active++;
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          img.onload = img.onerror = () => {
+            active--;
+            loaded++;
+            if (loaded === items.length) onAllLoaded();
+            else tryLoad();
+          };
+        } else {
+          loaded++;
+          if (loaded === items.length) onAllLoaded();
+        }
       }
     }
 
-    loadNext();
+    function onAllLoaded() {
+      requestAnimationFrame(() => {
+        items.forEach(item => {
+          item.classList.remove('loading');
+          item.style.opacity = '1';
+          item.style.position = 'absolute';
+        });
+        void masonry.offsetHeight;
+        layoutMasonry();
+        items.forEach(item => { item.style.opacity = '0'; });
+        staggerReveal(items);
+      });
+    }
+
+    tryLoad();
   }
 
   function staggerReveal(items) {
