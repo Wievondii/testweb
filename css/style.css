@@ -3,19 +3,21 @@
    ================================================ */
 
 :root {
-  /* Palette: Deep obsidian + warm copper */
-  --bg: #080808;
-  --bg-elevated: #101010;
-  --bg-card: #141414;
-  --surface: #1a1a1a;
-  --text: #e8e4df;
-  --text-dim: #6b6560;
-  --text-muted: #4a4540;
-  --accent: #c8956c;
-  --accent-glow: rgba(200, 149, 108, 0.12);
-  --accent-strong: #e0a878;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-accent: rgba(200, 149, 108, 0.25);
+  /* Palette: Monet's Garden — Impressionist purple + rose + sage */
+  --bg: #0a0610;
+  --bg-elevated: #120d1a;
+  --bg-card: #181224;
+  --surface: #1e1630;
+  --text: #e8e0f0;
+  --text-dim: #8a7a9a;
+  --text-muted: #5a4d6a;
+  --accent: #b08cc8;
+  --accent-glow: rgba(176, 140, 200, 0.12);
+  --accent-strong: #c8a0e0;
+  --accent-rose: #d4a0b8;
+  --accent-sage: #8aaa90;
+  --border: rgba(180, 160, 220, 0.08);
+  --border-accent: rgba(176, 140, 200, 0.25);
 
   /* Typography */
   --font-display: 'Cormorant Garamond', 'Georgia', serif;
@@ -79,7 +81,7 @@ body {
 }
 
 .site-header.scrolled {
-  background: rgba(8, 8, 8, 0.92);
+  background: rgba(10, 6, 16, 0.92);
   backdrop-filter: blur(24px) saturate(1.2);
   padding: 1rem var(--page-pad);
   border-bottom: 1px solid var(--border);
@@ -148,16 +150,23 @@ body {
   overflow: hidden;
 }
 
+#threeCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .hero-bg-lines {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, transparent 49.8%, var(--border) 49.8%, var(--border) 50.2%, transparent 50.2%),
-    linear-gradient(0deg, transparent 49.8%, var(--border) 49.8%, var(--border) 50.2%, transparent 50.2%);
-  background-size: 20vw 20vw;
-  opacity: 0.3;
-  mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 20%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, black 20%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 30% 40%, rgba(176, 140, 200, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(212, 160, 184, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(138, 170, 144, 0.08) 0%, transparent 50%);
+  opacity: 0.8;
 }
 
 .hero::after {
@@ -391,11 +400,12 @@ body {
 
 .photo-item:hover img {
   transform: scale(1.06);
-  filter: brightness(1.05);
+  filter: brightness(1.08) saturate(1.1);
 }
 
 .photo-item:hover {
   z-index: 2;
+  box-shadow: 0 8px 40px rgba(176, 140, 200, 0.2);
 }
 
 /* Hover vignette + info reveal */
@@ -488,7 +498,7 @@ body {
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.96);
+  background: rgba(10, 6, 16, 0.96);
   backdrop-filter: blur(40px);
 }
 
@@ -740,7 +750,7 @@ body {
   right: 0;
   z-index: 100;
   padding: 1rem var(--page-pad);
-  background: rgba(8, 8, 8, 0.95);
+  background: rgba(10, 6, 16, 0.95);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
   display: flex;
