@@ -143,7 +143,7 @@
       return `
       <div class="${classes}" data-index="${i}" data-id="${photo.id}"
            style="--anim-name:${anim}; --anim-delay:${delay}s;">
-        <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}" loading="lazy">
+        <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}">
         <div class="photo-overlay">
           <h3>${escapeHtml(photo.title || '')}</h3>
           <p>${escapeHtml(photo.description || '')}</p>
@@ -151,56 +151,69 @@
       </div>`;
     }).join('');
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const item = entry.target;
-          const img = item.querySelector('img');
-          const animName = item.style.getPropertyValue('--anim-name');
-          const animDelay = parseFloat(item.style.getPropertyValue('--anim-delay')) || 0;
-          if (img.dataset.src) {
-            img.src = img.dataset.src;
-            img.removeAttribute('data-src');
-            const onReady = () => {
-              item.classList.remove('loading');
-              // Use Web Animations API — no class swap, no flicker
-              const keyframes = {
-                fadeUp: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'translateY(0)' }],
-                slideFromLeft: [{ opacity: 0, transform: 'translateX(-60px)' }, { opacity: 1, transform: 'translateX(0)' }],
-                slideFromRight: [{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }],
-                scaleIn: [{ opacity: 0, transform: 'scale(0.85)' }, { opacity: 1, transform: 'scale(1)' }],
-                rotateIn: [{ opacity: 0, transform: 'rotate(-3deg) scale(0.9)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
-                floatIn: [
-                  { opacity: 0, transform: 'translateY(-40px) translateX(15px)' },
-                  { opacity: 0.8, transform: 'translateY(5px) translateX(-3px)', offset: 0.6 },
-                  { opacity: 1, transform: 'translateY(0) translateX(0)' },
-                ],
-              };
-              const kf = keyframes[animName] || keyframes.fadeUp;
-              const anim = item.animate(kf, {
-                duration: 800,
-                delay: animDelay * 1000,
-                easing: 'ease',
-                fill: 'forwards',
-              });
-              // After animation, transfer state to inline styles and cancel animation
-              // so CSS :hover transforms are not blocked by animation fill
-              setTimeout(() => {
-                anim.cancel();
-                item.style.opacity = '1';
-                item.style.transform = 'none';
-                item.classList.add('visible');
-              }, (animDelay + 0.8) * 1000);
-            };
-            img.onload = onReady;
-            img.onerror = () => { onReady(); img.style.display = 'none'; };
-          }
-          observer.unobserve(item);
-        }
-      });
-    }, { rootMargin: '200px' });
+    // Sequential loader: images appear in order, no "cutting in line"
+    const items = masonry.querySelectorAll('.photo-item');
+    let loadIndex = 0;
+    const BATCH = 3; // load 3 at a time for smooth flow
 
-    masonry.querySelectorAll('.photo-item').forEach(el => observer.observe(el));
+    function loadNext() {
+      if (loadIndex >= items.length) return;
+      const end = Math.min(loadIndex + BATCH, items.length);
+      for (let i = loadIndex; i < end; i++) {
+        loadItem(items[i]);
+      }
+      loadIndex = end;
+    }
+
+    function loadItem(item) {
+      const img = item.querySelector('img');
+      const animName = item.style.getPropertyValue('--anim-name');
+      const animDelay = parseFloat(item.style.getPropertyValue('--anim-delay')) || 0;
+      if (!img.dataset.src) return;
+
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+
+      const onReady = () => {
+        item.classList.remove('loading');
+        const keyframes = {
+          fadeUp: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          slideFromLeft: [{ opacity: 0, transform: 'translateX(-60px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          slideFromRight: [{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          scaleIn: [{ opacity: 0, transform: 'scale(0.85)' }, { opacity: 1, transform: 'scale(1)' }],
+          rotateIn: [{ opacity: 0, transform: 'rotate(-3deg) scale(0.9)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
+          floatIn: [
+            { opacity: 0, transform: 'translateY(-40px) translateX(15px)' },
+            { opacity: 0.8, transform: 'translateY(5px) translateX(-3px)', offset: 0.6 },
+            { opacity: 1, transform: 'translateY(0) translateX(0)' },
+          ],
+        };
+        const kf = keyframes[animName] || keyframes.fadeUp;
+        const anim = item.animate(kf, {
+          duration: 800,
+          delay: animDelay * 1000,
+          easing: 'ease',
+          fill: 'forwards',
+        });
+        setTimeout(() => {
+          anim.cancel();
+          item.style.opacity = '1';
+          item.style.transform = 'none';
+          item.classList.add('visible');
+        }, (animDelay + 0.8) * 1000);
+      };
+      img.onload = onReady;
+      img.onerror = () => { onReady(); img.style.display = 'none'; };
+    }
+
+    // Start loading: first batch immediately, rest on scroll
+    loadNext();
+    const scrollObserver = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) {
+        loadNext();
+      }
+    }, { rootMargin: '400px' });
+    scrollObserver.observe(masonry);
   }
 
   // Lightbox
