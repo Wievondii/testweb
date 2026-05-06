@@ -159,7 +159,6 @@
 
     const gap = 20;
     const containerW = masonry.offsetWidth;
-    console.log('layoutMasonry: cols=' + cols + ' containerW=' + containerW + ' items=' + items.length);
 
     if (cols === 1) {
       let y = 0;
@@ -265,8 +264,6 @@
           // Force layout computation
           masonry.getBoundingClientRect();
           layoutMasonry();
-          // Debug: log column count
-          console.log('Masonry layout:', items.length, 'items,', getColumnCount(), 'columns,', masonry.offsetWidth, 'px wide');
           items.forEach(item => { item.style.opacity = '0'; });
           staggerReveal(items);
         });
