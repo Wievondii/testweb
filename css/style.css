@@ -4,20 +4,20 @@
 
 :root {
   /* Palette: Monet's Garden — Impressionist purple + rose + sage */
-  --bg: #0a0610;
-  --bg-elevated: #120d1a;
-  --bg-card: #181224;
-  --surface: #1e1630;
-  --text: #e8e0f0;
-  --text-dim: #8a7a9a;
-  --text-muted: #5a4d6a;
-  --accent: #b08cc8;
-  --accent-glow: rgba(176, 140, 200, 0.12);
-  --accent-strong: #c8a0e0;
-  --accent-rose: #d4a0b8;
-  --accent-sage: #8aaa90;
-  --border: rgba(180, 160, 220, 0.08);
-  --border-accent: rgba(176, 140, 200, 0.25);
+  --bg: #0c0914;
+  --bg-elevated: #140f20;
+  --bg-card: #1a1428;
+  --surface: #221a34;
+  --text: #ede6f4;
+  --text-dim: #9a8aad;
+  --text-muted: #6a5d7a;
+  --accent: #c4a8d8;
+  --accent-glow: rgba(196, 168, 216, 0.10);
+  --accent-strong: #d8c0e8;
+  --accent-rose: #deb0c4;
+  --accent-sage: #9ab8a0;
+  --border: rgba(196, 168, 216, 0.08);
+  --border-accent: rgba(196, 168, 216, 0.22);
 
   /* Typography */
   --font-display: 'Cormorant Garamond', 'Georgia', serif;
@@ -81,7 +81,7 @@ body {
 }
 
 .site-header.scrolled {
-  background: rgba(10, 6, 16, 0.92);
+  background: rgba(12, 9, 20, 0.92);
   backdrop-filter: blur(24px) saturate(1.2);
   padding: 1rem var(--page-pad);
   border-bottom: 1px solid var(--border);
@@ -163,9 +163,9 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 30% 40%, rgba(176, 140, 200, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(212, 160, 184, 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(138, 170, 144, 0.08) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 30% 40%, rgba(196, 168, 216, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(222, 176, 196, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(154, 184, 160, 0.08) 0%, transparent 50%);
   opacity: 0.8;
 }
 
@@ -498,7 +498,7 @@ body {
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(10, 6, 16, 0.96);
+  background: rgba(12, 9, 20, 0.96);
   backdrop-filter: blur(40px);
 }
 
@@ -679,6 +679,29 @@ body {
   .filter-pill { padding: 0.4rem 0.9rem; font-size: 0.6rem; }
 }
 
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .hero-eyebrow, .hero-title, .hero-rule, .hero-subtitle, .hero-scroll-hint {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .scroll-line { animation: none !important; opacity: 0.5; }
+  .photo-item { opacity: 1 !important; }
+  .photo-item.loading { animation: none !important; }
+  #threeCanvas { display: none; }
+}
+
+/* ==================== CURSOR ==================== */
+.filter-pill, .tag-btn, .lightbox-close, .lightbox-nav, .btn {
+  cursor: pointer;
+}
+
 /* ============================================================= */
 /* ===================== ADMIN PANEL ============================ */
 /* ============================================================= */
@@ -750,7 +773,7 @@ body {
   right: 0;
   z-index: 100;
   padding: 1rem var(--page-pad);
-  background: rgba(10, 6, 16, 0.95);
+  background: rgba(12, 9, 20, 0.95);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
   display: flex;

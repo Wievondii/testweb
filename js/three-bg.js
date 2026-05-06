@@ -6,6 +6,13 @@
   const canvas = document.getElementById('threeCanvas');
   if (!canvas || typeof THREE === 'undefined') return;
 
+  // Respect reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) {
+    canvas.style.display = 'none';
+    return;
+  }
+
   const hero = document.getElementById('home');
   const PETAL_COUNT = 60;
   const PARTICLE_COUNT = 40;
@@ -27,14 +34,14 @@
   // Mouse tracking
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
 
-  // Petal colors: purple, rose, soft white
+  // Petal colors: soft lavender, rose, sage
   const petalColors = [
-    new THREE.Color(0xb08cc8), // purple
-    new THREE.Color(0xc8a0e0), // light purple
-    new THREE.Color(0xd4a0b8), // rose
-    new THREE.Color(0xe0c0d8), // soft pink
-    new THREE.Color(0xd8d0e8), // lavender white
-    new THREE.Color(0x8aaa90), // sage green (rare)
+    new THREE.Color(0xc4a8d8), // soft lavender
+    new THREE.Color(0xd8c0e8), // light purple
+    new THREE.Color(0xdeb0c4), // rose
+    new THREE.Color(0xead8e4), // soft pink
+    new THREE.Color(0xe0d8ec), // lavender white
+    new THREE.Color(0x9ab8a0), // sage green (rare)
   ];
 
   // Create petals
@@ -170,7 +177,7 @@
         float d = length(gl_PointCoord - 0.5);
         if (d > 0.5) discard;
         float glow = exp(-d * 6.0) * vAlpha;
-        vec3 color = vec3(0.85, 0.78, 0.95);
+        vec3 color = vec3(0.88, 0.82, 0.96);
         gl_FragColor = vec4(color, glow);
       }
     `,
