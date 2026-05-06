@@ -215,17 +215,21 @@
 
     function loadNext() {
       if (loaded >= items.length) {
-        // All images loaded — make them visible, measure, then layout + animate
+        // All images loaded — reveal, measure, layout, then animate
         requestAnimationFrame(() => {
-          // Make all items visible (still opacity:0 from CSS but remove shimmer)
+          // Step 1: Remove shimmer, make items visible for measurement
           items.forEach(item => {
             item.classList.remove('loading');
-            item.style.position = 'absolute'; // prepare for layout
+            item.style.opacity = '1';
+            item.style.position = 'absolute';
           });
-          // Force browser to compute layout with real image sizes
+          // Step 2: Force reflow so browser computes real image heights
           void masonry.offsetHeight;
+          // Step 3: Position items in masonry columns
           layoutMasonry();
-          // Now stagger the entrance animations
+          // Step 4: Reset opacity to 0 for entrance animation
+          items.forEach(item => { item.style.opacity = '0'; });
+          // Step 5: Staggered reveal
           staggerReveal(items);
         });
         return;
