@@ -18,7 +18,7 @@
     return ANIMATIONS[Math.floor(Math.random() * ANIMATIONS.length)];
   }
 
-  function pickSizeClass(index) {
+  function pickSizeClass() {
     const r = Math.random();
     if (r < 0.12) return 'tall';
     if (r < 0.22) return 'wide';
@@ -27,7 +27,7 @@
   }
 
   function randomDelay() {
-    return (Math.random() * 0.5).toFixed(2);
+    return (Math.random() * 0.4).toFixed(2);
   }
 
   // DOM refs
@@ -143,22 +143,77 @@
     });
   }
 
+  // ==================== MASONRY LAYOUT ====================
+
+  function getColumnCount() {
+    const w = window.innerWidth;
+    if (w <= 600) return 1;
+    if (w <= 1024) return 2;
+    return 3;
+  }
+
+  function layoutMasonry() {
+    const cols = getColumnCount();
+    const items = masonry.querySelectorAll('.photo-item');
+    if (items.length === 0) return;
+
+    // Reset masonry height
+    masonry.style.position = 'relative';
+    masonry.style.height = '';
+
+    if (cols === 1) {
+      // Single column: just stack naturally
+      let y = 0;
+      items.forEach(item => {
+        item.style.position = '';
+        item.style.left = '';
+        item.style.top = '';
+        item.style.width = '100%';
+        const h = item.offsetHeight || 300;
+        item.style.position = 'relative';
+        y += h + parseFloat(getComputedStyle(item).marginBottom);
+      });
+      masonry.style.height = y + 'px';
+      return;
+    }
+
+    const gap = parseFloat(getComputedStyle(masonry).gap) || 20;
+    const containerW = masonry.offsetWidth;
+    const colW = (containerW - gap * (cols - 1)) / cols;
+    const colHeights = new Array(cols).fill(0);
+
+    items.forEach(item => {
+      // Find shortest column
+      const minCol = colHeights.indexOf(Math.min(...colHeights));
+      const x = minCol * (colW + gap);
+
+      item.style.position = 'absolute';
+      item.style.left = x + 'px';
+      item.style.top = colHeights[minCol] + 'px';
+      item.style.width = colW + 'px';
+
+      const h = item.offsetHeight || 300;
+      colHeights[minCol] += h + gap;
+    });
+
+    masonry.style.height = Math.max(...colHeights) + 'px';
+  }
+
   function renderGallery() {
     if (filteredPhotos.length === 0) {
       masonry.innerHTML = '';
+      masonry.style.height = '';
       emptyState.style.display = 'block';
       return;
     }
     emptyState.style.display = 'none';
 
+    // Create all items (hidden)
     masonry.innerHTML = filteredPhotos.map((photo, i) => {
-      const anim = pickAnimation();
-      const delay = randomDelay();
-      const sizeClass = pickSizeClass(i);
+      const sizeClass = pickSizeClass();
       const classes = ['photo-item', 'loading', sizeClass].filter(Boolean).join(' ');
       return `
-      <div class="${classes}" data-index="${i}" data-id="${photo.id}"
-           style="--anim-name:${anim}; --anim-delay:${delay}s;">
+      <div class="${classes}" data-index="${i}" data-id="${photo.id}">
         <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}">
         <div class="photo-overlay">
           <h3>${escapeHtml(photo.title || '')}</h3>
@@ -167,65 +222,83 @@
       </div>`;
     }).join('');
 
-    // Sequential loader
+    // Load images sequentially, then animate entrance
     const items = masonry.querySelectorAll('.photo-item');
-    let loadIndex = 0;
-    const BATCH = 3;
+    let loaded = 0;
 
     function loadNext() {
-      if (loadIndex >= items.length) return;
-      const end = Math.min(loadIndex + BATCH, items.length);
-      for (let i = loadIndex; i < end; i++) loadItem(items[i]);
-      loadIndex = end;
+      if (loaded >= items.length) {
+        // All loaded — do layout and staggered reveal
+        requestAnimationFrame(() => {
+          layoutMasonry();
+          staggerReveal(items);
+        });
+        return;
+      }
+      const item = items[loaded];
+      const img = item.querySelector('img');
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+        img.onload = () => { loaded++; loadNext(); };
+        img.onerror = () => { loaded++; loadNext(); };
+      } else {
+        loaded++;
+        loadNext();
+      }
     }
 
-    function loadItem(item) {
-      const img = item.querySelector('img');
-      const animName = item.style.getPropertyValue('--anim-name');
-      const animDelay = parseFloat(item.style.getPropertyValue('--anim-delay')) || 0;
-      if (!img.dataset.src) return;
+    loadNext();
+  }
 
-      img.src = img.dataset.src;
-      img.removeAttribute('data-src');
+  function staggerReveal(items) {
+    const cols = getColumnCount();
+    // Group items by column position (top-to-bottom within each column)
+    // Since layout is absolute-positioned by column, items are already in column order in DOM
+    // We want to reveal them in visual order: col0-row0, col1-row0, col2-row0, col0-row1, ...
 
-      const onReady = () => {
-        item.classList.remove('loading');
+    // For staggered reveal, just reveal in DOM order with a small cascade delay
+    items.forEach((item, i) => {
+      const animName = pickAnimation();
+      const baseDelay = (i % cols) * 80; // cascade across columns
+      const totalDelay = baseDelay;
+
+      setTimeout(() => {
         const keyframes = {
-          fadeUp: [{ opacity: 0, transform: 'translateY(40px)' }, { opacity: 1, transform: 'translateY(0)' }],
-          slideFromLeft: [{ opacity: 0, transform: 'translateX(-60px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          slideFromRight: [{ opacity: 0, transform: 'translateX(60px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          scaleIn: [{ opacity: 0, transform: 'scale(0.88)' }, { opacity: 1, transform: 'scale(1)' }],
-          rotateIn: [{ opacity: 0, transform: 'rotate(-2deg) scale(0.92)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
+          fadeUp: [{ opacity: 0, transform: 'translateY(30px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          slideFromLeft: [{ opacity: 0, transform: 'translateX(-40px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          slideFromRight: [{ opacity: 0, transform: 'translateX(40px)' }, { opacity: 1, transform: 'translateX(0)' }],
+          scaleIn: [{ opacity: 0, transform: 'scale(0.92)' }, { opacity: 1, transform: 'scale(1)' }],
+          rotateIn: [{ opacity: 0, transform: 'rotate(-1.5deg) scale(0.94)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
           floatIn: [
-            { opacity: 0, transform: 'translateY(-30px) translateX(10px)' },
-            { opacity: 0.8, transform: 'translateY(4px) translateX(-2px)', offset: 0.6 },
+            { opacity: 0, transform: 'translateY(-20px) translateX(8px)' },
+            { opacity: 0.8, transform: 'translateY(3px) translateX(-2px)', offset: 0.6 },
             { opacity: 1, transform: 'translateY(0) translateX(0)' },
           ],
         };
         const kf = keyframes[animName] || keyframes.fadeUp;
         const anim = item.animate(kf, {
-          duration: 900,
-          delay: animDelay * 1000,
+          duration: 700,
           easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards',
         });
+        item.classList.remove('loading');
         setTimeout(() => {
           anim.cancel();
           item.style.opacity = '1';
           item.style.transform = 'none';
           item.classList.add('visible');
-        }, (animDelay + 0.9) * 100);
-      };
-      img.onload = onReady;
-      img.onerror = () => { onReady(); img.style.display = 'none'; };
-    }
-
-    loadNext();
-    const scrollObserver = new IntersectionObserver((entries) => {
-      if (entries.some(e => e.isIntersecting)) loadNext();
-    }, { rootMargin: '400px' });
-    scrollObserver.observe(masonry);
+        }, 750);
+      }, totalDelay);
+    });
   }
+
+  // Re-layout on resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layoutMasonry, 150);
+  });
 
   // Lightbox
   function openLightbox(index) {

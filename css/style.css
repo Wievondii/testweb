@@ -365,20 +365,15 @@ body {
 }
 
 .masonry {
-  columns: 3;
-  column-gap: var(--gap);
+  position: relative;
+  min-height: 200px;
 }
-
-@media (max-width: 1024px) { .masonry { columns: 2; } }
-@media (max-width: 600px) { .masonry { columns: 1; } }
 
 /* ==================== PHOTO ITEMS ==================== */
 .photo-item {
-  break-inside: avoid;
-  margin-bottom: var(--gap);
+  margin-bottom: 0;
   border-radius: var(--radius);
   overflow: hidden;
-  position: relative;
   cursor: pointer;
   opacity: 0;
   will-change: transform, opacity;
