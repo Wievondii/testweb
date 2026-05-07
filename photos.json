@@ -1,7 +1,20 @@
 {
-  "photos": [],
+  "photos": [
+    { "id": "test001", "url": "https://picsum.photos/seed/mo1/600/800", "title": "水彩人像一", "tags": ["人像"], "date": "2026-05-01" },
+    { "id": "test002", "url": "https://picsum.photos/seed/mo2/600/700", "title": "光影肖像", "tags": ["人像"], "date": "2026-05-02" },
+    { "id": "test003", "url": "https://picsum.photos/seed/mo3/600/500", "title": "花园玫瑰", "tags": ["花草"], "date": "2026-05-03" },
+    { "id": "test004", "url": "https://picsum.photos/seed/mo4/600/600", "title": "睡莲池畔", "tags": ["花草"], "date": "2026-05-04" },
+    { "id": "test005", "url": "https://picsum.photos/seed/mo5/600/750", "title": "城市日落", "tags": ["城市风景"], "date": "2026-05-05" },
+    { "id": "test006", "url": "https://picsum.photos/seed/mo6/600/550", "title": "街角咖啡馆", "tags": ["城市风景"], "date": "2026-05-06" },
+    { "id": "test007", "url": "https://picsum.photos/seed/mo7/600/900", "title": "午后少女", "tags": ["人像"], "date": "2026-05-07" },
+    { "id": "test008", "url": "https://picsum.photos/seed/mo8/600/650", "title": "薰衣草田", "tags": ["花草"], "date": "2026-05-08" },
+    { "id": "test009", "url": "https://picsum.photos/seed/mo9/600/400", "title": "静物花瓶", "tags": ["其他"], "date": "2026-05-09" },
+    { "id": "test010", "url": "https://picsum.photos/seed/mo10/600/700", "title": "光影随想", "tags": ["其他"], "date": "2026-05-10" },
+    { "id": "test011", "url": "https://picsum.photos/seed/mo11/600/850", "title": "晨曦少女", "tags": ["人像"], "date": "2026-05-11" },
+    { "id": "test012", "url": "https://picsum.photos/seed/mo12/600/500", "title": "向日葵", "tags": ["花草"], "date": "2026-05-12" }
+  ],
   "config": {
-    "galleryTitle": "Photography Exhibition",
-    "gallerySubtitle": "A curated collection of captured moments"
+    "galleryTitle": "小肥画展",
+    "gallerySubtitle": "用光影定格每一个诗意瞬间"
   }
 }

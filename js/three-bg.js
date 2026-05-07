@@ -145,7 +145,7 @@
     `,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
   });
 
   const petals = new THREE.Points(petalGeometry, petalMaterial);
@@ -159,7 +159,7 @@
   const lightData = [];
 
   const goldColor = new THREE.Color(0xe8d5a3);
-  const whiteColor = new THREE.Color(0xf0e8f8);
+  const whiteColor = new THREE.Color(0xa888c7); // 变成莫奈紫，在亮色背景显眼
 
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const i3 = i * 3;
@@ -226,7 +226,7 @@
     `,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
   });
 
   const lights = new THREE.Points(lightGeometry, lightMaterial);
@@ -258,15 +258,14 @@
         float wave = sin(vUv.x * 10.0 + uTime) * cos(vUv.y * 8.0 + uTime * 0.7) * 0.5;
         vec3 waterColor = vec3(0.494, 0.710, 0.839); // #7eb5d6
         vec3 sunColor = vec3(0.910, 0.835, 0.639);   // #e8d5a3
-        float sun = pow(max(0.0, sin(vUv.x * 6.0 + uTime * 0.5) * 0.5 + 0.5), 3.0);
-        vec3 finalColor = mix(waterColor, sunColor, sun * 0.25);
-        float alpha = 0.12 + wave * 0.03;
+        vec3 finalColor = mix(waterColor, sunColor, pow(max(0.0, sin(vUv.x * 6.0 + uTime * 0.5) * 0.5 + 0.5), 3.0) * 0.4);
+        float alpha = 0.2 + wave * 0.05;
         gl_FragColor = vec4(finalColor, alpha);
       }
     `,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
     side: THREE.DoubleSide,
   });
 
@@ -291,15 +290,15 @@
       void main() {
         vec2 center = vUv - 0.5;
         float d = length(center);
-        vec3 centerColor = vec3(0.102, 0.063, 0.145); // #1a1025
-        vec3 edgeColor = vec3(0.039, 0.055, 0.090);   // #0a0e17
-        vec3 color = mix(centerColor, edgeColor, smoothstep(0.1, 0.6, d));
-        gl_FragColor = vec4(color, 0.5);
+        vec3 centerColor = vec3(0.968, 0.960, 0.980); // 极淡的紫白
+        vec3 edgeColor = vec3(0.929, 0.898, 0.965);   // 边缘加深莫奈紫
+        vec3 color = mix(centerColor, edgeColor, smoothstep(0.1, 0.7, d));
+        gl_FragColor = vec4(color, 0.6);
       }
     `,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: THREE.NormalBlending,
   });
   const bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
   bgPlane.position.z = -20;

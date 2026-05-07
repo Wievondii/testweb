@@ -1,6 +1,6 @@
 const DEFAULT_CONFIG = {
-  galleryTitle: 'Photography Exhibition',
-  gallerySubtitle: 'A curated collection of captured moments',
+  galleryTitle: '小肥画展',
+  gallerySubtitle: '用光影定格每一个诗意瞬间',
 };
 
 const KV_KEY = 'gallery_config';

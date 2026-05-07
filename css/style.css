@@ -3,27 +3,27 @@
    ================================================ */
 
 :root {
-  /* 莫奈花园印象派调色板 */
-  --bg: #0a0e17;
-  --bg-elevated: #0f1420;
-  --bg-card: #151b2e;
-  --surface: #1c233a;
-  --text: #f0e8f8;
-  --text-dim: #a89bc4;
-  --text-muted: #6b5d8a;
-  --accent: #c4a8d8;
-  --accent-glow: rgba(196, 168, 216, 0.12);
-  --accent-strong: #d8c0e8;
-  --accent-rose: #e8b4d0;
-  --accent-sage: #a8c9a0;
-  --monet-lavender: #b8a1d9;
-  --monet-rose: #e8b4d0;
-  --monet-water: #7eb5d6;
-  --monet-gold: #e8d5a3;
-  --monet-leaf: #a8c9a0;
-  --monet-mist: rgba(200, 190, 220, 0.15);
-  --border: rgba(196, 168, 216, 0.10);
-  --border-accent: rgba(196, 168, 216, 0.25);
+  /* 莫奈花园印象派调色板 - 清新淡雅有活力 */
+  --bg: #F7F5FA;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --surface: rgba(255, 255, 255, 0.7);
+  --text: #453c5c;
+  --text-dim: #786f8a;
+  --text-muted: #a39eb0;
+  --accent: #a888c7;
+  --accent-glow: rgba(168, 136, 199, 0.15);
+  --accent-strong: #8c6bb1;
+  --accent-rose: #dca3bb;
+  --accent-sage: #96bb91;
+  --monet-lavender: #bda2e3;
+  --monet-rose: #eab4ce;
+  --monet-water: #8dbfe3;
+  --monet-gold: #e2c98d;
+  --monet-leaf: #90c283;
+  --monet-mist: rgba(168, 136, 199, 0.25);
+  --border: rgba(168, 136, 199, 0.18);
+  --border-accent: rgba(168, 136, 199, 0.4);
 
   /* Typography */
   --font-display: 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
@@ -88,7 +88,7 @@ body {
 }
 
 .site-header.scrolled {
-  background: rgba(10, 14, 23, 0.85);
+  background: rgba(247, 245, 250, 0.85);
   backdrop-filter: blur(12px);
   padding: 1rem var(--page-pad);
   border-bottom: 1px solid var(--border);
@@ -155,7 +155,7 @@ body {
   text-align: center;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 30%, rgba(184, 161, 217, 0.08) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 50% 30%, rgba(189, 162, 227, 0.5) 0%, transparent 60%);
 }
 
 #threeCanvas {
@@ -171,9 +171,9 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 30% 40%, rgba(196, 168, 216, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(222, 176, 196, 0.10) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(154, 184, 160, 0.08) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 30% 40%, rgba(168, 136, 199, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 70% 60%, rgba(234, 180, 206, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 80%, rgba(144, 194, 131, 0.3) 0%, transparent 50%);
   opacity: 0.8;
 }
 
@@ -216,8 +216,8 @@ body {
   margin-bottom: 1.5rem;
   opacity: 0;
   transform: translateY(40px);
-  animation: heroReveal 1.2s var(--ease-out) 0.4s forwards;
-  text-shadow: 0 0 40px rgba(196, 168, 216, 0.3), 0 2px 10px rgba(0,0,0,0.3);
+  /* 使用 animations.css 中的更丰富动画 */
+  text-shadow: 0 0 40px rgba(168, 136, 199, 0.4), 0 2px 10px rgba(168, 136, 199, 0.1);
 }
 
 .hero-rule {
@@ -419,9 +419,8 @@ body {
 .photo-overlay {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%),
-    linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, transparent 30%);
+  background: linear-gradient(to top, rgba(247, 245, 250, 0.9) 0%, rgba(247, 245, 250, 0.1) 60%);
+  backdrop-filter: blur(3px);
   opacity: 0;
   transition: opacity 0.5s var(--ease-out);
   display: flex;
@@ -504,7 +503,7 @@ body {
 .lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(10, 14, 23, 0.96);
+  background: rgba(247, 245, 250, 0.92);
   backdrop-filter: blur(20px);
 }
 
@@ -526,7 +525,7 @@ body {
   opacity: 0;
   transform: scale(0.95);
   transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
-  box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+  box-shadow: 0 20px 80px rgba(168, 136, 199, 0.3);
 }
 
 .lightbox.active .lightbox-img {
