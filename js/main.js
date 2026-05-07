@@ -297,9 +297,7 @@
         item.style.height = actualH + 'px';
         item.style.overflow = '';
         item.style.visibility = '';
-
-        // 动画性能：启动时添加 will-change: filter
-        item.style.willChange = 'transform, opacity, filter';
+        item.classList.add('visible');
 
         // 入场动画（莫奈花园印象派风格）
         if (!prefersReducedMotion) {
@@ -308,12 +306,12 @@
             watercolorReveal: [
               { opacity: 0, transform: 'scale(0.96)', filter: 'blur(6px)' },
               { opacity: 0.4, transform: 'scale(0.98)', filter: 'blur(3px)', offset: 0.5 },
-              { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+              { opacity: 1, transform: 'scale(1)', filter: 'none' },
             ],
             sunlightFade: [
               { opacity: 0, filter: 'brightness(1.4) saturate(0.5)', transform: 'translateY(12px)' },
               { opacity: 0.7, filter: 'brightness(1.15) saturate(0.8)', offset: 0.6 },
-              { opacity: 1, filter: 'brightness(1) saturate(1)', transform: 'translateY(0)' },
+              { opacity: 1, filter: 'none', transform: 'translateY(0)' },
             ],
             petalDrift: [
               { opacity: 0, transform: 'translateY(-10px) translateX(4px) scale(0.97)' },
@@ -324,7 +322,7 @@
             dewDrop: [
               { opacity: 0, transform: 'scale(0.85)', filter: 'brightness(1.2)' },
               { opacity: 0.8, transform: 'scale(1.02)', filter: 'brightness(1.1)', offset: 0.6 },
-              { opacity: 1, transform: 'scale(1)', filter: 'brightness(1)' },
+              { opacity: 1, transform: 'scale(1)', filter: 'none' },
             ],
             canvasReveal: [
               { opacity: 0, clipPath: 'inset(100% 0 0 0)' },
@@ -334,21 +332,22 @@
             mistDissolve: [
               { opacity: 0, filter: 'blur(10px)', transform: 'scale(1.03)' },
               { opacity: 0.5, filter: 'blur(2px)', transform: 'scale(1.01)', offset: 0.6 },
-              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' },
+              { opacity: 1, filter: 'none', transform: 'scale(1)' },
             ],
           };
           const kf = keyframes[animName] || keyframes.watercolorReveal;
+          item.style.willChange = 'transform, opacity, filter';
           const anim = item.animate(kf, {
             duration: 800,
             delay: idx * 60,
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            fill: 'forwards',
           });
-          anim.onfinish = () => { item.style.willChange = ''; };
-          setTimeout(() => { item.classList.add('visible'); }, 800 + idx * 60);
-        } else {
-          item.style.visibility = '';
-          item.classList.add('visible');
+          anim.onfinish = () => {
+            item.style.willChange = '';
+            item.style.opacity = '1';
+            item.style.filter = 'none';
+            item.style.transform = '';
+          };
         }
 
         updateLoadProgress();
@@ -373,7 +372,7 @@
         if (!prefersReducedMotion) {
           item.animate(
             [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
-            { duration: 400, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fill: 'forwards' }
+            { duration: 400, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }
           );
         }
         item.classList.add('visible');
@@ -415,16 +414,21 @@
     }
     img.onload = () => {
       item.classList.add('visible');
-      item.style.willChange = 'transform, opacity, filter';
       if (!prefersReducedMotion) {
+        item.style.willChange = 'transform, opacity, filter';
         const anim = item.animate(
           [
             { opacity: 0, transform: 'scale(0.96)', filter: 'blur(4px)' },
-            { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+            { opacity: 1, transform: 'scale(1)', filter: 'none' },
           ],
-          { duration: 800, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fill: 'forwards' }
+          { duration: 800, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }
         );
-        anim.onfinish = () => { item.style.willChange = ''; };
+        anim.onfinish = () => {
+          item.style.willChange = '';
+          item.style.opacity = '1';
+          item.style.filter = 'none';
+          item.style.transform = '';
+        };
       }
     };
     img.onerror = () => {
@@ -468,7 +472,7 @@
     existingItems.forEach((item, i) => {
       item.animate(
         [{ opacity: 1 }, { opacity: 0, transform: 'translateY(10px) scale(0.97)' }],
-        { duration: 300, delay: i * 30, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
+        { duration: 300, delay: i * 30, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
       );
     });
     const maxFadeDelay = Math.min(existingItems.length - 1, 20) * 30 + 300;
