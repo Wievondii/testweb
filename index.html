@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=9">
   <link rel="stylesheet" href="css/animations.css?v=1">
 </head>
 <body>
@@ -75,6 +75,11 @@
   <!-- Gallery -->
   <section class="gallery" id="gallery">
     <div class="gallery-count" id="galleryCount"></div>
+    <!-- 任务2.1：加载进度指示器 -->
+    <div class="load-progress" id="loadProgress" style="display:none;">
+      <div class="load-progress-bar"><div class="load-progress-fill"></div></div>
+      <span class="load-progress-text" id="loadProgressText">加载中...</span>
+    </div>
     <div class="masonry" id="masonry"></div>
     <div class="empty-state" id="emptyState" style="display:none;">
       <div class="empty-icon">
@@ -117,9 +122,16 @@
     <p class="footer-text">&copy; 小肥画展 · 用光影书写诗意</p>
   </footer>
 
+  <!-- 任务3.5：Scroll-to-top 按钮 -->
+  <button type="button" class="scroll-top-btn" id="scrollTopBtn" aria-label="回到顶部">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
   <script src="js/compressor.js?v=2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="js/three-bg.js?v=2"></script>
-  <script src="js/main.js?v=7"></script>
+  <script src="js/main.js?v=9"></script>
 </body>
 </html>

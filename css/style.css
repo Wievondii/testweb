@@ -671,6 +671,118 @@ body {
   color: var(--text-muted);
 }
 
+/* ==================== LOAD PROGRESS (任务2.1) ==================== */
+.load-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.load-progress-bar {
+  flex: 1;
+  max-width: 200px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.load-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--monet-rose));
+  border-radius: 1px;
+  transform-origin: left;
+  transition: width 0.3s ease;
+}
+
+.load-progress-text {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+}
+
+/* ==================== PHOTO ERROR (任务3.3) ==================== */
+.photo-item.load-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-accent);
+  border-radius: var(--radius);
+}
+
+.photo-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text-muted);
+}
+
+.photo-error svg {
+  opacity: 0.4;
+}
+
+.photo-error p {
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+}
+
+.photo-item.load-error:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.photo-item.load-error:hover .photo-error {
+  color: var(--accent);
+}
+
+.photo-item.load-error:hover .photo-error svg {
+  opacity: 0.7;
+}
+
+/* ==================== SCROLL TO TOP (任务3.5) ==================== */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 90;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(15, 20, 32, 0.85);
+  backdrop-filter: blur(12px);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.4s var(--ease-out);
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(15, 20, 32, 0.95);
+  box-shadow: 0 4px 20px var(--monet-mist);
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .site-header { padding: 1.25rem var(--page-pad); }
@@ -681,6 +793,7 @@ body {
   .lightbox-nav { display: none; }
   .lightbox-info { bottom: 1.5rem; }
   .lightbox-info h3 { font-size: 1.1rem; }
+  .scroll-top-btn { bottom: 1.25rem; right: 1.25rem; width: 40px; height: 40px; }
 }
 
 @media (max-width: 480px) {

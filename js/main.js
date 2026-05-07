@@ -11,6 +11,7 @@
   let currentCategory = 'all';
   let lightboxIndex = -1;
   let revealObserver = null;
+  let isTransitioning = false;
 
   const ANIMATIONS = ['fadeUp', 'slideFromLeft', 'slideFromRight', 'scaleIn', 'rotateIn', 'floatIn'];
   const SIZE_CLASSES = ['tall', 'wide', 'featured'];
@@ -44,6 +45,9 @@
   const lbTitle = document.getElementById('lbTitle');
   const lbDesc = document.getElementById('lbDesc');
   const lbCounter = document.getElementById('lbCounter');
+  const loadProgress = document.getElementById('loadProgress');
+  const loadProgressText = document.getElementById('loadProgressText');
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
 
   // Load config
   async function loadConfig() {
@@ -51,21 +55,69 @@
       const res = await fetch(API_CONFIG);
       if (!res.ok) return;
       const config = await res.json();
-      if (config.galleryTitle) {
+      // 任务1.2 防御逻辑：如果 API 返回英文默认值，忽略，保留 HTML 硬编码的中文值
+      // ⚠️ 此数组必须与 functions/api/config.js 中的 DEFAULT_CONFIG 保持同步
+      const ENGLISH_DEFAULTS = ['Photography Exhibition', 'A curated collection of captured moments'];
+      if (config.galleryTitle && !ENGLISH_DEFAULTS.includes(config.galleryTitle)) {
         heroTitle.innerHTML = config.galleryTitle.replace(/\s/g, '<br>');
         document.title = config.galleryTitle;
       }
-      if (config.gallerySubtitle) heroSubtitle.textContent = config.gallerySubtitle;
-    } catch {
-      /* use defaults */
-      if (!document.title || document.title === 'Photography Exhibition') {
-        document.title = '小肥画展';
+      if (config.gallerySubtitle && !ENGLISH_DEFAULTS.includes(config.gallerySubtitle)) {
+        heroSubtitle.textContent = config.gallerySubtitle;
       }
+    } catch {
+      /* use HTML defaults */
     }
+  }
+
+  // 任务3.1：骨架屏 — 在数据加载前显示 shimmer 占位
+  function renderSkeleton(count) {
+    emptyState.style.display = 'none';
+    masonry.style.position = 'relative';
+    masonry.innerHTML = '';
+    const cols = getColumnCount();
+    const gap = 20;
+    const containerW = masonry.offsetWidth;
+    const colW = (containerW - gap * (cols - 1)) / cols;
+    const colHeights = new Array(cols).fill(0);
+    for (let i = 0; i < count; i++) {
+      const minCol = colHeights.indexOf(Math.min(...colHeights));
+      const item = document.createElement('div');
+      item.className = 'photo-item loading';
+      item.style.position = 'absolute';
+      item.style.left = minCol * (colW + gap) + 'px';
+      item.style.top = colHeights[minCol] + 'px';
+      item.style.width = colW + 'px';
+      item.style.opacity = '1';
+      const h = 200 + Math.random() * 160;
+      item.style.height = h + 'px';
+      colHeights[minCol] += h + gap;
+      masonry.appendChild(item);
+    }
+    masonry.style.height = Math.max(...colHeights) + 'px';
+  }
+
+  // 任务3.3：错误占位 HTML 模板（onerror 和 retryLoad 共用）
+  function showErrorPlaceholder(item, src) {
+    item.classList.add('load-error');
+    item.innerHTML = `
+      <div class="photo-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+        <p>加载失败，点击重试</p>
+      </div>`;
+    item.dataset.src = src;
   }
 
   // Load photos
   async function loadPhotos() {
+    // 先显示骨架屏
+    renderSkeleton(6);
+    // 等待浏览器绘制骨架屏帧，否则骨架屏会被 renderGallery() 立刻覆盖
+    await new Promise(r => requestAnimationFrame(r));
     try {
       const res = await fetch(API_GALLERY);
       if (!res.ok) throw new Error('API failed');
@@ -128,27 +180,6 @@
     }
     galleryCount.textContent = `${filteredPhotos.length} 张作品`;
     renderGallery();
-  }
-
-  function filterByTag(tag) {
-    currentTag = tag;
-    applyFilters();
-    tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tag === tag);
-    });
-  }
-
-  function filterByCategory(cat) {
-    currentCategory = cat;
-    currentTag = 'all';
-    applyFilters();
-    document.querySelectorAll('.filter-pill').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.cat === cat);
-    });
-    renderTags();
-    tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tag === 'all');
-    });
   }
 
   // ==================== MASONRY LAYOUT ====================
@@ -217,10 +248,38 @@
       </div>`;
     }).join('');
 
+    // 任务2.1：显示加载进度指示器
+    const totalCount = filteredPhotos.length;
+    if (loadProgress) {
+      loadProgress.style.display = 'block';
+      loadProgressText.textContent = `加载中 0/${totalCount}...`;
+    }
+    // 任务3.2：初始化动态计数
+    galleryCount.textContent = `已加载 0/${totalCount} 张作品`;
+
     // Load images one by one, each appears as it loads
     const items = masonry.querySelectorAll('.photo-item');
-    const DELAY = 300; // ms between each image load
+    const DELAY_FAST = 200;   // 任务2.2：首屏前6张快速加载
+    const DELAY_NORMAL = 500; // 任务2.2：后续图片较长间隔
+    const FIRST_SCREEN_COUNT = 6;
     let nextIdx = 0;
+    let loadedCount = 0;
+
+    // 任务3.2：更新加载进度和计数（onload 和 onerror 共用）
+    function updateLoadProgress() {
+      loadedCount++;
+      if (loadProgress) {
+        loadProgressText.textContent = `加载中 ${loadedCount}/${totalCount}...`;
+        const fill = loadProgress.querySelector('.load-progress-fill');
+        if (fill) fill.style.width = (loadedCount / totalCount * 100) + '%';
+      }
+      galleryCount.textContent = `已加载 ${loadedCount}/${totalCount} 张作品`;
+      if (loadedCount >= totalCount && loadProgress) {
+        loadProgress.style.display = 'none';
+        galleryCount.textContent = `${totalCount} 张作品`;
+      }
+    }
+
     const colHeights = [];
     const colCount = getColumnCount();
     for (let i = 0; i < colCount; i++) colHeights.push(0);
@@ -283,17 +342,50 @@
           ],
         };
         const kf = keyframes[animName] || keyframes.fadeUp;
-        item.animate(kf, { duration: 600, delay: idx * 50, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
-        setTimeout(() => { item.classList.add('visible'); }, 650 + idx * 50);
+        item.animate(kf, { duration: 600, delay: Math.min(idx, 6) * 80, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
+        setTimeout(() => { item.classList.add('visible'); }, 650 + Math.min(idx, 6) * 80);
 
-        // Load next after delay
-        setTimeout(loadNext, DELAY);
+        // 任务3.2：更新进度和计数
+        updateLoadProgress();
+
+        // 任务2.2：根据索引选择不同延迟
+        const delay = idx < FIRST_SCREEN_COUNT ? DELAY_FAST : DELAY_NORMAL;
+        setTimeout(loadNext, delay);
       };
 
       img.onload = onReady;
+      // 任务3.3：加载失败优雅降级 + 点击重试
       img.onerror = () => {
-        item.style.display = 'none';
-        setTimeout(loadNext, DELAY);
+        item.classList.remove('loading');
+        showErrorPlaceholder(item, src);
+        item.style.position = 'absolute';
+        item.style.visibility = 'hidden';
+        item.style.opacity = '1';
+        item.style.cursor = 'pointer';
+
+        // 定位占位元素
+        const containerW = masonry.offsetWidth;
+        const gap = 20;
+        const cols = getColumnCount();
+        const colW = (containerW - gap * (cols - 1)) / cols;
+        while (colHeights.length < cols) colHeights.push(0);
+        const minCol = colHeights.indexOf(Math.min(...colHeights));
+        item.style.left = minCol * (colW + gap) + 'px';
+        item.style.top = colHeights[minCol] + 'px';
+        item.style.width = colW + 'px';
+        item.style.visibility = '';
+        colHeights[minCol] += (item.offsetHeight || 200) + gap;
+        masonry.style.height = Math.max(...colHeights) + 'px';
+        item.animate(
+          [{ opacity: 0, transform: 'translateY(15px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          { duration: 400, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
+        );
+        item.classList.add('visible');
+
+        updateLoadProgress();
+
+        const delay = idx < FIRST_SCREEN_COUNT ? DELAY_FAST : DELAY_NORMAL;
+        setTimeout(loadNext, delay);
       };
       img.src = src;
     }
@@ -328,6 +420,99 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(layoutMasonry, 150);
   });
+
+  // 任务3.3：失败图片重试加载
+  function retryLoad(item) {
+    const src = item.dataset.src;
+    if (!src) return;
+    item.classList.remove('load-error');
+    item.style.cursor = 'pointer';
+    const img = document.createElement('img');
+    img.src = src;
+    item.innerHTML = '';
+    item.appendChild(img);
+    // 同时恢复 overlay
+    const idx = parseInt(item.dataset.index, 10);
+    const photo = filteredPhotos[idx];
+    if (photo) {
+      const overlay = document.createElement('div');
+      overlay.className = 'photo-overlay';
+      overlay.innerHTML = `<h3>${escapeHtml(photo.title || '')}</h3><p>${escapeHtml(photo.description || '')}</p>`;
+      item.appendChild(overlay);
+    }
+    img.onload = () => {
+      item.classList.add('visible');
+      item.animate(
+        [{ opacity: 0, transform: 'scale(0.95)' }, { opacity: 1, transform: 'scale(1)' }],
+        { duration: 400, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
+      );
+    };
+    img.onerror = () => {
+      showErrorPlaceholder(item, src);
+    };
+  }
+
+  // 任务3.4：Filter 切换淡出/淡入动画
+  function filterByCategory(cat) {
+    if (isTransitioning) return;
+    currentCategory = cat;
+    currentTag = 'all';
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.cat === cat);
+    });
+    renderTags();
+    tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tag === 'all');
+    });
+    transitionGallery();
+  }
+
+  function filterByTag(tag) {
+    if (isTransitioning) return;
+    currentTag = tag;
+    tagFilter.querySelectorAll('.tag-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tag === tag);
+    });
+    transitionGallery();
+  }
+
+  function transitionGallery() {
+    isTransitioning = true;
+    const existingItems = masonry.querySelectorAll('.photo-item.visible');
+    if (existingItems.length === 0) {
+      applyFilters();
+      isTransitioning = false;
+      return;
+    }
+    // 淡出现有图片
+    existingItems.forEach((item, i) => {
+      item.animate(
+        [{ opacity: 1 }, { opacity: 0, transform: 'translateY(10px) scale(0.97)' }],
+        { duration: 300, delay: i * 30, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
+      );
+    });
+    const maxFadeDelay = Math.min(existingItems.length - 1, 20) * 30 + 300;
+    setTimeout(() => {
+      try { applyFilters(); }
+      finally { isTransitioning = false; }
+    }, maxFadeDelay);
+  }
+
+  // 合并 scroll 监听器：scroll-to-top 按钮 + header 背景
+  window.addEventListener('scroll', () => {
+    // Scroll-to-top 按钮
+    if (scrollTopBtn) {
+      scrollTopBtn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.8);
+    }
+    // Header 背景
+    header.classList.toggle('scrolled', window.scrollY > 80);
+  }, { passive: true });
+
+  if (scrollTopBtn) {
+    scrollTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   // Lightbox
   function openLightbox(index) {
@@ -372,6 +557,12 @@
     if (btn) filterByTag(btn.dataset.tag);
   });
   masonry.addEventListener('click', (e) => {
+    // 任务3.3：点击加载失败占位图重试
+    const errorItem = e.target.closest('.photo-item.load-error');
+    if (errorItem && errorItem.dataset.src) {
+      retryLoad(errorItem);
+      return;
+    }
     const item = e.target.closest('.photo-item');
     if (item) openLightbox(parseInt(item.dataset.index, 10));
   });
@@ -392,10 +583,6 @@
   lightbox.addEventListener('touchend', (e) => {
     const diff = touchStartX - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) navigateLightbox(diff > 0 ? 1 : -1);
-  }, { passive: true });
-
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 80);
   }, { passive: true });
 
   function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
