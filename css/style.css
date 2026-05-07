@@ -951,7 +951,7 @@ body {
   bottom: 0;
   width: 120px;
   z-index: 99;
-  padding: 1rem 0.5rem;
+  padding: 1.25rem 0.6rem 1rem;
   background: rgba(10, 14, 23, 0.92);
   backdrop-filter: blur(24px);
   border-right: 1px solid var(--border);
@@ -963,56 +963,169 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
+/* 顶部渐变装饰线 */
+.admin-category-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* 侧栏标题 */
+.admin-category-bar::after {
+  content: '分类';
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text-muted);
+  letter-spacing: 0.25em;
+  text-align: center;
+  padding: 0 0 0.75rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(168, 136, 199, 0.1);
+}
+
 .admin-cat-tag {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
-  gap: 0.5rem;
-  padding: 0.55rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  background: transparent;
+  gap: 0.45rem;
+  padding: 0.7rem 0.6rem 0.7rem 0.75rem;
+  border: 1px solid rgba(168, 136, 199, 0.12);
+  border-radius: var(--radius);
+  background: rgba(168, 136, 199, 0.03);
   color: var(--text-dim);
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 300;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.4s var(--ease-out);
+  transition: all 0.3s var(--ease-out);
   white-space: nowrap;
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.admin-cat-tag:hover {
-  border-color: var(--border-accent);
-  color: var(--text);
-  background: linear-gradient(135deg, rgba(196, 168, 216, 0.06), rgba(232, 180, 208, 0.04));
+/* 左侧彩色指示条（通用基础） */
+.admin-cat-tag::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--text-muted);
+  transition: width 0.3s var(--ease-out), background 0.3s var(--ease-out);
+  opacity: 0.6;
 }
 
-.admin-cat-tag.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-glow);
+/* 每个分类的指示条颜色 */
+.admin-cat-tag[data-cat="人像"]::before { background: var(--accent-rose); }
+.admin-cat-tag[data-cat="花草"]::before { background: var(--accent-sage); }
+.admin-cat-tag[data-cat="城市风景"]::before { background: var(--monet-water); }
+.admin-cat-tag[data-cat="其他"]::before { background: var(--monet-gold); }
+
+.admin-cat-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
-.admin-cat-tag.drag-over {
-  border-color: var(--accent-strong);
-  color: var(--accent-strong);
-  background: var(--accent-glow);
-  box-shadow: 0 0 12px rgba(168, 136, 199, 0.3);
+.admin-cat-label {
+  flex: 1;
 }
 
 .admin-cat-count {
   font-size: 0.6rem;
   color: var(--text-muted);
   font-weight: 400;
+  min-width: 1.2em;
+  text-align: right;
 }
 
-.admin-cat-tag.active .admin-cat-count,
-.admin-cat-tag.drag-over .admin-cat-count {
+/* --- Hover 状态 --- */
+.admin-cat-tag:hover {
+  border-color: rgba(168, 136, 199, 0.3);
+  color: var(--text);
+  background: rgba(168, 136, 199, 0.08);
+  transform: translateX(2px);
+}
+
+.admin-cat-tag:hover::before {
+  width: 4px;
+  opacity: 1;
+}
+
+/* --- Active（选中上传）状态 --- */
+.admin-cat-tag.active {
+  border-color: var(--accent);
   color: var(--accent);
+  background: var(--accent-glow);
+  box-shadow: 0 2px 8px rgba(168, 136, 199, 0.2);
+}
+
+.admin-cat-tag.active::before {
+  width: 4px;
+  opacity: 1;
+}
+
+.admin-cat-tag.active .admin-cat-count {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* --- Drag-over（拖拽悬停）状态 --- */
+.admin-cat-tag.drag-over {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  background: rgba(168, 136, 199, 0.12);
+  box-shadow: 0 0 16px rgba(168, 136, 199, 0.35);
+  transform: scale(1.02);
+}
+
+.admin-cat-tag.drag-over::before {
+  width: 4px;
+  opacity: 1;
+}
+
+.admin-cat-tag.drag-over .admin-cat-count {
+  font-weight: 600;
+}
+
+/* --- 拖拽引导提示 --- */
+.admin-cat-hint {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(168, 136, 199, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.05em;
+  animation: catHintBreathe 3s ease-in-out infinite;
+}
+
+.admin-cat-hint-icon {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+@keyframes catHintBreathe {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
 
 /* ==================== PHOTO CARD DRAG ==================== */
@@ -1352,5 +1465,20 @@ body {
     overflow-y: visible;
     overflow-x: auto;
   }
-  .admin-cat-tag { width: auto; padding: 0.4rem 1rem; font-size: 0.7rem; }
+  /* 隐藏侧栏 ::before 装饰线和 ::after 标题 */
+  .admin-category-bar::before,
+  .admin-category-bar::after { display: none; }
+  /* 隐藏拖拽提示 */
+  .admin-cat-hint { display: none; }
+  /* 水平布局：标签紧凑胶囊形，隐藏指示条 */
+  .admin-cat-tag {
+    width: auto;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.7rem;
+    border-radius: 100px;
+    justify-content: center;
+  }
+  .admin-cat-tag::before { display: none; }
+  .admin-cat-tag:hover { transform: none; }
+  .admin-cat-tag.drag-over { transform: none; }
 }
