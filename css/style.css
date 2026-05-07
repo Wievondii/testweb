@@ -860,7 +860,7 @@ body {
 .admin-body {
   background: var(--bg);
   min-height: 100vh;
-  padding-top: 112px;
+  padding-top: 124px;
 }
 
 .login-gate {
@@ -945,7 +945,7 @@ body {
 /* ==================== ADMIN CATEGORY BAR ==================== */
 .admin-category-bar {
   position: fixed;
-  top: 56px;
+  top: 68px;
   left: 0;
   right: 0;
   z-index: 99;
