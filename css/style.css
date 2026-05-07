@@ -829,6 +829,7 @@ body {
 }
 
 @media (max-width: 480px) {
+  .hero-title { font-size: 2.5rem; }
   .category-filter { gap: 0.35rem; }
   .filter-pill { padding: 0.4rem 0.9rem; font-size: 0.6rem; }
 }
@@ -1183,8 +1184,8 @@ body {
 
 .admin-content {
   /* 后台以操作效率为主，使用全宽布局展示更多卡片，减少左右留白浪费 */
-  max-width: none;
-  margin: 0;
+  max-width: 1920px;
+  margin: 0 auto;
   padding: 2rem var(--page-pad);
 }
 

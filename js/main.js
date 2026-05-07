@@ -4,6 +4,7 @@
 (() => {
   const API_GALLERY = '/api/gallery';
   const API_CONFIG = '/api/config';
+  const FIXED_GALLERY_TITLE = '小肥画展';
 
   let photos = [];
   let filteredPhotos = [];
@@ -60,8 +61,8 @@
       // 任务1.2 防御逻辑：如果 API 返回英文默认值，忽略，保留 HTML 硬编码的中文值
       // ⚠️ 此数组必须与 functions/api/config.js 中的 DEFAULT_CONFIG 保持同步
       const ENGLISH_DEFAULTS = ['Photography Exhibition', 'A curated collection of captured moments'];
-      heroTitle.textContent = '小肥画展';
-      document.title = '小肥画展';
+      heroTitle.textContent = FIXED_GALLERY_TITLE;
+      document.title = FIXED_GALLERY_TITLE;
       if (config.gallerySubtitle && !ENGLISH_DEFAULTS.includes(config.gallerySubtitle)) {
         heroSubtitle.textContent = config.gallerySubtitle;
       }
