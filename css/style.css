@@ -860,7 +860,7 @@ body {
 .admin-body {
   background: var(--bg);
   min-height: 100vh;
-  padding-top: 96px;
+  padding-top: 100px;
 }
 
 .login-gate {
@@ -949,13 +949,13 @@ body {
   left: 0;
   right: 0;
   z-index: 99;
-  padding: 0.6rem var(--page-pad);
+  padding: 0.8rem var(--page-pad);
   background: rgba(10, 14, 23, 0.92);
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -963,14 +963,14 @@ body {
 .admin-cat-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 1.1rem;
+  gap: 0.5rem;
+  padding: 0.55rem 1.5rem;
   border: 1px solid var(--border);
   border-radius: 100px;
   background: transparent;
   color: var(--text-dim);
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 300;
   letter-spacing: 0.15em;
   cursor: pointer;
@@ -1331,6 +1331,6 @@ body {
   .upload-preview-img { width: 100%; height: 200px; }
   .photo-grid { grid-template-columns: 1fr; }
   .admin-header { padding: 0.8rem var(--page-pad); }
-  .admin-category-bar { padding: 0.4rem var(--page-pad); gap: 0.35rem; justify-content: flex-start; }
-  .admin-cat-tag { padding: 0.35rem 0.8rem; font-size: 0.65rem; }
+  .admin-category-bar { padding: 0.5rem var(--page-pad); gap: 0.5rem; justify-content: flex-start; }
+  .admin-cat-tag { padding: 0.4rem 1rem; font-size: 0.7rem; }
 }
