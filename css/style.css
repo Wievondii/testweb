@@ -406,29 +406,17 @@ body {
   transition: transform 1s var(--ease-out), filter 0.6s ease;
 }
 
-.photo-item:hover img {
-  transform: scale(1.04);
-}
+/* hover/选中高光已移除（第9轮需求） */
 
-.photo-item.focused img {
-  transform: scale(1.04);
-}
-
-.photo-item.focused {
-  z-index: 2;
-}
-
-/* 聚焦时非聚焦的图片模糊 - 使用结霜动画 */
+/* 聚焦时非聚焦的图片模糊 - 使用 CSS transition（支持双向平滑过渡） */
 .masonry.has-focus .photo-item:not(.focused) {
-  transition: filter 0.3s ease, opacity 0.3s ease;
+  transition: filter var(--frost-duration, 2.5s) ease var(--frost-delay, 0s),
+              opacity var(--frost-duration, 2.5s) ease var(--frost-delay, 0s);
 }
 
 .masonry.has-focus .photo-item:not(.focused).frost {
-  animation-name: frostIn;
-  animation-duration: var(--frost-duration, 2.5s);
-  animation-delay: var(--frost-delay, 0s);
-  animation-fill-mode: forwards;
-  transition: none !important;
+  filter: blur(var(--frost-blur, 0px));
+  opacity: var(--frost-opacity, 1);
 }
 
 /* Hover vignette + info reveal */
@@ -486,7 +474,7 @@ body {
   transition: opacity 0.5s var(--ease-out);
 }
 
-.photo-item.featured.focused::after { opacity: 1; }
+/* .photo-item.featured.focused::after 已移除（第9轮需求） */
 
 /* Loading shimmer */
 .photo-item.loading {

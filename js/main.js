@@ -206,17 +206,17 @@
       // 归一化距离 (0-1)
       const normalizedDistance = maxDistance > 0 ? distance / maxDistance : 0;
 
-      // 距离越远，延迟越短（先开始结霜）
-      const delay = (1 - normalizedDistance) * 1.5; // 0-1.5秒延迟
+      // 距离越近，延迟越短（从中心向外扩散）
+      const delay = normalizedDistance * 1.5; // 0-1.5秒延迟
 
-      // 持续时间 (2-3秒)
-      const duration = 2.5 + normalizedDistance * 0.5;
+      // 持续时间 (2-2.8秒)：近处快，远处慢
+      const duration = 2.0 + normalizedDistance * 0.8;
 
       // 设置 CSS 变量
       item.style.setProperty('--frost-delay', delay + 's');
       item.style.setProperty('--frost-duration', duration + 's');
-      item.style.setProperty('--frost-blur', (normalizedDistance * 4) + 'px');
-      item.style.setProperty('--frost-opacity', (1 - normalizedDistance * 0.3));
+      item.style.setProperty('--frost-blur', ((1 - normalizedDistance) * 5 + 1) + 'px'); // 近处~6px，远处~1px
+      item.style.setProperty('--frost-opacity', (1 - (1 - normalizedDistance) * 0.25)); // 近处~0.75，远处~1.0
 
       // 添加 frost 类触发动画
       item.classList.add('frost');
@@ -226,24 +226,24 @@
   function removeFrostEffect() {
     clearFrostTimers();
 
-    // 先移除 .frost 类，让 transition 生效
     const allItems = masonry.querySelectorAll('.photo-item');
+
+    // 移除 .frost 类 — CSS transition 会从当前 blur 值平滑过渡到 0
     allItems.forEach(item => {
       item.classList.remove('frost');
     });
 
-    // 用 requestAnimationFrame 延迟清除 CSS 变量
-    // 这样 transition 有时间从当前值过渡到目标值
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        masonry.querySelectorAll('.photo-item').forEach(item => {
-          item.style.removeProperty('--frost-delay');
-          item.style.removeProperty('--frost-duration');
-          item.style.removeProperty('--frost-blur');
-          item.style.removeProperty('--frost-opacity');
-        });
+    // 延迟移除 CSS 变量和 .has-focus
+    // 等 transition 完成后再清理（最长 duration~3s + delay~1.2s ≈ 4.2s，留余量用 5s）
+    setTimeout(() => {
+      allItems.forEach(item => {
+        item.style.removeProperty('--frost-delay');
+        item.style.removeProperty('--frost-duration');
+        item.style.removeProperty('--frost-blur');
+        item.style.removeProperty('--frost-opacity');
       });
-    });
+      masonry.classList.remove('has-focus');
+    }, 5000);
   }
 
   function clearFrostTimers() {
@@ -283,10 +283,9 @@
 
         // 移除选中效果
         item.classList.remove('focused');
-        masonry.classList.remove('has-focus');
         currentFocusedItem = null;
 
-        // 移除结霜效果
+        // 移除结霜效果（has-focus 在 removeFrostEffect 的 timeout 中延迟移除）
         removeFrostEffect();
       });
     });
@@ -425,11 +424,15 @@
         const actualH = img.naturalWidth > 0 ? Math.round(pos.width * aspectRatio) : ESTIMATED_HEIGHT;
         item.style.height = actualH + 'px';
         item.style.overflow = '';
-        item.style.visibility = '';
         item.classList.add('visible');
         // reduced motion 下直接显示，无需动画
         if (prefersReducedMotion) {
+          item.style.visibility = '';
           item.style.opacity = '1';
+        } else {
+          // 新图片初始隐藏，由入场动画控制淡入
+          item.style.visibility = '';
+          item.style.opacity = '0';
         }
 
         // 入场动画（莫奈花园印象派风格）
@@ -611,7 +614,7 @@
       isTransitioning = false;
       return;
     }
-    // 淡出现有图片
+    // 淡出现有图片，等待动画完成后再替换 DOM
     existingItems.forEach((item, i) => {
       item.animate(
         [{ opacity: 1 }, { opacity: 0, transform: 'translateY(10px) scale(0.97)' }],
@@ -619,10 +622,23 @@
       );
     });
     const maxFadeDelay = Math.min(existingItems.length - 1, 20) * 30 + 300;
-    setTimeout(() => {
+
+    // 使用 Promise + Animation.finished 精确等待淡出完成，fallback 到 setTimeout
+    const fadeOutPromise = new Promise(resolve => {
+      const lastItem = existingItems[Math.min(existingItems.length - 1, 20)];
+      if (lastItem) {
+        const anims = lastItem.getAnimations();
+        if (anims.length > 0 && anims[0].finished) {
+          anims[0].finished.then(resolve, resolve);
+          return;
+        }
+      }
+      setTimeout(resolve, maxFadeDelay);
+    });
+    fadeOutPromise.then(() => {
       try { applyFilters(); }
       finally { isTransitioning = false; }
-    }, maxFadeDelay);
+    });
   }
 
   // 合并 scroll 监听器：scroll-to-top 按钮 + header 背景
