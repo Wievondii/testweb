@@ -1182,6 +1182,7 @@ body {
 .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.7rem; }
 
 .admin-content {
+  /* 后台以操作效率为主，使用全宽布局展示更多卡片，减少左右留白浪费 */
   max-width: none;
   margin: 0;
   padding: 2rem var(--page-pad);
