@@ -349,8 +349,8 @@
           });
           anim.onfinish = () => {
             item.style.willChange = '';
-            item.style.opacity = '1';
-            item.style.filter = 'none';
+            item.style.removeProperty('opacity');
+            item.style.removeProperty('filter');
             item.style.transform = '';
           };
         }
@@ -435,8 +435,8 @@
         );
         anim.onfinish = () => {
           item.style.willChange = '';
-          item.style.opacity = '1';
-          item.style.filter = 'none';
+          item.style.removeProperty('opacity');
+          item.style.removeProperty('filter');
           item.style.transform = '';
         };
       } else {
