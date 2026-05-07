@@ -226,13 +226,23 @@
   function removeFrostEffect() {
     clearFrostTimers();
 
+    // 先移除 .frost 类，让 transition 生效
     const allItems = masonry.querySelectorAll('.photo-item');
     allItems.forEach(item => {
       item.classList.remove('frost');
-      item.style.removeProperty('--frost-delay');
-      item.style.removeProperty('--frost-duration');
-      item.style.removeProperty('--frost-blur');
-      item.style.removeProperty('--frost-opacity');
+    });
+
+    // 用 requestAnimationFrame 延迟清除 CSS 变量
+    // 这样 transition 有时间从当前值过渡到目标值
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        masonry.querySelectorAll('.photo-item').forEach(item => {
+          item.style.removeProperty('--frost-delay');
+          item.style.removeProperty('--frost-duration');
+          item.style.removeProperty('--frost-blur');
+          item.style.removeProperty('--frost-opacity');
+        });
+      });
     });
   }
 
