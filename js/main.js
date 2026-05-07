@@ -286,18 +286,23 @@
       item.style.width = pos.width + 'px';
       item.style.top = pos.top + 'px';
       item.style.visibility = 'hidden';
-      item.style.opacity = '1';
+      item.style.opacity = '0';
 
       const src = img.dataset.src;
       img.removeAttribute('data-src');
 
       const onReady = () => {
-        // 用图片实际高度设置 height，然后显示
-        const actualH = item.offsetHeight || ESTIMATED_HEIGHT;
+        // 用图片自然比例计算实际高度，保持原始比例
+        const aspectRatio = img.naturalHeight / img.naturalWidth;
+        const actualH = img.naturalWidth > 0 ? Math.round(pos.width * aspectRatio) : ESTIMATED_HEIGHT;
         item.style.height = actualH + 'px';
         item.style.overflow = '';
         item.style.visibility = '';
         item.classList.add('visible');
+        // reduced motion 下直接显示，无需动画
+        if (prefersReducedMotion) {
+          item.style.opacity = '1';
+        }
 
         // 入场动画（莫奈花园印象派风格）
         if (!prefersReducedMotion) {
@@ -413,6 +418,7 @@
       item.appendChild(overlay);
     }
     img.onload = () => {
+      item.style.opacity = '0';
       item.classList.add('visible');
       if (!prefersReducedMotion) {
         item.style.willChange = 'transform, opacity, filter';
@@ -429,6 +435,8 @@
           item.style.filter = 'none';
           item.style.transform = '';
         };
+      } else {
+        item.style.opacity = '1';
       }
     };
     img.onerror = () => {

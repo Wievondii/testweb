@@ -457,9 +457,9 @@ body {
 .photo-item:hover .photo-overlay p { transform: translateY(0); }
 
 /* Size variations */
-.photo-item.tall img { min-height: 340px; object-fit: cover; }
-.photo-item.wide img { min-height: 180px; object-fit: cover; }
-.photo-item.featured img { min-height: 300px; object-fit: cover; }
+.photo-item.tall img { }
+.photo-item.wide img { }
+.photo-item.featured img { }
 
 .photo-item.featured::after {
   content: '';
