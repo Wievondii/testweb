@@ -393,7 +393,18 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  transition: filter 0.4s ease, opacity 0.4s ease, top 0.3s ease, left 0.3s ease;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+              visibility 0.4s ease 0.2s,
+              filter 0.4s ease,
+              top 0.3s ease,
+              left 0.3s ease;
+}
+
+/* 筛选排除状态 — 保留 DOM 用于布局计算，但不参与视觉布局 */
+.photo-item.filtered-out {
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .photo-item.visible {
@@ -423,7 +434,7 @@ body {
 .photo-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(247, 245, 250, 0.9) 0%, rgba(247, 245, 250, 0.1) 60%);
+  background: linear-gradient(to top, rgba(30, 20, 40, 0.65) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.5s var(--ease-out);
   display: flex;
@@ -439,7 +450,7 @@ body {
   font-size: 1.1rem;
   font-weight: 400;
   font-style: italic;
-  color: var(--text);
+  color: #fff;
   margin-bottom: 0.2rem;
   transform: translateY(8px);
   transition: transform 0.5s var(--ease-out);
@@ -450,7 +461,7 @@ body {
 .photo-overlay p {
   font-size: 0.7rem;
   font-weight: 300;
-  color: var(--text-dim);
+  color: rgba(255, 255, 255, 0.8);
   letter-spacing: 0.05em;
   transform: translateY(8px);
   transition: transform 0.5s var(--ease-out) 0.05s;
@@ -510,6 +521,27 @@ body {
   backdrop-filter: blur(20px);
 }
 
+/* Lightbox 霜化遮罩层 — 边缘向中心蔓延 */
+.lightbox-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(247, 245, 250, 0.15);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 0%, black 100%);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 0%, black 100%);
+  -webkit-mask-size: 200% 200%;
+  mask-size: 200% 200%;
+  -webkit-mask-position: center;
+  mask-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease, -webkit-mask-size 1.8s cubic-bezier(0.2, 0.8, 0.2, 1), mask-size 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.lightbox.active .lightbox-backdrop::before {
+  opacity: 1;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
 .lightbox-img-wrap {
   position: relative;
   z-index: 1;
@@ -528,7 +560,6 @@ body {
   opacity: 0;
   transform: scale(0.95);
   transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
-  box-shadow: 0 20px 80px rgba(168, 136, 199, 0.3);
 }
 
 .lightbox.active .lightbox-img {

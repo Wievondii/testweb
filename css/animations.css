@@ -7,18 +7,6 @@ body {
   animation: pageLoadFade 1.2s var(--ease-out) forwards;
 }
 
-/* ========== 图片结霜效果 ========== */
-@keyframes frostIn {
-  0% {
-    filter: blur(0);
-    opacity: 1;
-  }
-  100% {
-    filter: blur(var(--frost-blur, 2px));
-    opacity: var(--frost-opacity, 0.7);
-  }
-}
-
 /* ========== Hero 标题入场 ========== */
 @keyframes heroTitleIn {
   from {
@@ -73,11 +61,4 @@ body {
   visibility: visible;
 }
 
-/* ========== 筛选 stagger 动画 ========== */
-@keyframes staggerIn {
-  from { opacity: 0; transform: translateY(30px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.masonry-item.stagger-animate {
-  animation: staggerIn 0.6s var(--ease-out) forwards;
-}
+/* ========== 筛选 stagger 动画（已移除未使用的 .masonry-item.stagger-animate）========== */

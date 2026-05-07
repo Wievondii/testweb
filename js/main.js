@@ -121,7 +121,7 @@
     filteredPhotos = [...photos];
     updateCategoryCounts();
     renderTags();
-    renderGallery();
+    initGallery();
   }
 
   function updateCategoryCounts() {
@@ -165,7 +165,25 @@
       filteredPhotos = filteredPhotos.filter(p => (p.tags || []).includes(currentTag));
     }
     galleryCount.textContent = `${filteredPhotos.length} 张作品`;
-    renderGallery();
+
+    // DOM 复用：遍历已有节点，根据 data-tags 标记 filtered-out 类
+    const allItems = masonry.querySelectorAll('.photo-item');
+    allItems.forEach(item => {
+      const itemTags = (item.dataset.tags || '').split(',').filter(Boolean);
+      const matchesCategory = currentCategory === 'all' || itemTags.includes(currentCategory);
+      const matchesTag = currentTag === 'all' || itemTags.includes(currentTag);
+      if (matchesCategory && matchesTag) {
+        item.classList.remove('filtered-out');
+      } else {
+        item.classList.add('filtered-out');
+      }
+    });
+
+    // 更新空状态
+    emptyState.style.display = filteredPhotos.length === 0 ? 'block' : 'none';
+
+    // 执行布局动画
+    animateLayout();
   }
 
   // 结霜效果函数
@@ -206,17 +224,17 @@
       // 归一化距离 (0-1)
       const normalizedDistance = maxDistance > 0 ? distance / maxDistance : 0;
 
-      // 距离越近，延迟越短（从中心向外扩散）
-      const delay = normalizedDistance * 1.5; // 0-1.5秒延迟
+      // 距离越远，延迟越短（从外向内包裹：远处瞬间开始模糊）
+      const delay = (1 - normalizedDistance) * 1.5; // 远处~0秒，近处~1.5秒
 
-      // 持续时间 (2-2.8秒)：近处快，远处慢
-      const duration = 2.0 + normalizedDistance * 0.8;
+      // 持续时间 (2-2.8秒)：远处快，近处慢
+      const duration = 2.0 + (1 - normalizedDistance) * 0.8;
 
       // 设置 CSS 变量
       item.style.setProperty('--frost-delay', delay + 's');
       item.style.setProperty('--frost-duration', duration + 's');
-      item.style.setProperty('--frost-blur', ((1 - normalizedDistance) * 5 + 1) + 'px'); // 近处~6px，远处~1px
-      item.style.setProperty('--frost-opacity', (1 - (1 - normalizedDistance) * 0.25)); // 近处~0.75，远处~1.0
+      item.style.setProperty('--frost-blur', (normalizedDistance * 5 + 1) + 'px'); // 远处~6px，近处~1px
+      item.style.setProperty('--frost-opacity', (1 - normalizedDistance * 0.25)); // 远处~0.75，近处~1.0
 
       // 添加 frost 类触发动画
       item.classList.add('frost');
@@ -251,43 +269,50 @@
     frostTimers = [];
   }
 
-  // 为每个 photo-item 添加 hover 延迟逻辑
+  // 事件委托：在 masonry 上统一处理 hover 事件（DOM 不再重建，无需重复绑定）
+  // 使用 mouseover/mouseout 因为 mouseenter/mouseleave 不冒泡
+  let hoverTimer = null;
+  let currentHoverItem = null;
   function initHoverEffects() {
-    const items = masonry.querySelectorAll('.photo-item');
+    masonry.addEventListener('mouseover', (e) => {
+      const item = e.target.closest('.photo-item');
+      if (!item || item.classList.contains('filtered-out')) return;
+      if (item === currentHoverItem) return; // 已经在 hover 同一个 item
 
-    items.forEach(item => {
-      let hoverTimer = null;
-
-      item.addEventListener('mouseenter', () => {
-        // 清除之前的计时器
+      // 离开上一个 item
+      if (currentHoverItem) {
         clearTimeout(hoverTimer);
-
-        // 3秒后触发选中效果
-        hoverTimer = setTimeout(() => {
-          item.classList.add('focused');
-          masonry.classList.add('has-focus');
-          currentFocusedItem = item;
-
-          // 触发结霜效果
-          if (!prefersReducedMotion) {
-            initFrostEffect(item);
-          }
-        }, 3000);
-
-        frostTimers.push(hoverTimer);
-      });
-
-      item.addEventListener('mouseleave', () => {
-        // 清除计时器
-        clearTimeout(hoverTimer);
-
-        // 移除选中效果
-        item.classList.remove('focused');
-        currentFocusedItem = null;
-
-        // 移除结霜效果（has-focus 在 removeFrostEffect 的 timeout 中延迟移除）
+        currentHoverItem.classList.remove('focused');
+        currentHoverItem = null;
         removeFrostEffect();
-      });
+      }
+
+      currentHoverItem = item;
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => {
+        item.classList.add('focused');
+        masonry.classList.add('has-focus');
+        currentFocusedItem = item;
+        if (!prefersReducedMotion) {
+          initFrostEffect(item);
+        }
+      }, 3000);
+      frostTimers.push(hoverTimer);
+    });
+
+    masonry.addEventListener('mouseout', (e) => {
+      const item = e.target.closest('.photo-item');
+      if (!item) return;
+
+      // 检查 relatedTarget 是否仍在该 item 内（避免子元素间移动触发）
+      const related = e.relatedTarget;
+      if (related && item.contains(related)) return;
+
+      clearTimeout(hoverTimer);
+      item.classList.remove('focused');
+      if (currentHoverItem === item) currentHoverItem = null;
+      currentFocusedItem = null;
+      removeFrostEffect();
     });
   }
 
@@ -302,7 +327,8 @@
 
   function layoutMasonry() {
     const cols = getColumnCount();
-    const items = masonry.querySelectorAll('.photo-item');
+    // 只布局非 filtered-out 的节点
+    const items = masonry.querySelectorAll('.photo-item:not(.filtered-out)');
     if (items.length === 0) return;
 
     const gap = 20;
@@ -311,7 +337,6 @@
     if (cols === 1) {
       let y = 0;
       items.forEach(item => {
-        // 跳过未加载项（height:0 或 visibility:hidden）
         if (item.offsetHeight === 0 || item.style.visibility === 'hidden') return;
         item.style.left = '0px';
         item.style.top = y + 'px';
@@ -326,7 +351,6 @@
     const colHeights = new Array(cols).fill(0);
 
     items.forEach(item => {
-      // 跳过未加载项（height:0 或 visibility:hidden）
       if (item.offsetHeight === 0 || item.style.visibility === 'hidden') return;
       const minCol = colHeights.indexOf(Math.min(...colHeights));
       item.style.left = (minCol * (colW + gap)) + 'px';
@@ -338,21 +362,97 @@
     masonry.style.height = Math.max(...colHeights) + 'px';
   }
 
-  function renderGallery() {
-    if (filteredPhotos.length === 0) {
-      masonry.innerHTML = '';
-      masonry.style.height = '';
+  // animateLayout: 仅对非 filtered-out 节点执行平滑位移动画
+  function animateLayout() {
+    const cols = getColumnCount();
+    const gap = 20;
+    const containerW = masonry.offsetWidth;
+    const colW = cols === 1 ? containerW : (containerW - gap * (cols - 1)) / cols;
+
+    // 收集可见节点（非 filtered-out）
+    const visibleItems = masonry.querySelectorAll('.photo-item:not(.filtered-out)');
+    if (visibleItems.length === 0) return;
+
+    // 为每个可见节点计算目标位置
+    const colHeights = new Array(cols).fill(0);
+    visibleItems.forEach(item => {
+      const minCol = colHeights.indexOf(Math.min(...colHeights));
+      const targetLeft = minCol * (colW + gap);
+      const targetTop = colHeights[minCol];
+      const targetWidth = colW;
+
+      // 确保元素可见（filtered-out → 可见的过渡需要先设置 visibility 和 opacity）
+      if (item.style.visibility === 'hidden') {
+        item.style.visibility = 'visible';
+        if (!prefersReducedMotion) {
+          item.style.opacity = '0';
+        }
+      }
+
+      // 记录当前 transform 偏移量（如果有的话）
+      const currentTransform = item.style.transform;
+      let currentOffsetX = 0, currentOffsetY = 0;
+      if (currentTransform && currentTransform.includes('translate')) {
+        const match = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        if (match) {
+          currentOffsetX = parseFloat(match[1]);
+          currentOffsetY = parseFloat(match[2]);
+        }
+      }
+
+      // 当前实际位置 = top/left + transform 偏移
+      const currentLeft = parseFloat(item.style.left) || 0;
+      const currentTop = parseFloat(item.style.top) || 0;
+      const actualCurrentLeft = currentLeft + currentOffsetX;
+      const actualCurrentTop = currentTop + currentOffsetY;
+
+      // 计算需要的偏移量（从当前位置到目标位置）
+      const dx = targetLeft - actualCurrentLeft;
+      const dy = targetTop - actualCurrentTop;
+
+      // 更新目标 top/left
+      item.style.left = targetLeft + 'px';
+      item.style.top = targetTop + 'px';
+      item.style.width = targetWidth + 'px';
+
+      // 使用 transform 做补间动画
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+        if (!prefersReducedMotion) {
+          item.style.transition = 'none';
+          item.style.transform = `translate(${dx}px, ${dy}px)`;
+          // 强制回流后启用 transition
+          item.offsetHeight;
+          item.style.transition = '';
+          item.style.transform = '';
+        } else {
+          item.style.transform = '';
+        }
+      } else {
+        item.style.transform = '';
+      }
+
+      colHeights[minCol] += item.offsetHeight + gap;
+    });
+
+    // 更新容器高度
+    masonry.style.height = Math.max(...colHeights) + 'px';
+  }
+
+  // initGallery: 页面加载时一次性创建所有 DOM 节点
+  function initGallery() {
+    if (photos.length === 0) {
       emptyState.style.display = 'block';
       return;
     }
     emptyState.style.display = 'none';
 
-    // Create all items (hidden, no space occupied)
-    masonry.innerHTML = filteredPhotos.map((photo, i) => {
+    // 一次性创建所有 photo-item DOM 节点
+    masonry.innerHTML = photos.map((photo, i) => {
       const sizeClass = pickSizeClass();
       const classes = ['photo-item', 'loading', sizeClass].filter(Boolean).join(' ');
+      const tags = (photo.tags || []).join(',');
       return `
-      <div class="${classes}" data-index="${i}" data-id="${photo.id}" style="position:absolute;visibility:hidden;height:0;overflow:hidden">
+      <div class="${classes}" data-index="${i}" data-id="${photo.id}" data-tags="${escapeAttr(tags)}" style="position:absolute;visibility:hidden;height:0;overflow:hidden">
         <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}">
         <div class="photo-overlay">
           <h3>${escapeHtml(photo.title || '')}</h3>
@@ -361,20 +461,19 @@
       </div>`;
     }).join('');
 
-    // 任务2.1：显示加载进度指示器
-    const totalCount = filteredPhotos.length;
+    // 显示加载进度
+    const totalCount = photos.length;
     if (loadProgress) {
       loadProgress.style.display = 'block';
       loadProgressText.textContent = `加载中 0/${totalCount}...`;
     }
     galleryCount.textContent = `已加载 0/${totalCount} 张作品`;
 
-    // Load images one by one, each appears as it loads
+    // 逐个加载图片
     const items = masonry.querySelectorAll('.photo-item');
     let nextIdx = 0;
     let loadedCount = 0;
 
-    // 更新加载进度和计数（onload 和 onerror 共用）
     function updateLoadProgress() {
       loadedCount++;
       if (loadProgress) {
@@ -386,16 +485,13 @@
       if (loadedCount >= totalCount && loadProgress) {
         loadProgress.style.display = 'none';
         galleryCount.textContent = `${totalCount} 张作品`;
-        // 所有图片加载完后，用实际高度精修布局
         layoutMasonry();
       }
     }
 
-    // 任务3.2：预计算列分配，保证图片按索引顺序排列
     const colCount = getColumnCount();
-    const layoutPositions = precomputeLayout(filteredPhotos, colCount);
+    const layoutPositions = precomputeLayout(photos, colCount);
 
-    // Prepare masonry for absolute positioning
     masonry.style.position = 'relative';
 
     function loadNext() {
@@ -405,7 +501,6 @@
       const img = item.querySelector('img');
       if (!img.dataset.src) { loadNext(); return; }
 
-      // 使用预计算位置
       const pos = layoutPositions[idx];
       item.classList.remove('loading');
       item.style.position = 'absolute';
@@ -419,23 +514,19 @@
       img.removeAttribute('data-src');
 
       const onReady = () => {
-        // 用图片自然比例计算实际高度，保持原始比例
         const aspectRatio = img.naturalHeight / img.naturalWidth;
         const actualH = img.naturalWidth > 0 ? Math.round(pos.width * aspectRatio) : ESTIMATED_HEIGHT;
         item.style.height = actualH + 'px';
         item.style.overflow = '';
         item.classList.add('visible');
-        // reduced motion 下直接显示，无需动画
         if (prefersReducedMotion) {
           item.style.visibility = '';
           item.style.opacity = '1';
         } else {
-          // 新图片初始隐藏，由入场动画控制淡入
           item.style.visibility = '';
           item.style.opacity = '0';
         }
 
-        // 入场动画（莫奈花园印象派风格）
         if (!prefersReducedMotion) {
           const animName = pickAnimation();
           const keyframes = {
@@ -487,13 +578,11 @@
         }
 
         updateLoadProgress();
-        // 图片加载完成后立即重新布局，修正预估高度导致的堆叠
         layoutMasonry();
         setTimeout(loadNext, LOAD_DELAY);
       };
 
       img.onload = onReady;
-      // 加载失败优雅降级 + 点击重试
       img.onerror = () => {
         item.classList.remove('loading');
         showErrorPlaceholder(item, src);
@@ -514,9 +603,7 @@
           );
         }
         item.classList.add('visible');
-
         updateLoadProgress();
-        // 加载失败后也重新布局，确保占位元素不影响其他项
         layoutMasonry();
         setTimeout(loadNext, LOAD_DELAY);
       };
@@ -525,7 +612,7 @@
 
     loadNext();
 
-    // 初始化 hover 效果
+    // 事件委托：在 masonry 上统一处理 hover 事件
     initHoverEffects();
   }
 
@@ -546,9 +633,9 @@
     img.src = src;
     item.innerHTML = '';
     item.appendChild(img);
-    // 同时恢复 overlay
+    // 同时恢复 overlay（data-index 基于 photos 数组）
     const idx = parseInt(item.dataset.index, 10);
-    const photo = filteredPhotos[idx];
+    const photo = photos[idx];
     if (photo) {
       const overlay = document.createElement('div');
       overlay.className = 'photo-overlay';
@@ -608,37 +695,10 @@
 
   function transitionGallery() {
     isTransitioning = true;
-    const existingItems = masonry.querySelectorAll('.photo-item.visible');
-    if (existingItems.length === 0) {
-      applyFilters();
-      isTransitioning = false;
-      return;
-    }
-    // 淡出现有图片，等待动画完成后再替换 DOM
-    existingItems.forEach((item, i) => {
-      item.animate(
-        [{ opacity: 1 }, { opacity: 0, transform: 'translateY(10px) scale(0.97)' }],
-        { duration: 300, delay: i * 30, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
-      );
-    });
-    const maxFadeDelay = Math.min(existingItems.length - 1, 20) * 30 + 300;
-
-    // 使用 Promise + Animation.finished 精确等待淡出完成，fallback 到 setTimeout
-    const fadeOutPromise = new Promise(resolve => {
-      const lastItem = existingItems[Math.min(existingItems.length - 1, 20)];
-      if (lastItem) {
-        const anims = lastItem.getAnimations();
-        if (anims.length > 0 && anims[0].finished) {
-          anims[0].finished.then(resolve, resolve);
-          return;
-        }
-      }
-      setTimeout(resolve, maxFadeDelay);
-    });
-    fadeOutPromise.then(() => {
-      try { applyFilters(); }
-      finally { isTransitioning = false; }
-    });
+    // 不再销毁重建 DOM，直接调用 applyFilters + animateLayout
+    applyFilters();
+    // 动画完成后释放锁
+    setTimeout(() => { isTransitioning = false; }, 700);
   }
 
   // 合并 scroll 监听器：scroll-to-top 按钮 + header 背景
@@ -707,7 +767,12 @@
       return;
     }
     const item = e.target.closest('.photo-item');
-    if (item) openLightbox(parseInt(item.dataset.index, 10));
+    if (item && !item.classList.contains('filtered-out')) {
+      // data-index 是 photos 数组索引，需要找到在 filteredPhotos 中的位置
+      const photoId = item.dataset.id;
+      const filteredIdx = filteredPhotos.findIndex(p => String(p.id) === String(photoId));
+      if (filteredIdx >= 0) openLightbox(filteredIdx);
+    }
   });
   document.getElementById('lbClose').addEventListener('click', closeLightbox);
   document.getElementById('lbPrev').addEventListener('click', () => navigateLightbox(-1));

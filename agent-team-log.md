@@ -260,7 +260,29 @@ const delay = (1 - normalizedDistance) * 1.5;
 **✅ 入场动画配合**：`onReady` 中非 reduced-motion 设 `opacity:0` → 入场动画从 0→1 → `onfinish` 中 `removeProperty('opacity')` 清理内联样式，流程完整。
 
 ## 🧪 第9轮测试
-<!-- 测试员写入 -->
+
+> **测试时间**：2026-05-07
+> **测试员**：Tester
+
+### 测试结论：✅ 全部通过
+
+| 任务 | 结果 | 说明 |
+|------|------|------|
+| 任务1：移除高光 | ✅ 通过 | scale/z-index/border 规则已删除，overlay 正常 |
+| 任务2：结霜方向反转 | ✅ 通过 | 近处 blur 大 delay 小，远处 blur 小 delay 大 |
+| 任务3：filter 切换不闪烁 | ✅ 通过 | 淡出完成后替换 DOM，快速切换不卡死 |
+| 回归测试 | ✅ 通过 | 回到顶部、控制台、reduced-motion 均正常 |
+
+### 关键验证数据
+
+- **结霜梯度**：选中晨曦少女，近处(400px) blur=4.55px/delay=0.43s，远处(1500px) blur=1.00px/delay=1.50s
+- **快速 filter 切换**：50ms 间隔连点 5 个 filter，页面保持响应，isTransitioning 锁正常
+- **reduced-motion**：frostCount=0，结霜动画正确跳过
+- **控制台**：仅 Google Fonts 超时（网络问题），无代码错误
+
+### 建议（不阻塞发布）
+
+- `removeFrostEffect()` 的 5s setTimeout 不可取消，快速切换图片时旧 timer 可能干扰（审查员已提出）
 
 ---
 
