@@ -424,7 +424,11 @@ body {
 }
 
 .masonry.has-focus .photo-item:not(.focused).frost {
-  animation: frostIn var(--frost-duration, 2.5s) var(--frost-delay, 0s) forwards;
+  animation-name: frostIn;
+  animation-duration: var(--frost-duration, 2.5s);
+  animation-delay: var(--frost-delay, 0s);
+  animation-fill-mode: forwards;
+  transition: none !important;
 }
 
 /* Hover vignette + info reveal */
