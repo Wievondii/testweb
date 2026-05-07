@@ -14,8 +14,8 @@ body {
     opacity: 1;
   }
   100% {
-    filter: blur(2px);
-    opacity: 0.7;
+    filter: blur(var(--frost-blur, 2px));
+    opacity: var(--frost-opacity, 0.7);
   }
 }
 

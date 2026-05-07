@@ -393,7 +393,7 @@ body {
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  transition: top 0.3s ease, left 0.3s ease;
+  transition: filter 0.4s ease, opacity 0.4s ease, top 0.3s ease, left 0.3s ease;
 }
 
 .photo-item.visible {

@@ -215,6 +215,8 @@
       // 设置 CSS 变量
       item.style.setProperty('--frost-delay', delay + 's');
       item.style.setProperty('--frost-duration', duration + 's');
+      item.style.setProperty('--frost-blur', (normalizedDistance * 4) + 'px');
+      item.style.setProperty('--frost-opacity', (1 - normalizedDistance * 0.3));
 
       // 添加 frost 类触发动画
       item.classList.add('frost');
@@ -229,6 +231,8 @@
       item.classList.remove('frost');
       item.style.removeProperty('--frost-delay');
       item.style.removeProperty('--frost-duration');
+      item.style.removeProperty('--frost-blur');
+      item.style.removeProperty('--frost-opacity');
     });
   }
 
