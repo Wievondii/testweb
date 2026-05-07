@@ -15,6 +15,7 @@
   let deletingId = null;
   let currentHash = '';
   let selectedCategory = null;
+  let currentCategoryFilter = 'all';
 
   // DOM refs
   const loginGate = document.getElementById('loginGate');
@@ -208,16 +209,31 @@
   function renderCategoryBar() {
     const categories = ['人像', '花草', '城市风景', '其他'];
     const counts = {};
+    counts.all = photos.length;
     categories.forEach(c => counts[c] = 0);
     photos.forEach(p => {
       (p.tags || []).forEach(t => {
         if (counts.hasOwnProperty(t)) counts[t]++;
       });
     });
-    categories.forEach(c => {
+    ['all', ...categories].forEach(c => {
       const el = adminCategoryBar.querySelector(`[data-count-cat="${c}"]`);
       if (el) el.textContent = counts[c];
     });
+  }
+
+  function getVisiblePhotos() {
+    if (currentCategoryFilter === 'all') return photos;
+    return photos.filter(p => (p.tags || []).includes(currentCategoryFilter));
+  }
+
+  function setCategoryFilter(cat) {
+    currentCategoryFilter = cat;
+    selectedCategory = cat === 'all' ? null : cat;
+    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(t => {
+      t.classList.toggle('active', t.dataset.cat === cat);
+    });
+    renderPhotoGrid();
   }
 
   // ======== Upload Zone ========
@@ -267,7 +283,7 @@
   function resetUpload() {
     pendingFile = null;
     pendingCompressed = null;
-    selectedCategory = null;
+    selectedCategory = currentCategoryFilter === 'all' ? null : currentCategoryFilter;
     compressInfo.classList.remove('show');
     uploadPreview.classList.remove('show');
     uploadProgress.style.display = 'none';
@@ -275,8 +291,6 @@
     photoTitle.value = '';
     photoDesc.value = '';
     photoTags.value = '';
-    // Clear active state from category bar
-    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(tag => tag.classList.remove('active'));
   }
 
   // ======== Upload to Image Host + Save ========
@@ -356,12 +370,15 @@
 
   // ======== Photo Grid ========
   function renderPhotoGrid() {
-    photoCount.textContent = `${photos.length} 张作品`;
-    if (photos.length === 0) {
+    const visiblePhotos = getVisiblePhotos();
+    photoCount.textContent = currentCategoryFilter === 'all'
+      ? `${photos.length} 张作品`
+      : `${visiblePhotos.length}/${photos.length} · ${currentCategoryFilter}`;
+    if (visiblePhotos.length === 0) {
       photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无作品</p>';
       return;
     }
-    photoGrid.innerHTML = photos.map(p => `
+    photoGrid.innerHTML = visiblePhotos.map(p => `
       <div class="photo-card" data-id="${p.id}" draggable="true">
         <img class="photo-card-img" src="${escapeAttr(p.url)}" alt="${escapeAttr(p.title)}" loading="lazy">
         <div class="photo-card-body">
@@ -388,11 +405,7 @@
   adminCategoryBar.addEventListener('click', (e) => {
     const tag = e.target.closest('.admin-cat-tag');
     if (!tag) return;
-    // Toggle active state
-    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(t => t.classList.remove('active'));
-    tag.classList.add('active');
-    selectedCategory = tag.dataset.cat;
-    fileInput.click();
+    setCategoryFilter(tag.dataset.cat);
   });
 
   // ======== Category Bar: Drag to Classify ========
@@ -425,6 +438,7 @@
     if (!photo) return;
     if (!photo.tags) photo.tags = [];
     const cat = tag.dataset.cat;
+    if (cat === 'all') return;
     if (!photo.tags.includes(cat)) {
       photo.tags.push(cat);
       updatePhoto(photo);

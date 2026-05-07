@@ -60,10 +60,8 @@
       // 任务1.2 防御逻辑：如果 API 返回英文默认值，忽略，保留 HTML 硬编码的中文值
       // ⚠️ 此数组必须与 functions/api/config.js 中的 DEFAULT_CONFIG 保持同步
       const ENGLISH_DEFAULTS = ['Photography Exhibition', 'A curated collection of captured moments'];
-      if (config.galleryTitle && !ENGLISH_DEFAULTS.includes(config.galleryTitle)) {
-        heroTitle.innerHTML = config.galleryTitle.replace(/\s/g, '<br>');
-        document.title = config.galleryTitle;
-      }
+      heroTitle.textContent = '小肥画展';
+      document.title = '小肥画展';
       if (config.gallerySubtitle && !ENGLISH_DEFAULTS.includes(config.gallerySubtitle)) {
         heroSubtitle.textContent = config.gallerySubtitle;
       }
