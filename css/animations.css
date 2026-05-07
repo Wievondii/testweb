@@ -7,47 +7,6 @@ body {
   animation: pageLoadFade 1.2s var(--ease-out) forwards;
 }
 
-/* ========== 滚动触发揭示动画 ========== */
-.reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
-}
-.reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reveal-left {
-  opacity: 0;
-  transform: translateX(-60px);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
-}
-.reveal-left.visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.reveal-right {
-  opacity: 0;
-  transform: translateX(60px);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
-}
-.reveal-right.visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.reveal-scale {
-  opacity: 0;
-  transform: scale(0.88);
-  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
-}
-.reveal-scale.visible {
-  opacity: 1;
-  transform: scale(1);
-}
-
 /* ========== 图片 Hover 油画效果 ========== */
 @keyframes glowPulse {
   0%, 100% { box-shadow: 0 0 20px var(--monet-mist); }

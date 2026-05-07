@@ -481,7 +481,6 @@ body {
   background: linear-gradient(110deg, var(--bg-card) 0%, var(--surface) 40%, var(--bg-card) 80%);
   background-size: 300% 100%;
   animation: shimmer 2.5s ease-in-out infinite;
-  min-height: 240px;
 }
 
 @keyframes shimmer {

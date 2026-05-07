@@ -10,10 +10,12 @@
   let currentTag = 'all';
   let currentCategory = 'all';
   let lightboxIndex = -1;
-  let revealObserver = null;
   let isTransitioning = false;
 
-  const ANIMATIONS = ['fadeUp', 'slideFromLeft', 'slideFromRight', 'scaleIn', 'rotateIn', 'floatIn'];
+  const ANIMATIONS = ['watercolorReveal', 'sunlightFade', 'petalDrift', 'dewDrop', 'canvasReveal', 'mistDissolve'];
+  const LOAD_DELAY = 300;
+  const ESTIMATED_HEIGHT = 320;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SIZE_CLASSES = ['tall', 'wide', 'featured'];
 
   function pickAnimation() {
@@ -26,10 +28,6 @@
     if (r < 0.22) return 'wide';
     if (r < 0.30) return 'featured';
     return '';
-  }
-
-  function randomDelay() {
-    return (Math.random() * 0.4).toFixed(2);
   }
 
   // DOM refs
@@ -70,34 +68,22 @@
     }
   }
 
-  // 任务3.1：骨架屏 — 在数据加载前显示 shimmer 占位
-  function renderSkeleton(count) {
-    emptyState.style.display = 'none';
-    masonry.style.position = 'relative';
-    masonry.innerHTML = '';
-    const cols = getColumnCount();
+  // 任务3.1：预计算列分配 — 保证图片按索引顺序排列
+  function precomputeLayout(photos, colCount) {
+    const positions = [];
+    const colHeights = new Array(colCount).fill(0);
     const gap = 20;
     const containerW = masonry.offsetWidth;
-    const colW = (containerW - gap * (cols - 1)) / cols;
-    const colHeights = new Array(cols).fill(0);
-    for (let i = 0; i < count; i++) {
+    const colW = (containerW - gap * (colCount - 1)) / colCount;
+    for (let i = 0; i < photos.length; i++) {
       const minCol = colHeights.indexOf(Math.min(...colHeights));
-      const item = document.createElement('div');
-      item.className = 'photo-item loading';
-      item.style.position = 'absolute';
-      item.style.left = minCol * (colW + gap) + 'px';
-      item.style.top = colHeights[minCol] + 'px';
-      item.style.width = colW + 'px';
-      item.style.opacity = '1';
-      const h = 200 + Math.random() * 160;
-      item.style.height = h + 'px';
-      colHeights[minCol] += h + gap;
-      masonry.appendChild(item);
+      positions.push({ col: minCol, top: colHeights[minCol], left: minCol * (colW + gap), width: colW });
+      colHeights[minCol] += ESTIMATED_HEIGHT + gap;
     }
-    masonry.style.height = Math.max(...colHeights) + 'px';
+    return positions;
   }
 
-  // 任务3.3：错误占位 HTML 模板（onerror 和 retryLoad 共用）
+  // 错误占位 HTML 模板（onerror 和 retryLoad 共用）
   function showErrorPlaceholder(item, src) {
     item.classList.add('load-error');
     item.innerHTML = `
@@ -114,10 +100,6 @@
 
   // Load photos
   async function loadPhotos() {
-    // 先显示骨架屏
-    renderSkeleton(6);
-    // 等待浏览器绘制骨架屏帧，否则骨架屏会被 renderGallery() 立刻覆盖
-    await new Promise(r => requestAnimationFrame(r));
     try {
       const res = await fetch(API_GALLERY);
       if (!res.ok) throw new Error('API failed');
@@ -202,10 +184,12 @@
     if (cols === 1) {
       let y = 0;
       items.forEach(item => {
+        // 跳过未加载项（height:0 或 visibility:hidden）
+        if (item.offsetHeight === 0 || item.style.visibility === 'hidden') return;
         item.style.left = '0px';
         item.style.top = y + 'px';
         item.style.width = '100%';
-        y += (item.offsetHeight || 320) + gap;
+        y += item.offsetHeight + gap;
       });
       masonry.style.height = y + 'px';
       return;
@@ -215,11 +199,13 @@
     const colHeights = new Array(cols).fill(0);
 
     items.forEach(item => {
+      // 跳过未加载项（height:0 或 visibility:hidden）
+      if (item.offsetHeight === 0 || item.style.visibility === 'hidden') return;
       const minCol = colHeights.indexOf(Math.min(...colHeights));
       item.style.left = (minCol * (colW + gap)) + 'px';
       item.style.top = colHeights[minCol] + 'px';
       item.style.width = colW + 'px';
-      colHeights[minCol] += (item.offsetHeight || 320) + gap;
+      colHeights[minCol] += item.offsetHeight + gap;
     });
 
     masonry.style.height = Math.max(...colHeights) + 'px';
@@ -234,12 +220,12 @@
     }
     emptyState.style.display = 'none';
 
-    // Create all items (hidden)
+    // Create all items (hidden, no space occupied)
     masonry.innerHTML = filteredPhotos.map((photo, i) => {
       const sizeClass = pickSizeClass();
-      const classes = ['photo-item', 'loading', 'reveal', sizeClass].filter(Boolean).join(' ');
+      const classes = ['photo-item', 'loading', sizeClass].filter(Boolean).join(' ');
       return `
-      <div class="${classes}" data-index="${i}" data-id="${photo.id}">
+      <div class="${classes}" data-index="${i}" data-id="${photo.id}" style="position:absolute;visibility:hidden;height:0;overflow:hidden">
         <img data-src="${escapeAttr(photo.url)}" alt="${escapeAttr(photo.title || '')}">
         <div class="photo-overlay">
           <h3>${escapeHtml(photo.title || '')}</h3>
@@ -254,18 +240,14 @@
       loadProgress.style.display = 'block';
       loadProgressText.textContent = `加载中 0/${totalCount}...`;
     }
-    // 任务3.2：初始化动态计数
     galleryCount.textContent = `已加载 0/${totalCount} 张作品`;
 
     // Load images one by one, each appears as it loads
     const items = masonry.querySelectorAll('.photo-item');
-    const DELAY_FAST = 200;   // 任务2.2：首屏前6张快速加载
-    const DELAY_NORMAL = 500; // 任务2.2：后续图片较长间隔
-    const FIRST_SCREEN_COUNT = 6;
     let nextIdx = 0;
     let loadedCount = 0;
 
-    // 任务3.2：更新加载进度和计数（onload 和 onerror 共用）
+    // 更新加载进度和计数（onload 和 onerror 共用）
     function updateLoadProgress() {
       loadedCount++;
       if (loadProgress) {
@@ -277,12 +259,14 @@
       if (loadedCount >= totalCount && loadProgress) {
         loadProgress.style.display = 'none';
         galleryCount.textContent = `${totalCount} 张作品`;
+        // 所有图片加载完后，用实际高度精修布局
+        layoutMasonry();
       }
     }
 
-    const colHeights = [];
+    // 任务3.2：预计算列分配，保证图片按索引顺序排列
     const colCount = getColumnCount();
-    for (let i = 0; i < colCount; i++) colHeights.push(0);
+    const layoutPositions = precomputeLayout(filteredPhotos, colCount);
 
     // Prepare masonry for absolute positioning
     masonry.style.position = 'relative';
@@ -294,9 +278,13 @@
       const img = item.querySelector('img');
       if (!img.dataset.src) { loadNext(); return; }
 
-      // Set up for measurement
+      // 使用预计算位置
+      const pos = layoutPositions[idx];
       item.classList.remove('loading');
       item.style.position = 'absolute';
+      item.style.left = pos.left + 'px';
+      item.style.width = pos.width + 'px';
+      item.style.top = pos.top + 'px';
       item.style.visibility = 'hidden';
       item.style.opacity = '1';
 
@@ -304,114 +292,99 @@
       img.removeAttribute('data-src');
 
       const onReady = () => {
-        // Calculate column width
-        const containerW = masonry.offsetWidth;
-        const gap = 20;
-        const cols = getColumnCount();
-        const colW = (containerW - gap * (cols - 1)) / cols;
-
-        // Ensure colHeights array matches current column count
-        while (colHeights.length < cols) colHeights.push(0);
-
-        // Find shortest column
-        const minCol = colHeights.indexOf(Math.min(...colHeights));
-        const x = minCol * (colW + gap);
-
-        // Position item
-        item.style.left = x + 'px';
-        item.style.top = colHeights[minCol] + 'px';
-        item.style.width = colW + 'px';
+        // 用图片实际高度设置 height，然后显示
+        const actualH = item.offsetHeight || ESTIMATED_HEIGHT;
+        item.style.height = actualH + 'px';
+        item.style.overflow = '';
         item.style.visibility = '';
 
-        // Update column height
-        colHeights[minCol] += (item.offsetHeight || 300) + gap;
-        masonry.style.height = Math.max(...colHeights) + 'px';
+        // 动画性能：启动时添加 will-change: filter
+        item.style.willChange = 'transform, opacity, filter';
 
-        // Animate entrance
-        const animName = pickAnimation();
-        const keyframes = {
-          fadeUp: [{ opacity: 0, transform: 'translateY(25px)' }, { opacity: 1, transform: 'translateY(0)' }],
-          slideFromLeft: [{ opacity: 0, transform: 'translateX(-30px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          slideFromRight: [{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'translateX(0)' }],
-          scaleIn: [{ opacity: 0, transform: 'scale(0.93)' }, { opacity: 1, transform: 'scale(1)' }],
-          rotateIn: [{ opacity: 0, transform: 'rotate(-1deg) scale(0.95)' }, { opacity: 1, transform: 'rotate(0) scale(1)' }],
-          floatIn: [
-            { opacity: 0, transform: 'translateY(-15px) translateX(6px)' },
-            { opacity: 0.8, transform: 'translateY(2px) translateX(-1px)', offset: 0.6 },
-            { opacity: 1, transform: 'translateY(0) translateX(0)' },
-          ],
-        };
-        const kf = keyframes[animName] || keyframes.fadeUp;
-        item.animate(kf, { duration: 600, delay: Math.min(idx, 6) * 80, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' });
-        setTimeout(() => { item.classList.add('visible'); }, 650 + Math.min(idx, 6) * 80);
+        // 入场动画（莫奈花园印象派风格）
+        if (!prefersReducedMotion) {
+          const animName = pickAnimation();
+          const keyframes = {
+            watercolorReveal: [
+              { opacity: 0, transform: 'scale(0.96)', filter: 'blur(6px)' },
+              { opacity: 0.4, transform: 'scale(0.98)', filter: 'blur(3px)', offset: 0.5 },
+              { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+            ],
+            sunlightFade: [
+              { opacity: 0, filter: 'brightness(1.4) saturate(0.5)', transform: 'translateY(12px)' },
+              { opacity: 0.7, filter: 'brightness(1.15) saturate(0.8)', offset: 0.6 },
+              { opacity: 1, filter: 'brightness(1) saturate(1)', transform: 'translateY(0)' },
+            ],
+            petalDrift: [
+              { opacity: 0, transform: 'translateY(-10px) translateX(4px) scale(0.97)' },
+              { opacity: 0.5, transform: 'translateY(2px) translateX(-2px) scale(0.99)', offset: 0.4 },
+              { opacity: 0.8, transform: 'translateY(-3px) translateX(1px) scale(1.01)', offset: 0.7 },
+              { opacity: 1, transform: 'translateY(0) translateX(0) scale(1)' },
+            ],
+            dewDrop: [
+              { opacity: 0, transform: 'scale(0.85)', filter: 'brightness(1.2)' },
+              { opacity: 0.8, transform: 'scale(1.02)', filter: 'brightness(1.1)', offset: 0.6 },
+              { opacity: 1, transform: 'scale(1)', filter: 'brightness(1)' },
+            ],
+            canvasReveal: [
+              { opacity: 0, clipPath: 'inset(100% 0 0 0)' },
+              { opacity: 0.5, clipPath: 'inset(40% 0 0 0)', offset: 0.5 },
+              { opacity: 1, clipPath: 'inset(0 0 0 0)' },
+            ],
+            mistDissolve: [
+              { opacity: 0, filter: 'blur(10px)', transform: 'scale(1.03)' },
+              { opacity: 0.5, filter: 'blur(2px)', transform: 'scale(1.01)', offset: 0.6 },
+              { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' },
+            ],
+          };
+          const kf = keyframes[animName] || keyframes.watercolorReveal;
+          const anim = item.animate(kf, {
+            duration: 800,
+            delay: idx * 60,
+            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            fill: 'forwards',
+          });
+          anim.onfinish = () => { item.style.willChange = ''; };
+          setTimeout(() => { item.classList.add('visible'); }, 800 + idx * 60);
+        } else {
+          item.style.visibility = '';
+          item.classList.add('visible');
+        }
 
-        // 任务3.2：更新进度和计数
         updateLoadProgress();
-
-        // 任务2.2：根据索引选择不同延迟
-        const delay = idx < FIRST_SCREEN_COUNT ? DELAY_FAST : DELAY_NORMAL;
-        setTimeout(loadNext, delay);
+        setTimeout(loadNext, LOAD_DELAY);
       };
 
       img.onload = onReady;
-      // 任务3.3：加载失败优雅降级 + 点击重试
+      // 加载失败优雅降级 + 点击重试
       img.onerror = () => {
         item.classList.remove('loading');
         showErrorPlaceholder(item, src);
         item.style.position = 'absolute';
-        item.style.visibility = 'hidden';
+        item.style.left = pos.left + 'px';
+        item.style.width = pos.width + 'px';
+        item.style.top = pos.top + 'px';
+        item.style.height = '';
+        item.style.overflow = '';
+        item.style.visibility = '';
         item.style.opacity = '1';
         item.style.cursor = 'pointer';
 
-        // 定位占位元素
-        const containerW = masonry.offsetWidth;
-        const gap = 20;
-        const cols = getColumnCount();
-        const colW = (containerW - gap * (cols - 1)) / cols;
-        while (colHeights.length < cols) colHeights.push(0);
-        const minCol = colHeights.indexOf(Math.min(...colHeights));
-        item.style.left = minCol * (colW + gap) + 'px';
-        item.style.top = colHeights[minCol] + 'px';
-        item.style.width = colW + 'px';
-        item.style.visibility = '';
-        colHeights[minCol] += (item.offsetHeight || 200) + gap;
-        masonry.style.height = Math.max(...colHeights) + 'px';
-        item.animate(
-          [{ opacity: 0, transform: 'translateY(15px)' }, { opacity: 1, transform: 'translateY(0)' }],
-          { duration: 400, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
-        );
+        if (!prefersReducedMotion) {
+          item.animate(
+            [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
+            { duration: 400, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fill: 'forwards' }
+          );
+        }
         item.classList.add('visible');
 
         updateLoadProgress();
-
-        const delay = idx < FIRST_SCREEN_COUNT ? DELAY_FAST : DELAY_NORMAL;
-        setTimeout(loadNext, delay);
+        setTimeout(loadNext, LOAD_DELAY);
       };
       img.src = src;
     }
 
     loadNext();
-    observeRevealElements();
-  }
-
-  // Scroll reveal animation via IntersectionObserver (singleton)
-  function initRevealObserver() {
-    if (revealObserver) return;
-    revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-  }
-
-  function observeRevealElements() {
-    initRevealObserver();
-    document.querySelectorAll('.reveal').forEach(el => {
-      revealObserver.observe(el);
-    });
   }
 
   // Re-layout on resize
@@ -421,7 +394,7 @@
     resizeTimer = setTimeout(layoutMasonry, 150);
   });
 
-  // 任务3.3：失败图片重试加载
+  // 失败图片重试加载（莫奈主题动画）
   function retryLoad(item) {
     const src = item.dataset.src;
     if (!src) return;
@@ -442,10 +415,17 @@
     }
     img.onload = () => {
       item.classList.add('visible');
-      item.animate(
-        [{ opacity: 0, transform: 'scale(0.95)' }, { opacity: 1, transform: 'scale(1)' }],
-        { duration: 400, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
-      );
+      item.style.willChange = 'transform, opacity, filter';
+      if (!prefersReducedMotion) {
+        const anim = item.animate(
+          [
+            { opacity: 0, transform: 'scale(0.96)', filter: 'blur(4px)' },
+            { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' },
+          ],
+          { duration: 800, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', fill: 'forwards' }
+        );
+        anim.onfinish = () => { item.style.willChange = ''; };
+      }
     };
     img.onerror = () => {
       showErrorPlaceholder(item, src);
