@@ -8,113 +8,49 @@
 
 <!-- 审查员在此记录详细的审查笔记、代码模式观察、常见问题 -->
 
-## 第2轮详细审查笔记
-
-### 审查范围
-
-- `admin.html`（+20行：4个分类标签按钮）
-- `css/style.css`（+82行：标签栏样式 + 拖拽态 + 响应式）
-- `js/admin.js`（+80行：renderCategoryBar + 点击上传 + 拖拽分类）
-- `CLAUDE.md`（文档更新，非功能变更）
-
 ---
 
-### 任务1：标签栏 HTML 结构 — ✅
+## 第3轮审查笔记
 
-- 4个按钮，`data-cat` 属性对应 4 个分类名
-- 每个按钮有 `draggable="false"`，防止标签栏本身被拖拽（正确）
-- `data-count-cat` 属性用于计数更新
-- 位置正确：在 `<header class="admin-header">` 和 `<main class="admin-content">` 之间
+### 变更范围
 
-### 任务2：标签栏 CSS — ✅
+| 文件 | 行数变化 | 内容 |
+|------|---------|------|
+| `admin.html` | +8 行 | 4个emoji图标 + 底部提示div + 版本号v12 |
+| `css/style.css` | +149/-23 行 | 标签栏全套样式重写 |
 
-**定位分析**：
-- `admin-header`：`position: fixed; top: 0; z-index: 100; padding: 1rem var(--page-pad)`
-- `admin-category-bar`：`position: fixed; top: 48px; z-index: 99`
-- admin-header 高度 ≈ 1rem*2 (padding) + 1.1rem (font) ≈ 50px
-- 标签栏从 48px 开始，header 在 z-index:100 之上，即使有 2px 重叠也不可见
+### 验收项逐条检查
 
-**admin-body padding-top 调整**：
-- 原 80px → 96px
-- 理论需求：admin-header(~50px) + category-bar(padding 0.6rem*2=19.2px + font 0.7rem*1.4=9.8px ≈ 42.6px) = ~92.6px
-- 实际使用 96px，余量 3.4px，合理
+1. **分类图标** ✅ — 人像(👤 accent-rose)、花草(🌸 accent-sage)、城市风景(🏙️ monet-water)、其他(📂 monet-gold)。HTML 实体编码正确，CSS 通过 `[data-cat]` 属性选择器分配颜色。
 
-**拖拽态样式**：
-- `.photo-card[draggable="true"]`：cursor: grab/grabbing ✅
-- `.photo-card.dragging`：opacity: 0.4 + accent border ✅
-- `.admin-cat-tag.drag-over`：accent-strong 边框 + box-shadow 光晕 ✅
+2. **交互状态** ✅ — 三种状态差异清晰：
+   - Hover：`background: rgba(168,136,199,0.08)` + `translateX(2px)` + 指示条 4px
+   - Active：`accent-glow` 背景 + `box-shadow` + 计数 accent 色粗体
+   - Drag-over：`scale(1.02)` + 更强 `box-shadow 0 0 16px` + 计数粗体
 
-**响应式**：
-- 小屏下 `.admin-category-bar` 改为 `justify-content: flex-start` + 缩小 gap/padding ✅
-- `-webkit-overflow-scrolling: touch` 保证 iOS 横向滚动流畅 ✅
+3. **fixed 定位** ✅ — `position:fixed; top:68px; left:0; bottom:0; width:120px` 未修改。
 
-### 任务3：标签渲染与计数 — ✅
+4. **拖拽提示** ✅ — `.admin-cat-hint` 使用 `margin-top:auto` 推至底部，`catHintBreathe` 动画 opacity 0.45~1, 3s infinite。
 
-`renderCategoryBar()` 实现：
-- 硬编码 4 个分类名，初始化计数为 0
-- 遍历 `photos` 数组，按 `tags` 字段累加
-- 使用 `adminCategoryBar.querySelector('[data-count-cat="${c}"]')` 更新 DOM
-- 在所有变更点（loadPhotos/addPhoto/updatePhoto/deletePhoto）调用 ✅
+5. **响应式** ✅ — 768px 以下：隐藏装饰线(`::before`)、标题(`::after`)、提示、指示条；标签恢复 `border-radius:100px` 胶囊形；hover/drag-over 的 transform 被重置为 none。
 
-**无潜在问题**：函数简单高效，4个元素的 DOM 查询开销可忽略。
+6. **版本号** ✅ — `style.css?v=11` → `style.css?v=12`。
 
-### 任务4：点击标签上传 — ✅
+7. **布局兼容** ✅ — 侧栏宽度 120px 不变，padding 仅微调顶部间距，不影响 `.admin-body { padding-left: 130px }`。
 
-流程验证：
-1. 用户点击标签 → `active` 类切换 → `selectedCategory` 赋值 → `fileInput.click()`
-2. 用户选择图片 → `handleFileSelect()` → `photoTags.value = selectedCategory || ''`
-3. 上传完成/取消 → `resetUpload()` → `selectedCategory = null` + 移除所有 `active` 类
+### 潜在风险评估
 
-**边界情况**：
-- 用户点击"人像"后取消文件选择 → resetUpload 正确清除状态 ✅
-- 用户不点击标签直接使用上传区 → selectedCategory 为 null，标签栏无 active 态 ✅
-- 用户连续点击不同标签 → 正确切换（先移除所有 active，再添加当前标签的 active）✅
+- **`::before` 伪元素冲突**：侧栏和标签都使用了 `::before`，但侧栏的 `::before` 是装饰线（`top:0; height:2px; pointer-events:none`），标签的 `::before` 是指示条（`left:0; top:15%; bottom:15%; width:3px`）。由于标签的 `position:relative`，两者的定位上下文不同，不会冲突。✅
+- **侧栏 `::after` 标题占位**：新增的"分类"伪元素标题占用了约 30px 垂直空间，可能压缩按钮区域。但侧栏高度足够（viewport height - 68px），且按钮区域有 `overflow-y:auto` 滚动支持。✅
+- **呼吸动画性能**：`@keyframes catHintBreathe` 仅改变 `opacity`，不触发 layout/paint，性能开销极小。✅
 
-### 任务5：拖拽分类 — ✅
+### 代码质量
 
-**事件委托结构**：
-- `adminCategoryBar` 上注册 dragover/dragenter/dragleave/drop（4个事件）
-- `photoGrid` 上注册 dragstart/dragend（2个事件）
-- 全部使用事件委托 + `e.target.closest()`，性能好且支持动态内容 ✅
+- CSS 选择器命名清晰，注释充分（中文注释与项目风格一致）
+- 交互状态使用 `transition: all 0.3s var(--ease-out)` 统一过渡
+- 响应式规则完整，移动端隐藏了所有仅适用于垂直布局的元素
+- 零新依赖，保持项目架构简洁
 
-**dataTransfer 使用**：
-- dragstart: `setData('text/plain', card.dataset.id)` + `effectAllowed = 'copy'` ✅
-- dragover: `preventDefault()` + `dropEffect = 'copy'` ✅
-- drop: `getData('text/plain')` 读取 ID ✅
+### 提交记录
 
-**去重逻辑**：
-- `photo.tags.includes(cat)` 检查后才 push，防止重复分类 ✅
-
-**拖拽视觉反馈**：
-- 拖拽中：原卡片 `.dragging` 半透明 (opacity: 0.4) ✅
-- 悬停目标：`.drag-over` 高亮 + 光晕 ✅
-- 松手后：dragend 清除 `.dragging`，drop 清除 `.drag-over` ✅
-
-### XSS 安全性审查 — ✅
-
-- `renderPhotoGrid()` 中：`escapeAttr(p.url)`、`escapeAttr(p.title)`、`escapeHtml(p.title)`、`escapeHtml(p.description)`、`escapeHtml(t)` — 全部正确使用
-- 标签栏内容为硬编码中文，无用户输入注入点
-- `[data-count-cat="${c}"]` 选择器中 `c` 来自硬编码数组，无注入风险
-
-### dragleave 事件细节观察 — ⚠️ P2（非阻塞）
-
-在标签按钮的子元素（如 `.admin-cat-label` 和 `.admin-cat-count`）之间移动鼠标时，`dragleave` 会触发导致 `.drag-over` 类被移除，紧接着 `dragover` 又重新添加。这会导致标签高亮在鼠标跨子元素边界时出现极短暂的闪烁。
-
-**影响**：纯视觉，不影响功能。实际使用中几乎不可感知（拖拽光标覆盖了标签）。
-**修复方式**（建议但非必要）：在 `dragenter` 中用 `e.preventDefault()` 并记录当前高亮的标签，在 `dragover` 中检查是否同一标签则跳过。
-
----
-
-### 代码质量观察
-
-1. **架构一致**：事件委托模式与 `main.js` 的 hover 事件委托风格一致
-2. **命名规范**：`selectedCategory`、`renderCategoryBar`、`admin-cat-tag` 等命名清晰
-3. **无死代码**：所有新增函数和变量均被引用
-4. **版本号管理**：style.css v7→v8，admin.js v3→v4，正确递增
-5. **CLAUDE.md 更新**：补充了本地开发说明和 Three.js/声音/CSS 架构文档，属合理的文档完善
-
----
-
-### 最终结论
-
-✅ 通过。5个任务全部正确实现，代码质量良好，无阻塞性问题。
+Commit: `5155731` — `style: 重写管理后台分类标签栏（图标+彩色指示条+交互状态+拖拽提示）`

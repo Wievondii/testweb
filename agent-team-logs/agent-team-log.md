@@ -2,250 +2,172 @@
 
 > **项目**：testweb
 > **创建时间**：2026-05-07
-> **当前轮次**：第 2 轮
+> **当前轮次**：第 3 轮
 
 ---
 
 ## 📝 经验教训
 
 ### 第1轮总结（画廊视觉体验升级）
+- 筛选架构：DOM 复用 + CSS 类标记（`.filtered-out`）+ `animateLayout()` transform 补间
+- 结霜方向：`delay = (1 - normalizedDistance) * 1.5` 外向内包裹
+- `visibility: hidden` 是离散属性，CSS transition 中必须显式声明才能延迟生效
+- hover 事件委托用 `mouseover/mouseout`（冒泡），不能用 `mouseenter/mouseleave`
 
-**关键决策**：
-- 筛选架构从 DOM 销毁重建改为 DOM 复用 + CSS 类标记（`.filtered-out`），配合 `animateLayout()` transform 补间实现平滑过渡
-- 结霜方向从"中心向外"反转为"外向内包裹"，公式 `delay = (1 - normalizedDistance) * 1.5`
-- Lightbox 霜化用 `::before` 伪元素 + `mask-image: radial-gradient` CSS 驱动，无需额外 JS
-
-**踩过的坑**：
-- `visibility: hidden` 是离散属性，CSS transition 中必须显式声明 `visibility` 过渡才能延迟生效，否则瞬间消失
-- hover 事件委托需用 `mouseover/mouseout`（冒泡），不能用 `mouseenter/mouseleave`（不冒泡）
-- `renderGallery()` 在 `initGallery()` 接管后成为死代码，记得清理
-
-**注意点**：
-- 测试环境用 `npx wrangler pages dev . --port 6767`
-- 版本号 `?v=11`（style.css + main.js + index.html）
+### 第2轮总结（管理后台分类标签栏）
+- 实现了 4 个分类标签栏（人像/花草/城市风景/其他），支持点击上传和拖拽分类
+- 标签栏从顶部 → 左侧布局变更过程中，经历了多次定位调整
+- **问题**：用户反馈左侧标签栏太丑（纯按钮无样式），且要求 fixed 定位不随滚动移动
 
 ---
 
-## 📋 第2轮计划
+## 📋 第3轮计划
 
-### 需求分析
+### 当前状态分析
 
-**一句话总结**：为管理后台（admin）添加分类标签栏，支持"点击标签上传归类"和"拖动图片到标签快速分类"两种操作，提升管理员的分类效率。
-
-**涉及功能模块**：
-- `admin.html` — 新增标签栏 HTML 结构
-- `css/style.css` — 标签栏样式 + 拖拽视觉反馈 + 新增 `.photo-card` 拖拽态样式
-- `js/admin.js` — 标签栏渲染逻辑、点击标签上传流程、拖拽分类交互逻辑
-- `functions/api/photos.js` — 无需修改（PUT 接口已支持 `tags` 字段更新）
-
-**现有架构分析**：
-- 分类体系是固定的 4 个：人像、花草、城市风景、其他（`main.js` 第128行 `updateCategoryCounts()` 硬编码）
-- `photo.tags` 是字符串数组，一张图片可以属于多个分类
-- `admin.html` 的 `admin-header` 是固定顶栏（`position: fixed`），包含标题和操作按钮
-- `photo-grid` 使用 CSS Grid 布局（`grid-template-columns: repeat(auto-fill, minmax(260px, 1fr))`）
-- 每个 `.photo-card` 内有图片、标题、描述、标签、操作按钮
-
----
-
-### 分步任务
-
-#### 任务 1：在 admin-header 下方添加分类标签栏 HTML
-
-**具体做什么**：
-在 `admin.html` 的 `<header class="admin-header">` 和 `<main class="admin-content">` 之间，插入一个新的 `<div class="admin-category-bar">` 容器。该容器内放置 4 个分类标签按钮，每个标签带 `data-cat` 属性和分类计数 `data-count` 占位。
-
+**HTML 结构**（`admin.html` L43-60）：
 ```html
 <div class="admin-category-bar" id="adminCategoryBar">
   <button type="button" class="admin-cat-tag" data-cat="人像" draggable="false">
     <span class="admin-cat-label">人像</span>
     <span class="admin-cat-count" data-count-cat="人像">0</span>
   </button>
-  <!-- 花草、城市风景、其他 同理 -->
+  <!-- ... 共4个按钮：人像/花草/城市风景/其他 -->
 </div>
 ```
 
-同时调整 `admin-body` 的 `padding-top` 以适配新增的标签栏高度。
+**当前 CSS 现状**（`css/style.css` L947-1016）：
+- `.admin-category-bar`：fixed 定位（top:68px, left:0, bottom:0, width:120px），深色半透明背景 `rgba(10,14,23,0.92)` + `backdrop-filter:blur(24px)`，flex 纵向布局
+- `.admin-cat-tag`：`border-radius:100px`（胶囊形），1px border，透明背景，`color:var(--text-dim)`，无图标
+- 各状态（hover/active/drag-over）仅有 border-color 变化和微弱背景渐变
+- 每个按钮仅显示文字 + 数字计数，无图标，无视觉层次
 
-**预期产出物**：`admin.html`
+**响应式**（`@media max-width:768px`）：变为水平布局，去掉左右边框改下边框，标签自适应宽度
 
-**验收标准**：
-- 标签栏出现在顶栏和内容区之间
-- 4 个标签正确显示"人像 / 花草 / 城市风景 / 其他"
-- 每个标签显示当前分类的图片计数
+**JS 交互**（`js/admin.js` L387-432）：
+- 点击标签 = 选中分类 → 触发文件上传
+- 拖拽照片到标签 = 快速分类（dragover/dragenter/dragleave/drop 事件委托）
+- 功能逻辑正常，不需要改动
 
----
-
-#### 任务 2：编写标签栏 CSS 样式
-
-**具体做什么**：
-在 `css/style.css` 的 ADMIN PANEL 区域（第858行后），新增以下样式：
-
-1. `.admin-category-bar` — 标签栏容器，固定在顶栏下方（`position: fixed; top: [header高度]; z-index: 99`），背景半透明毛玻璃效果（与 admin-header 一致），水平居中排列标签，带底部边框分隔线。
-2. `.admin-cat-tag` — 单个标签按钮样式，复用 `.filter-pill` 的视觉风格（圆角药丸形、border、hover/active 态），支持 `draggable="false"` 防止浏览器默认拖拽。
-3. `.admin-cat-tag.drag-over` — 拖拽悬停态，高亮边框 + accent 色背景光晕（表示"松手即可归类"）。
-4. `.photo-card[draggable="true"]` — 可拖拽卡片的 cursor 样式。
-5. `.photo-card.dragging` — 拖拽中的卡片半透明效果。
-
-同时调整 `.admin-content` 的 `padding-top` 增加标签栏高度占位，避免内容被遮挡。
-
-**预期产出物**：`css/style.css`
-
-**验收标准**：
-- 标签栏视觉风格与画廊前端的 `.filter-pill` 一致（药丸形、accent 色 hover）
-- 拖拽悬停时标签有明确的视觉反馈
-- 被拖拽的图片卡片有半透明效果
-- 响应式：移动端标签栏不溢出，可横向滚动
+**问题诊断**：
+1. "太丑"——按钮只有文字+border，没有图标、没有阴影、没有动效，视觉层次单薄
+2. 定位已正确（fixed, top:68px），但用户可能在某些情况下感觉不固定——需确认无冲突
+3. 拖拽功能已实现，但缺少直观的视觉引导（用户不知道可以拖拽）
 
 ---
 
-#### 任务 3：实现标签栏渲染与计数逻辑
+### 开发计划（共 6 步）
 
-**具体做什么**：
-在 `js/admin.js` 中：
+#### Step 1：给每个分类标签添加语义图标
+**文件**：`admin.html` L43-60
+**改动**：
+- 在每个 `.admin-cat-tag` 的 `.admin-cat-label` 前插入一个图标元素 `<span class="admin-cat-icon">`
+- 使用 emoji 或 Unicode 符号（项目无图标库依赖，保持零依赖）：
+  - 人像 → `👤`（或 `📷` 人像模式）
+  - 花草 → `🌸`
+  - 城市风景 → `🏙`
+  - 其他 → `📂`
 
-1. 新增 `renderCategoryBar()` 函数 — 遍历 `photos` 数组，按 `tags` 字段统计每个分类的数量，更新 `[data-count-cat]` 元素的文本内容。
-2. 在 `loadPhotos()` 成功加载后调用 `renderCategoryBar()`。
-3. 在 `addPhoto()`、`updatePhoto()`、`deletePhoto()` 成功后也调用 `renderCategoryBar()`，保持计数实时同步。
+#### Step 2：重新设计侧栏容器样式
+**文件**：`css/style.css`，修改 `.admin-category-bar`（L947-964）
+**改动要点**：
+- 保留 fixed 定位和现有属性不变
+- 添加顶部渐变装饰线：`::before` 伪元素，从 `var(--accent)` 到 transparent 的横向渐变，height: 1px，绝对定位在 top:0
+- 添加侧栏标题：`::after` 伪元素显示"分类"文字（或由 HTML 添加标题元素）
+- 微调背景色和圆角：右侧 `border-radius: 0 var(--radius) var(--radius) 0` 增加柔和感
+- 内部 padding 微调：增加上下留白，让按钮不贴边
 
-**预期产出物**：`js/admin.js`
+#### Step 3：重新设计标签按钮样式
+**文件**：`css/style.css`，修改 `.admin-cat-tag`（L966-986）
+**改动要点**：
+- 增大 padding：`0.7rem 0.6rem`（纵向更宽，按钮更舒展）
+- 添加微弱背景：`background: rgba(168,136,199,0.04)` 默认有底色
+- 添加左侧彩色指示条：用 `::before` 伪元素（width:3px, border-radius:2px），不同分类对应不同颜色：
+  - 人像 → `var(--accent-rose)` (#dca3bb)
+  - 花草 → `var(--accent-sage)` (#96bb91)
+  - 城市风景 → `var(--monet-water)` (#8dbfe3)
+  - 其他 → `var(--monet-gold)` (#e2c98d)
+- 通过 `data-cat` 属性选择器设置：`.admin-cat-tag[data-cat="人像"]::before { background: var(--accent-rose); }`
+- 添加 `border-radius: var(--radius)` 替代 `100px`（方角更符合侧栏卡片风格）
+- 图标 + 文字 + 计数 的 gap 调整
 
-**验收标准**：
-- 登录后标签栏立即显示正确的分类计数
-- 上传/编辑/删除图片后，对应分类的计数实时更新
-- 无 tag 的图片不计入任何分类
+#### Step 4：增强交互状态样式
+**文件**：`css/style.css`
+**改动要点**：
+- **Hover**：背景色加深 + 左侧指示条放大（width: 4px）+ 轻微 translateX(2px) 向右微移
+- **Active（选中上传）**：左侧指示条变为 4px + 全宽背景色 + 阴影 `box-shadow: 0 2px 8px rgba(168,136,199,0.2)`
+- **Drag-over（拖拽悬停）**：更强的视觉反馈——背景色、缩放 `transform: scale(1.02)`、发光 `box-shadow: 0 0 16px rgba(168,136,199,0.4)`
+- 计数数字在 active/drag-over 状态下使用 `font-weight:600` 突出
+- 所有过渡统一使用 `transition: all 0.3s var(--ease-out)`
 
----
+#### Step 5：添加拖拽引导提示
+**文件**：`css/style.css` + `admin.html`
+**改动要点**：
+- 在侧栏底部添加一个提示区域（HTML 加一个 `<div class="admin-cat-hint">`）：
+  - 文字："拖拽照片到分类" + 一个小型拖拽图标（Unicode `↕` 或 `|`
+  - 样式：`font-size:0.6rem; color:var(--text-muted); text-align:center; margin-top:auto; padding-top:1rem; border-top:1px solid var(--border)`
+  - 带有微弱的呼吸动画（opacity 0.5↔1, infinite），引导用户注意
+- 在 CSS 中添加 `@keyframes breathe` 动画
 
-#### 任务 4：实现点击标签上传功能
-
-**具体做什么**：
-在 `js/admin.js` 中：
-
-1. 为 `.admin-cat-tag` 按钮添加点击事件监听器。
-2. 点击标签时：
-   - 设置一个模块级变量 `selectedCategory` 为该标签对应的分类名。
-   - 标签视觉切换为 `.active` 态。
-   - 自动触发 `fileInput.click()` 打开文件选择器。
-3. 修改 `handleFileSelect()` 逻辑：若 `selectedCategory` 有值，自动在 `photoTags` 输入框中填入该分类名。
-4. 在 `resetUpload()` 中清除 `selectedCategory` 状态和标签的 `.active` 态。
-
-**预期产出物**：`js/admin.js`
-
-**验收标准**：
-- 点击"人像"标签 → 弹出文件选择器 → 选择图片后，标签输入框自动填入"人像"
-- 上传成功后该图片自动归入"人像"分类
-- 取消上传后标签栏恢复无选中状态
-- 也可不点击标签，直接拖拽/点击上传区上传（保持原有流程不变）
-
----
-
-#### 任务 5：实现图片拖拽到标签快速分类
-
-**具体做什么**：
-在 `js/admin.js` 中：
-
-1. 为 `.photo-card` 添加 `draggable="true"` 属性（在 `renderPhotoGrid()` 中设置）。
-2. 为每个 `.photo-card` 注册 `dragstart` 事件：
-   - 设置 `dataTransfer.setData('text/plain', photoId)` 传递图片 ID。
-   - 设置拖拽预览图（可选：`dataTransfer.setDragImage()`）。
-   - 添加 `.dragging` 样式类。
-3. 为每个 `.admin-cat-tag` 注册 `dragover`、`dragenter`、`dragleave`、`drop` 事件：
-   - `dragover`：`preventDefault()` 允许放置 + 添加 `.drag-over` 高亮。
-   - `dragleave` / `drop`：移除 `.drag-over`。
-   - `drop`：读取 `photoId`，找到对应 photo，将其 `tags` 数组中添加目标分类（若不重复），调用 `updatePhoto()` 保存。
-4. 在 `photoCard` 的 `dragend` 事件中移除 `.dragging` 样式。
-
-**预期产出物**：`js/admin.js`
-
-**验收标准**：
-- 拖动图片卡片到"人像"标签处，标签高亮提示
-- 松手后图片自动获得"人像"标签，卡片标签区域即时更新
-- 重复拖入同一分类不会产生重复标签
-- 拖拽过程中原卡片有半透明视觉反馈
-- 拖拽结束后所有视觉状态正确清除
+#### Step 6：响应式适配优化
+**文件**：`css/style.css`，修改 `@media (max-width:768px)` 中的规则（L1333-1356）
+**改动要点**：
+- 移动端隐藏左侧指示条 `::before`（水平布局不适合）
+- 移动端隐藏拖拽提示（`.admin-cat-hint { display:none }`）
+- 移动端标签保持紧凑的胶囊形 `border-radius: 100px`
+- 水平滚动时添加渐隐效果：右侧 `::after` 伪元素渐变遮罩
 
 ---
 
-### 风险提示
+### 涉及文件清单
 
-1. **标签栏固定定位冲突**：`admin-header` 是 `position: fixed; top: 0`，标签栏如果也是 fixed，需要精确计算 `top` 值（header 高度约 48-52px），否则会被顶栏遮挡。建议标签栏也用 `position: fixed` 并设 `top: [header高度]px`，或改用 sticky 布局。
+| 文件 | 改动范围 | 说明 |
+|------|---------|------|
+| `admin.html` | L43-60 | 添加图标元素 + 底部提示元素 |
+| `css/style.css` | L947-1016, L1333-1356 | 重写标签栏+标签样式，新增动画 |
 
-2. **移动端拖拽兼容性**：移动端浏览器对 HTML5 Drag & Drop API 支持不佳。建议用 CSS `touch-action: none` + pointer events 做降级处理，或在移动端隐藏拖拽功能、仅保留点击分类上传。
+### 验收标准
 
-3. **分类标签是硬编码的**：当前 4 个分类在 `main.js` 和计划中都是硬编码的（人像/花草/城市风景/其他）。如果未来需要动态分类，需要重构为配置驱动。本轮暂保持硬编码，与前端一致。
-
-4. **并发操作风险**：拖拽分类触发 `updatePhoto()` 是异步操作，如果用户快速拖拽多张图片到不同标签，可能产生竞态。建议在 `updatePhoto` 执行期间锁定对应卡片的拖拽能力，或使用队列顺序执行。
-
-5. **`dataTransfer` 数据格式**：`dragstart` 设置的数据在某些浏览器中只能在 `drop` 事件中读取。确保 `dataTransfer.setData` 使用 `'text/plain'` 类型以保证跨浏览器兼容。
-
----
-
-### 预估工作量
-
-| 任务 | 预估 |
-|------|------|
-| 任务 1：HTML 结构 | 简单 |
-| 任务 2：CSS 样式 | 中等 |
-| 任务 3：标签渲染逻辑 | 简单 |
-| 任务 4：点击上传 | 中等 |
-| 任务 5：拖拽分类 | 较复杂 |
-
-**总预估**：全部纯前端改动，无需修改后端 API。测试用 `npx wrangler pages dev . --port 6767`。
+1. 侧栏 4 个标签各有独特图标和彩色指示条，视觉层次清晰
+2. Hover/Active/Drag-over 三种状态视觉差异明显，有动效
+3. fixed 定位不变，滚动时侧栏固定不动
+4. 拖拽照片到标签仍有正确分类功能（JS 不改动，仅 CSS 增强）
+5. 底部有"拖拽照片到分类"提示
+6. 768px 以下响应式布局正常（水平排列，隐藏提示）
+7. 不影响 `admin-body` 的 `padding-left: 130px` 布局
 
 ---
 
-## 🔧 第2轮开发
+## 🔧 第3轮开发
 
-**全部 5 个任务完成**：
+**状态**：已完成（6/6 步）
 
-| 任务 | 状态 | 说明 |
-|------|------|------|
-| 任务 1：HTML 标签栏 | 完成 | admin-header 下方插入 4 个分类标签按钮 |
-| 任务 2：CSS 样式 | 完成 | 标签栏 fixed 定位 + 药丸形标签 + 拖拽态样式 + 响应式 |
-| 任务 3：标签渲染与计数 | 完成 | renderCategoryBar() 在 load/add/update/delete 后调用 |
-| 任务 4：点击标签上传 | 完成 | selectedCategory 状态管理 + fileInput 自动触发 + 标签自动填充 |
-| 任务 5：拖拽分类 | 完成 | 事件委托 drag 事件 + dataTransfer text/plain + 去重 + dragging 样式 |
+| 步骤 | 内容 | 文件 | 状态 |
+|------|------|------|------|
+| Step 1 | 给分类标签添加 Emoji 图标 | admin.html | Done |
+| Step 2 | 侧栏容器增强（装饰线+标题） | css/style.css | Done |
+| Step 3 | 标签按钮重设计（指示条+圆角卡片） | css/style.css | Done |
+| Step 4 | 三态交互动效（hover/active/drag-over） | css/style.css | Done |
+| Step 5 | 底部拖拽提示+呼吸动画 | admin.html + css/style.css | Done |
+| Step 6 | 768px 响应式适配 | css/style.css | Done |
 
-**修改文件**：`admin.html`、`css/style.css`、`js/admin.js`
-**版本号**：style.css ?v=8，admin.js ?v=4
-
----
-
-## 🔍 第2轮审查
-
-**结论：✅ 通过**
-
-审查范围：`admin.html`、`css/style.css`、`js/admin.js`、`CLAUDE.md`
-
-| 检查项 | 结果 |
-|--------|------|
-| 标签栏 fixed 定位（top: 48px） | ✅ admin-header (z-index:100) 在标签栏 (z-index:99) 之上，无遮挡 |
-| admin-body padding-top 调整 | ✅ 80px→96px，与标签栏高度匹配 |
-| 拖拽 dataTransfer 格式 | ✅ 使用 `text/plain`，跨浏览器兼容 |
-| 拖拽事件委托 | ✅ adminCategoryBar 上注册 dragover/dragenter/dragleave/drop，photoGrid 上注册 dragstart/dragend |
-| 点击标签上传流程 | ✅ selectedCategory 状态管理 → fileInput.click() → handleFileSelect 自动填充 → resetUpload 清除 |
-| 去重逻辑 | ✅ `photo.tags.includes(cat)` 防止重复添加 |
-| XSS 防护 | ✅ escapeHtml/escapeAttr 正确使用，标签栏为硬编码分类名 |
-| CSS 状态覆盖 | ✅ hover/active/drag-over/dragging 全部有视觉反馈 |
-| 响应式适配 | ✅ 小屏下标签栏可横向滚动，gap 和 padding 缩小 |
-| 版本号 | ✅ style.css v7→v8，admin.js v3→v4 |
-
-**无阻塞性问题**。代码质量良好，实现与计划一致。
+改动文件：`admin.html`（图标+提示+版本号v12）、`css/style.css`（标签栏全套重写）
 
 ---
 
-## 🧪 第2轮测试
+## 🔍 第3轮审查
 
-**结论：✅ 全部通过**
+**结论**：✅通过（7/7 验收项全部达标）
 
-| 测试用例 | 结果 | 说明 |
-|----------|------|------|
-| 标签栏显示 | ✅ 通过 | 4 标签正确显示，计数与实际一致（人像4/花草4/城市风景2/其他2） |
-| 点击标签上传 | ✅ 通过 | 标签 active 状态正确，标签输入框自动填入对应分类名 |
-| 拖拽分类 | ✅ 通过 | 拖入后标签即时更新，计数正确增加，数据持久化验证通过 |
-| 重复拖拽去重 | ✅ 通过 | 已有标签的图片重复拖入不产生重复标签，计数不变 |
-| 数据持久化 | ✅ 通过 | 编辑表单确认拖拽分类的标签数据正确存储 |
+- 图标：4个分类各有独特emoji（👤🌸🏙️📂）+ 独立颜色指示条（rose/sage/water/gold）
+- 交互状态：Hover/Active/Drag-over 三种状态视觉差异明显（平移/发光/缩放）
+- 定位：fixed top:68px 未变，padding 微调不影响布局
+- 拖拽提示：`.admin-cat-hint` 底部显示 + 呼吸动画
+- 响应式：768px 以下隐藏指示条/提示/装饰线，标签恢复胶囊形
+- 版本号：v11 → v12 ✓
+- 已提交：commit `5155731`
 
-**Bug 列表**：无
+---
 
-**截图**：`screenshot-r2-01` ~ `screenshot-r2-04`（admin 面板各测试场景）
+## 🧪 第3轮测试
+<!-- 测试员：精简通过/失败和 Bug 列表，详细用例写入私有日志 -->
