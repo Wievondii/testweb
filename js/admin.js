@@ -14,6 +14,7 @@
   let editingId = null;
   let deletingId = null;
   let currentHash = '';
+  let selectedCategory = null;
 
   // DOM refs
   const loginGate = document.getElementById('loginGate');
@@ -49,6 +50,7 @@
   const deleteConfirm = document.getElementById('deleteConfirm');
   const deleteCancel = document.getElementById('deleteCancel');
   const toast = document.getElementById('toast');
+  const adminCategoryBar = document.getElementById('adminCategoryBar');
 
   // ======== Auth ========
   async function sha256(str) {
@@ -137,6 +139,7 @@
       } catch { photos = []; }
     }
     renderPhotoGrid();
+    renderCategoryBar();
   }
 
   async function addPhoto(photo) {
@@ -150,6 +153,7 @@
       const saved = await res.json();
       photos.unshift(saved);
       renderPhotoGrid();
+      renderCategoryBar();
       return saved;
     } catch (e) {
       // Fallback to localStorage
@@ -158,6 +162,7 @@
       photos.unshift(photo);
       localStorage.setItem('gallery_photos', JSON.stringify(photos));
       renderPhotoGrid();
+      renderCategoryBar();
       return photo;
     }
   }
@@ -174,11 +179,13 @@
       const idx = photos.findIndex(p => p.id === updated.id);
       if (idx !== -1) photos[idx] = updated;
       renderPhotoGrid();
+      renderCategoryBar();
     } catch (e) {
       const idx = photos.findIndex(p => p.id === photo.id);
       if (idx !== -1) photos[idx] = { ...photos[idx], ...photo };
       localStorage.setItem('gallery_photos', JSON.stringify(photos));
       renderPhotoGrid();
+      renderCategoryBar();
     }
   }
 
@@ -194,6 +201,23 @@
     photos = photos.filter(p => p.id !== id);
     localStorage.setItem('gallery_photos', JSON.stringify(photos));
     renderPhotoGrid();
+    renderCategoryBar();
+  }
+
+  // ======== Category Bar ========
+  function renderCategoryBar() {
+    const categories = ['人像', '花草', '城市风景', '其他'];
+    const counts = {};
+    categories.forEach(c => counts[c] = 0);
+    photos.forEach(p => {
+      (p.tags || []).forEach(t => {
+        if (counts.hasOwnProperty(t)) counts[t]++;
+      });
+    });
+    categories.forEach(c => {
+      const el = adminCategoryBar.querySelector(`[data-count-cat="${c}"]`);
+      if (el) el.textContent = counts[c];
+    });
   }
 
   // ======== Upload Zone ========
@@ -232,7 +256,7 @@
       uploadPreview.classList.add('show');
       photoTitle.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       photoDesc.value = '';
-      photoTags.value = '';
+      photoTags.value = selectedCategory || '';
     } catch (e) {
       showToast('压缩失败: ' + e.message, 'error');
     }
@@ -243,6 +267,7 @@
   function resetUpload() {
     pendingFile = null;
     pendingCompressed = null;
+    selectedCategory = null;
     compressInfo.classList.remove('show');
     uploadPreview.classList.remove('show');
     uploadProgress.style.display = 'none';
@@ -250,6 +275,8 @@
     photoTitle.value = '';
     photoDesc.value = '';
     photoTags.value = '';
+    // Clear active state from category bar
+    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(tag => tag.classList.remove('active'));
   }
 
   // ======== Upload to Image Host + Save ========
@@ -335,7 +362,7 @@
       return;
     }
     photoGrid.innerHTML = photos.map(p => `
-      <div class="photo-card" data-id="${p.id}">
+      <div class="photo-card" data-id="${p.id}" draggable="true">
         <img class="photo-card-img" src="${escapeAttr(p.url)}" alt="${escapeAttr(p.title)}" loading="lazy">
         <div class="photo-card-body">
           <h4>${escapeHtml(p.title)}</h4>
@@ -355,6 +382,67 @@
     const deleteBtn = e.target.closest('.delete-btn');
     if (editBtn) openEditModal(editBtn.dataset.id);
     if (deleteBtn) openDeleteModal(deleteBtn.dataset.id);
+  });
+
+  // ======== Category Bar: Click to Upload ========
+  adminCategoryBar.addEventListener('click', (e) => {
+    const tag = e.target.closest('.admin-cat-tag');
+    if (!tag) return;
+    // Toggle active state
+    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+    selectedCategory = tag.dataset.cat;
+    fileInput.click();
+  });
+
+  // ======== Category Bar: Drag to Classify ========
+  adminCategoryBar.addEventListener('dragover', (e) => {
+    const tag = e.target.closest('.admin-cat-tag');
+    if (!tag) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    tag.classList.add('drag-over');
+  });
+
+  adminCategoryBar.addEventListener('dragenter', (e) => {
+    const tag = e.target.closest('.admin-cat-tag');
+    if (tag) { e.preventDefault(); tag.classList.add('drag-over'); }
+  });
+
+  adminCategoryBar.addEventListener('dragleave', (e) => {
+    const tag = e.target.closest('.admin-cat-tag');
+    if (tag) tag.classList.remove('drag-over');
+  });
+
+  adminCategoryBar.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const tag = e.target.closest('.admin-cat-tag');
+    if (!tag) return;
+    tag.classList.remove('drag-over');
+    const photoId = e.dataTransfer.getData('text/plain');
+    if (!photoId) return;
+    const photo = photos.find(p => p.id === photoId);
+    if (!photo) return;
+    if (!photo.tags) photo.tags = [];
+    const cat = tag.dataset.cat;
+    if (!photo.tags.includes(cat)) {
+      photo.tags.push(cat);
+      updatePhoto(photo);
+    }
+  });
+
+  // ======== Photo Card Drag ========
+  photoGrid.addEventListener('dragstart', (e) => {
+    const card = e.target.closest('.photo-card');
+    if (!card) return;
+    e.dataTransfer.setData('text/plain', card.dataset.id);
+    e.dataTransfer.effectAllowed = 'copy';
+    card.classList.add('dragging');
+  });
+
+  photoGrid.addEventListener('dragend', (e) => {
+    const card = e.target.closest('.photo-card');
+    if (card) card.classList.remove('dragging');
   });
 
   // ======== Edit Modal ========

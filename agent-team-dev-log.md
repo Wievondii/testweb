@@ -9,43 +9,72 @@
 <!-- 开发者在此记录详细的设计决策、实现细节、修复记录 -->
 <!-- 这些内容仅供同角色的后续实例参考，不会被其他角色读取 -->
 
-## 第3轮开发记录（2026-05-07）
+---
 
-### 设计决策
+## 第9轮开发记录
 
-#### 3.1 骨架屏移除
-- **决策**：完全删除 `renderSkeleton()`，不再创建 shimmer 占位元素
-- **理由**：骨架屏与进度条功能重复，且占用 masonry 空间导致布局跳动
-- **实现**：`.photo-item` 初始 inline style 设为 `position:absolute;visibility:hidden;height:0;overflow:hidden`，完全不占空间
-- **`loadNext()` 中先设 height 再设 visibility**：确保浏览器先计算出正确高度，再一次性显示
+> **执行时间**：2026-05-07
+> **开发者**：Developer
 
-#### 3.2 预计算列分配
-- **决策**：在 `renderGallery()` 中一次性预计算所有图片的列分配位置
-- **理由**：原实现中图片按网络加载完成时间定位，导致"后面的图片先出现并占据前面位置"
-- **`precomputeLayout()` 实现**：用 `ESTIMATED_HEIGHT=320` 作为未加载图片的估算高度，按索引顺序分配到当前最短列
-- **精修机制**：`loadedCount >= totalCount` 时调用 `layoutMasonry()`，用实际高度重新排列
-- **`layoutMasonry()` 更新**：跳过 `height:0` 或 `visibility:hidden` 的未加载项，避免干扰已加载项的布局
+---
 
-#### 3.3 加载间隔统一
-- **决策**：删除 `DELAY_FAST(200)` / `DELAY_NORMAL(500)` / `FIRST_SCREEN_COUNT(6)`，统一使用 `LOAD_DELAY=300`
-- **理由**：首屏快速加载的优化在预计算布局下已无必要，统一间隔更简洁
+### 任务 1：移除图片 hover/选中高光
 
-#### 3.4 莫奈花园动画
-- **6 种新动画设计理念**：
-  - `watercolorReveal`：水彩画逐渐显影，边缘先模糊后清晰（`filter:blur`）
-  - `sunlightFade`：阳光穿透画面，先过曝后正常（`filter:brightness/saturate`）
-  - `petalDrift`：花瓣飘落轻盈感（多段 translate 正弦曲线）
-  - `dewDrop`：露珠凝聚，先膨胀后稳定（`scale` 弹性 + `brightness`）
-  - `canvasReveal`：画卷从底部展开（`clip-path: inset`）
-  - `mistDissolve`：晨雾消散（`blur` 多段 + `scale`）
-- **动画参数**：duration=800ms, delay=`idx*60`, easing=`cubic-bezier(0.25, 0.46, 0.45, 0.94)`
-- **`prefers-reduced-motion`**：在 JS 层面用 `window.matchMedia` 检查，禁用时跳过动画直接显示
+**设计决策**：
+- 采用"删除 CSS 规则"方案，而非注释掉或设置为 `transform: none`，保持代码简洁
+- 删除了 4 条 CSS 规则：hover img scale、focused img scale、focused z-index、featured.focused::after border
+- 保留了所有 overlay 相关样式（`.photo-item.focused .photo-overlay { opacity: 1; }` 等）和结霜触发的 `.has-focus` 样式
+- JS 中 `.focused` 类的添加/移除逻辑完全不动，因为 overlay 和结霜都依赖它
 
-#### 3.5 代码清理
-- **删除的死代码**：`renderSkeleton()`、`randomDelay()`、`revealObserver`/`initRevealObserver()`/`observeRevealElements()`
-- **原因**：`.reveal` class 从未在 JS 动画中使用（Web Animations API 取代了 CSS reveal），IntersectionObserver 观察的 `.reveal` 元素不再存在于模板中
-- **性能优化**：动画启动时动态设置 `will-change: transform, opacity, filter`，`anim.onfinish` 回调中清除
+**实现细节**：
+- 原始代码在 `css/style.css` L409-419 和 L487
+- 删除后替换为注释行，说明第9轮需求
 
-### 未解决的潜在问题
-- `precomputeLayout()` 在 `renderGallery()` 被调用时执行，此时 `masonry.offsetWidth` 可能为 0（如果容器尚未渲染）。但实际测试中 masonry 容器始终有宽度（由 CSS `max-width: 1600px` 保证），暂不处理
-- 预计算的 320px 估算高度与实际图片高度可能有差异，导致初始布局有微小间隙，由最终 `layoutMasonry()` 精修消除
+---
+
+### 任务 2：反转结霜模糊方向（从内向外扩散）
+
+**设计决策**：
+- 核心思路：`normalizedDistance` 为 0 表示近处，为 1 表示远处。反转公式使近处先模糊
+- delay: `(1 - n) * 1.5` → `n * 1.5`（近处 delay=0 立即开始，远处 delay=1.5s 最后）
+- blur: `n * 4px` → `(1 - n) * 5 + 1`（近处~6px 重模糊，远处~1px 轻模糊）
+- opacity: `1 - n * 0.3` → `1 - (1 - n) * 0.25`（近处~0.75 更透明，远处~1.0 不变）
+- duration: `2.5 + n * 0.5` → `2.0 + n * 0.8`（近处 2.0s 快速过渡，远处 2.8s 慢速过渡）
+
+**实现细节**：
+- 仅修改 `initFrostEffect()` 函数（`js/main.js` L209-219），不涉及其他函数
+- CSS 变量 `--frost-delay`、`--frost-duration`、`--frost-blur`、`--frost-opacity` 的使用方式不变
+- `removeFrostEffect()` 无需修改，因为它是通过移除 `.frost` 类触发 CSS transition 反向过渡，transition 会自动使用新的 CSS 变量值反向播放
+
+**风险评估**：
+- 反转后，取消选中时的恢复方向也需要一致（近处先恢复）。CSS transition 的反向播放天然支持这一点：delay 越小的元素越先开始反向过渡
+
+---
+
+### 任务 3：修复切换 filter 时图片闪烁
+
+**设计决策**：
+- 根因：淡出动画未完成就被 DOM 替换，导致图片瞬间消失
+- 方案：在 `transitionGallery()` 中使用 Promise + `Animation.finished` 精确等待淡出完成
+
+**实现细节**：
+
+1. **transitionGallery() 改造**：
+   - 原来用 `setTimeout(() => applyFilters(), maxFadeDelay)` 固定等待
+   - 改为 `new Promise(resolve => { ... anims[0].finished.then(resolve, resolve) })` 精确等待
+   - fallback：如果 `Animation.finished` 不可用，仍用 `setTimeout(resolve, maxFadeDelay)`
+   - 使用最后一个元素（index 最小的 20 个中最后一个）的动画完成时间作为参考
+
+2. **renderGallery() onReady 改造**：
+   - 新创建的 items 初始 `visibility: hidden; opacity: 0`
+   - 在 `onReady` 回调中设置 `opacity: 0`（显式），由现有的入场动画（watercolorReveal 等）控制淡入
+   - 这样避免了"新图片初始可见→突然出现→闪烁"的问题
+
+3. **与现有入场动画的关系**：
+   - 不额外添加淡入动画，因为现有的 6 种入场动画（watercolorReveal、sunlightFade 等）已经从 opacity:0 开始
+   - 保持原有的逐张加载进度感
+
+**注意事项**：
+- `isTransitioning` 锁在 Promise 完成后正确解锁（finally 块）
+- reduced motion 场景下直接设置 `opacity: 1`，跳过动画
+- 没有使用第3步（整体 masonry 淡入），保持逐张加载的进度感

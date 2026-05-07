@@ -8,149 +8,113 @@
 
 <!-- 审查员在此记录详细的审查笔记、代码模式观察、常见问题 -->
 
-## 第1轮详细审查笔记
+## 第2轮详细审查笔记
 
 ### 审查范围
-- `css/style.css`（+40 行）
-- `js/main.js`（+300 行，-100 行）
-- `css/animations.css`（-21 行）
-- `index.html`（版本号 v10→v11）
+
+- `admin.html`（+20行：4个分类标签按钮）
+- `css/style.css`（+82行：标签栏样式 + 拖拽态 + 响应式）
+- `js/admin.js`（+80行：renderCategoryBar + 点击上传 + 拖拽分类）
+- `CLAUDE.md`（文档更新，非功能变更）
 
 ---
 
-### 任务1：移除 Lightbox box-shadow — ✅
+### 任务1：标签栏 HTML 结构 — ✅
 
-直接删除 `.lightbox-img` 的 `box-shadow` 属性。无副作用。
+- 4个按钮，`data-cat` 属性对应 4 个分类名
+- 每个按钮有 `draggable="false"`，防止标签栏本身被拖拽（正确）
+- `data-count-cat` 属性用于计数更新
+- 位置正确：在 `<header class="admin-header">` 和 `<main class="admin-content">` 之间
 
-### 任务2：overlay 暗化 — ✅
+### 任务2：标签栏 CSS — ✅
 
-- 渐变从 `rgba(247,245,250,0.9)` → `rgba(30,20,40,0.65)`
-- 文字颜色从 `var(--text)` / `var(--text-dim)` → `#fff` / `rgba(255,255,255,0.8)`
-- 改动正确，可读性有保障
+**定位分析**：
+- `admin-header`：`position: fixed; top: 0; z-index: 100; padding: 1rem var(--page-pad)`
+- `admin-category-bar`：`position: fixed; top: 48px; z-index: 99`
+- admin-header 高度 ≈ 1rem*2 (padding) + 1.1rem (font) ≈ 50px
+- 标签栏从 48px 开始，header 在 z-index:100 之上，即使有 2px 重叠也不可见
 
-### 任务3：结霜算法反转 — ✅
+**admin-body padding-top 调整**：
+- 原 80px → 96px
+- 理论需求：admin-header(~50px) + category-bar(padding 0.6rem*2=19.2px + font 0.7rem*1.4=9.8px ≈ 42.6px) = ~92.6px
+- 实际使用 96px，余量 3.4px，合理
 
-四项参数全部正确反转：
-- `delay = (1 - normalizedDistance) * 1.5` — 远处~0s，近处~1.5s ✓
-- `duration = 2.0 + (1 - normalizedDistance) * 0.8` — 远处快，近处慢 ✓
-- `blur = normalizedDistance * 5 + 1` — 远处~6px，近处~1px ✓
-- `opacity = 1 - normalizedDistance * 0.25` — 远处~0.75，近处~1.0 ✓
+**拖拽态样式**：
+- `.photo-card[draggable="true"]`：cursor: grab/grabbing ✅
+- `.photo-card.dragging`：opacity: 0.4 + accent border ✅
+- `.admin-cat-tag.drag-over`：accent-strong 边框 + box-shadow 光晕 ✅
 
-### 任务4：Lightbox 霜化遮罩 — ✅
+**响应式**：
+- 小屏下 `.admin-category-bar` 改为 `justify-content: flex-start` + 缩小 gap/padding ✅
+- `-webkit-overflow-scrolling: touch` 保证 iOS 横向滚动流畅 ✅
 
-- `::before` 伪元素使用 `radial-gradient` 实现反向遮罩 ✓
-- `-webkit-mask-image` / `-webkit-mask-size` / `-webkit-mask-position` 前缀完备 ✓
-- transition 同时包含 `-webkit-mask-size` 和 `mask-size` ✓
-- opacity 0→1 和 mask-size 200%→100% 的动画协调 ✓
-- 关闭时 `.active` 类移除，CSS transition 自然消退 ✓
+### 任务3：标签渲染与计数 — ✅
 
-### 任务5：筛选架构重构 — ❌ P0 问题
+`renderCategoryBar()` 实现：
+- 硬编码 4 个分类名，初始化计数为 0
+- 遍历 `photos` 数组，按 `tags` 字段累加
+- 使用 `adminCategoryBar.querySelector('[data-count-cat="${c}"]')` 更新 DOM
+- 在所有变更点（loadPhotos/addPhoto/updatePhoto/deletePhoto）调用 ✅
 
-#### 问题1：filtered-out 淡出动画不生效
+**无潜在问题**：函数简单高效，4个元素的 DOM 查询开销可忽略。
 
-**根本原因**：`.photo-item.filtered-out` 设置 `visibility: hidden`，但 CSS 中没有定义 `visibility` 的 transition。浏览器对 `visibility` 的处理是：如果 transition 中没有列出该属性，变化立即生效。
+### 任务4：点击标签上传 — ✅
 
-**代码路径**：
-```
-applyFilters() → item.classList.add('filtered-out')
-  → CSS 立即应用 visibility: hidden（无过渡）
-  → opacity transition 虽然在跑，但元素已经不可见
-```
+流程验证：
+1. 用户点击标签 → `active` 类切换 → `selectedCategory` 赋值 → `fileInput.click()`
+2. 用户选择图片 → `handleFileSelect()` → `photoTags.value = selectedCategory || ''`
+3. 上传完成/取消 → `resetUpload()` → `selectedCategory = null` + 移除所有 `active` 类
 
-**结果**：非匹配项瞬间消失，没有淡出+缩小效果。与需求"不匹配的图片淡出缩小"矛盾。
+**边界情况**：
+- 用户点击"人像"后取消文件选择 → resetUpload 正确清除状态 ✅
+- 用户不点击标签直接使用上传区 → selectedCategory 为 null，标签栏无 active 态 ✅
+- 用户连续点击不同标签 → 正确切换（先移除所有 active，再添加当前标签的 active）✅
 
-**修复建议**：在 `.photo-item` 的 transition 中加入 `visibility`：
-```css
-transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
-            opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
-            visibility 0.4s ease 0.2s,  /* 延迟 0.2s，等 opacity 开始降后再隐藏 */
-            filter 0.4s ease,
-            top 0.3s ease,
-            left 0.3s ease;
-```
-注意：`visibility` 的 transition 行为特殊——从 visible→hidden 会在 transition 结束时才生效（如果定义了 transition）。所以加上 `visibility 0.4s ease 0.2s` 后，元素会先开始 opacity 衰减，0.2s 后 visibility 才开始变化（但 transition 中 visibility 只在结束时切换，实际效果是延迟 0.2s 后隐藏）。
+### 任务5：拖拽分类 — ✅
 
-不过更简单的方式是改为 JS 控制：先设 `opacity=0`，等 opacity transition 结束后再设 `visibility: hidden`。
+**事件委托结构**：
+- `adminCategoryBar` 上注册 dragover/dragenter/dragleave/drop（4个事件）
+- `photoGrid` 上注册 dragstart/dragend（2个事件）
+- 全部使用事件委托 + `e.target.closest()`，性能好且支持动态内容 ✅
 
-#### 问题2：animateLayout() transform 补间 — 实现正确但有风险
+**dataTransfer 使用**：
+- dragstart: `setData('text/plain', card.dataset.id)` + `effectAllowed = 'copy'` ✅
+- dragover: `preventDefault()` + `dropEffect = 'copy'` ✅
+- drop: `getData('text/plain')` 读取 ID ✅
 
-补间动画的"禁用过渡→设置偏移→回流→清除过渡→清除偏移"技巧实现正确。但：
-- `item.offsetHeight` 强制回流在大量节点时可能有性能影响
-- 如果两次 `animateLayout()` 快速连续调用（如快速点击 filter），第一次的 transform 可能还没清除就被第二次覆盖
+**去重逻辑**：
+- `photo.tags.includes(cat)` 检查后才 push，防止重复分类 ✅
 
-当前 `isTransitioning` 锁（700ms）可以缓解连续调用问题，但不是根本解决方案。
+**拖拽视觉反馈**：
+- 拖拽中：原卡片 `.dragging` 半透明 (opacity: 0.4) ✅
+- 悬停目标：`.drag-over` 高亮 + 光晕 ✅
+- 松手后：dragend 清除 `.dragging`，drop 清除 `.drag-over` ✅
 
-#### 问题3：initGallery() 首次加载中 visibility 处理
+### XSS 安全性审查 — ✅
 
-初始 `style="visibility:hidden;height:0;overflow:hidden"` → 图片加载后 `style.visibility = ''` 清除内联值 → CSS `.photo-item.visible { opacity: 1 }` 接管。流程正确。
+- `renderPhotoGrid()` 中：`escapeAttr(p.url)`、`escapeAttr(p.title)`、`escapeHtml(p.title)`、`escapeHtml(p.description)`、`escapeHtml(t)` — 全部正确使用
+- 标签栏内容为硬编码中文，无用户输入注入点
+- `[data-count-cat="${c}"]` 选择器中 `c` 来自硬编码数组，无注入风险
 
-#### 问题4：hover 事件委托 — 实现正确
+### dragleave 事件细节观察 — ⚠️ P2（非阻塞）
 
-- 使用 `mouseover`/`mouseout`（冒泡）+ `e.target.closest('.photo-item')` 正确 ✓
-- `relatedTarget` 检查避免子元素间移动误触发 ✓
-- `filtered-out` 项跳过 ✓
-- `initHoverEffects()` 仅在 `initGallery()` 末尾调用一次，无重复绑定 ✓
+在标签按钮的子元素（如 `.admin-cat-label` 和 `.admin-cat-count`）之间移动鼠标时，`dragleave` 会触发导致 `.drag-over` 类被移除，紧接着 `dragover` 又重新添加。这会导致标签高亮在鼠标跨子元素边界时出现极短暂的闪烁。
 
-#### 问题5：lightbox 点击索引映射 — 实现正确
-
-通过 `data-id` + `filteredPhotos.findIndex()` 映射，比旧的 `data-index` 方式更健壮，因为 DOM 的 `data-index` 现在对应 `photos` 数组（全量），而 lightbox 导航使用 `filteredPhotos` 索引。
-
-### 任务6：清理与兼容性 — ⚠️
-
-- `animations.css` 清理了 `frostIn` 和 `.masonry-item.stagger-animate`，均为死代码 ✓
-- `prefers-reduced-motion` 使用 `*` 选择器覆盖所有 transition/animation ✓
-- 版本号 v10→v11 ✓
-- **`renderGallery()` 未清理**：第 619-768 行，已不被调用，应删除
+**影响**：纯视觉，不影响功能。实际使用中几乎不可感知（拖拽光标覆盖了标签）。
+**修复方式**（建议但非必要）：在 `dragenter` 中用 `e.preventDefault()` 并记录当前高亮的标签，在 `dragover` 中检查是否同一标签则跳过。
 
 ---
 
 ### 代码质量观察
 
-1. **代码风格统一**：命名清晰，注释充分，符合项目规范
-2. **架构设计**：DOM 复用 + CSS 类标记的思路正确，符合计划要求
-3. **安全性**：`escapeAttr`/`escapeHtml` 在 `initGallery()` 中正确使用，无 XSS 风险
-4. **错误处理**：`img.onerror` 回调保留了错误占位和重试机制
-5. **死代码**：`renderGallery()` 应删除，减少维护负担
+1. **架构一致**：事件委托模式与 `main.js` 的 hover 事件委托风格一致
+2. **命名规范**：`selectedCategory`、`renderCategoryBar`、`admin-cat-tag` 等命名清晰
+3. **无死代码**：所有新增函数和变量均被引用
+4. **版本号管理**：style.css v7→v8，admin.js v3→v4，正确递增
+5. **CLAUDE.md 更新**：补充了本地开发说明和 Three.js/声音/CSS 架构文档，属合理的文档完善
 
 ---
 
-## 第1轮复审记录（修复验证）
-
-### 审查范围
-
-- `css/style.css`（P0: `.photo-item` transition 新增 `visibility`）
-- `js/main.js`（P1: 删除 `renderGallery()` 死代码）
-
-### P0 验证：筛选淡出动画 — ✅ 通过
-
-**变更内容**：`css/style.css` L396-401，`.photo-item` transition 从单行改为多行声明，新增 `visibility 0.4s ease 0.2s`。
-
-**验证结论**：
-1. transition 声明完整：`transform 0.6s`、`opacity 0.6s`、`visibility 0.4s ease 0.2s`、`filter 0.4s ease`、`top 0.3s ease`、`left 0.3s ease`
-2. `.photo-item.filtered-out` 设置 `visibility: hidden`（L407），与 transition 中的 `visibility 0.4s ease 0.2s` 配合：
-   - 淡出方向（添加 `.filtered-out`）：opacity 0→0.6s 衰减，visibility 延迟 0.2s 后开始过渡，在 0.6s 结束时切换为 hidden
-   - 淡入方向（移除 `.filtered-out`）：visibility 立即切换为 visible（无延迟），opacity 0→0.6s 恢复
-3. `applyFilters()`（L169-180）正确遍历所有 `.photo-item` 并根据 `data-tags` 切换 `.filtered-out` 类
-4. `animateLayout()`（L384-390）正确处理从 filtered-out 恢复的节点：先设 `visibility: visible`，再由 CSS transition 驱动
-
-### P1 验证：renderGallery() 删除 — ✅ 通过
-
-**验证方法**：Grep 全项目搜索 `renderGallery`，代码文件（`js/*.js`、`*.html`、`*.css`）中 0 匹配。
-
-**残留检查**：
-- `js/main.js`：无 `renderGallery` 引用，`loadPhotos()` 直接调用 `initGallery()`
-- `transitionGallery()`（L696-701）：直接调用 `applyFilters()` + `animateLayout()`，无 `renderGallery` 调用
-- 日志文档中有历史引用（`agent-team-log.md`、`agent-team-dev-log.md`），属于文档记录，不影响运行
-
-### 新引入问题检查 — 无
-
-修复范围极其有限（CSS 一行属性新增 + JS 函数删除），未改变任何逻辑流程。以下组件未受影响：
-- `animateLayout()` transform 补间逻辑
-- hover 事件委托（mouseover/mouseout）
-- lightbox 点击索引映射（data-id + filteredPhotos.findIndex）
-- `prefers-reduced-motion` 覆盖
-- 结霜效果算法
-
 ### 最终结论
 
-✅ 复审通过，P0 和 P1 修复均验证正确，可提交。
+✅ 通过。5个任务全部正确实现，代码质量良好，无阻塞性问题。

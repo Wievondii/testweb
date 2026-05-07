@@ -67,6 +67,14 @@ After setting the binding, trigger a new deployment for it to take effect.
 
 `k423` — SHA-256 hash hardcoded in `functions/api/auth.js` and `functions/api/photos.js`.
 
+## Local Development
+
+```bash
+npx wrangler pages dev . --port 6767
+```
+
+Requires `wrangler` (install via `npm i -g wrangler`). The KV binding must be configured in Cloudflare dashboard for API endpoints to work locally.
+
 ## Deploy
 
 ```bash
@@ -79,10 +87,13 @@ No build command configured — Pages serves files as-is.
 
 - **Upload relay** (`/api/data`): Uses `text/plain` Content-Type with raw binary body + URL query params (`n`, `t`) for filename/mime. This bypasses Cloudflare WAF which blocks multipart/form-data and JSON POSTs with suspicious patterns.
 - **Auth**: Password SHA-256 hashed client-side via `crypto.subtle.digest`, sent as Bearer token, stored in `sessionStorage`.
-- **Cache busting**: CSS/JS loaded with `?v=6` query params. HTML has `Cache-Control: no-cache` meta tags.
+- **Cache busting**: CSS/JS loaded with `?v=N` query params (increment on changes). HTML has `Cache-Control: no-cache` meta tags.
 - **Fallback**: Gallery falls back to static `photos.json` if API unreachable. Admin falls back to `localStorage`.
 - **No CORS preflight**: The upload relay avoids custom headers to prevent CORS preflight requests, which are blocked by CF WAF.
 - **Category system**: Photos have a `tags` array. Four categories: 人像 (Portrait), 花草 (Flora), 城市风景 (Urban), 其他 (Other). Filter pills in the gallery UI toggle by category; sub-tag filters appear within each category. Category counts are computed client-side from photo tags.
 - **Masonry layout**: JS absolute-positioned masonry (not CSS columns). Images load progressively one-by-one with 300ms delay, positioned in the shortest column. Six random entrance animations via Web Animations API.
 - **Admin panel** (`admin.html`): Password-gated upload form with client-side image compression (`compressor.js` targets <4.5MB). Falls back to localStorage if API unavailable.
 - **Batch upload script** (`upload-script.js`): Playwright-based automation for bulk uploading images to the admin panel. Uses `page.setInputFiles()` to simulate file selection. Not committed to repo (in `.gitignore`).
+- **Three.js hero background** (`js/three-bg.js`): Monet's Garden themed particle system with 80 floating petals and 60 light particles. Respects `prefers-reduced-motion`. Uses Three.js loaded from CDN.
+- **Sound assets** (`assets/sounds/`): Cat sounds (meow_angry.mp3, meow_long.wav, meow_purr.mp3, meow_short.mp3) used for interactive feedback.
+- **CSS architecture**: `css/style.css` — main styles with Monet garden color palette (莫奈花园印象派调色板). `css/animations.css` — entrance/scroll animations (page load fade, hero title, scroll hint float).

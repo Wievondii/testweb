@@ -860,7 +860,7 @@ body {
 .admin-body {
   background: var(--bg);
   min-height: 100vh;
-  padding-top: 80px;
+  padding-top: 96px;
 }
 
 .login-gate {
@@ -941,6 +941,88 @@ body {
 }
 
 .admin-header-actions { display: flex; gap: 0.6rem; }
+
+/* ==================== ADMIN CATEGORY BAR ==================== */
+.admin-category-bar {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  padding: 0.6rem var(--page-pad);
+  background: rgba(10, 14, 23, 0.92);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-cat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.admin-cat-tag:hover {
+  border-color: var(--border-accent);
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(196, 168, 216, 0.06), rgba(232, 180, 208, 0.04));
+}
+
+.admin-cat-tag.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.admin-cat-tag.drag-over {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  background: var(--accent-glow);
+  box-shadow: 0 0 12px rgba(168, 136, 199, 0.3);
+}
+
+.admin-cat-count {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.admin-cat-tag.active .admin-cat-count,
+.admin-cat-tag.drag-over .admin-cat-count {
+  color: var(--accent);
+}
+
+/* ==================== PHOTO CARD DRAG ==================== */
+.photo-card[draggable="true"] {
+  cursor: grab;
+}
+
+.photo-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.photo-card.dragging {
+  opacity: 0.4;
+  border-color: var(--accent);
+}
 
 .btn {
   padding: 0.5rem 1rem;
@@ -1249,4 +1331,6 @@ body {
   .upload-preview-img { width: 100%; height: 200px; }
   .photo-grid { grid-template-columns: 1fr; }
   .admin-header { padding: 0.8rem var(--page-pad); }
+  .admin-category-bar { padding: 0.4rem var(--page-pad); gap: 0.35rem; justify-content: flex-start; }
+  .admin-cat-tag { padding: 0.35rem 0.8rem; font-size: 0.65rem; }
 }
