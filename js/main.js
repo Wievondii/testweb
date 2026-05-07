@@ -18,6 +18,10 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SIZE_CLASSES = ['tall', 'wide', 'featured'];
 
+  // 霜冻效果相关变量
+  let currentFocusedItem = null;
+  let frostTimers = [];
+
   function pickAnimation() {
     return ANIMATIONS[Math.floor(Math.random() * ANIMATIONS.length)];
   }
@@ -162,6 +166,116 @@
     }
     galleryCount.textContent = `${filteredPhotos.length} 张作品`;
     renderGallery();
+  }
+
+  // 结霜效果函数
+  function initFrostEffect(focusedItem) {
+    // 清除之前的计时器
+    clearFrostTimers();
+
+    const masonryRect = masonry.getBoundingClientRect();
+    const focusedRect = focusedItem.getBoundingClientRect();
+
+    // 计算选中图片的中心位置
+    const focusedCenterX = focusedRect.left + focusedRect.width / 2 - masonryRect.left;
+    const focusedCenterY = focusedRect.top + focusedRect.height / 2 - masonryRect.top;
+
+    // 获取所有其他图片
+    const allItems = masonry.querySelectorAll('.photo-item:not(.focused)');
+
+    // 计算最大距离用于归一化
+    let maxDistance = 0;
+    const distances = [];
+
+    allItems.forEach(item => {
+      const itemRect = item.getBoundingClientRect();
+      const itemCenterX = itemRect.left + itemRect.width / 2 - masonryRect.left;
+      const itemCenterY = itemRect.top + itemRect.height / 2 - masonryRect.top;
+
+      const distance = Math.sqrt(
+        Math.pow(itemCenterX - focusedCenterX, 2) +
+        Math.pow(itemCenterY - focusedCenterY, 2)
+      );
+
+      distances.push({ item, distance });
+      maxDistance = Math.max(maxDistance, distance);
+    });
+
+    // 为每张图片设置延迟和持续时间
+    distances.forEach(({ item, distance }, index) => {
+      // 归一化距离 (0-1)
+      const normalizedDistance = maxDistance > 0 ? distance / maxDistance : 0;
+
+      // 距离越远，延迟越短（先开始结霜）
+      const delay = (1 - normalizedDistance) * 1.5; // 0-1.5秒延迟
+
+      // 持续时间 (2-3秒)
+      const duration = 2.5 + normalizedDistance * 0.5;
+
+      // 设置 CSS 变量
+      item.style.setProperty('--frost-delay', delay + 's');
+      item.style.setProperty('--frost-duration', duration + 's');
+
+      // 添加 frost 类触发动画
+      item.classList.add('frost');
+    });
+  }
+
+  function removeFrostEffect() {
+    clearFrostTimers();
+
+    const allItems = masonry.querySelectorAll('.photo-item');
+    allItems.forEach(item => {
+      item.classList.remove('frost');
+      item.style.removeProperty('--frost-delay');
+      item.style.removeProperty('--frost-duration');
+    });
+  }
+
+  function clearFrostTimers() {
+    frostTimers.forEach(timer => clearTimeout(timer));
+    frostTimers = [];
+  }
+
+  // 为每个 photo-item 添加 hover 延迟逻辑
+  function initHoverEffects() {
+    const items = masonry.querySelectorAll('.photo-item');
+
+    items.forEach(item => {
+      let hoverTimer = null;
+
+      item.addEventListener('mouseenter', () => {
+        // 清除之前的计时器
+        clearTimeout(hoverTimer);
+
+        // 3秒后触发选中效果
+        hoverTimer = setTimeout(() => {
+          item.classList.add('focused');
+          masonry.classList.add('has-focus');
+          currentFocusedItem = item;
+
+          // 触发结霜效果
+          if (!prefersReducedMotion) {
+            initFrostEffect(item);
+          }
+        }, 3000);
+
+        frostTimers.push(hoverTimer);
+      });
+
+      item.addEventListener('mouseleave', () => {
+        // 清除计时器
+        clearTimeout(hoverTimer);
+
+        // 移除选中效果
+        item.classList.remove('focused');
+        masonry.classList.remove('has-focus');
+        currentFocusedItem = null;
+
+        // 移除结霜效果
+        removeFrostEffect();
+      });
+    });
   }
 
   // ==================== MASONRY LAYOUT ====================
@@ -393,6 +507,9 @@
     }
 
     loadNext();
+
+    // 初始化 hover 效果
+    initHoverEffects();
   }
 
   // Re-layout on resize

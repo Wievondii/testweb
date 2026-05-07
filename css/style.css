@@ -408,19 +408,23 @@ body {
 
 .photo-item:hover img {
   transform: scale(1.04);
-  filter: brightness(1.06) saturate(1.12);
 }
 
-.photo-item:hover {
+.photo-item.focused img {
+  transform: scale(1.04);
+}
+
+.photo-item.focused {
   z-index: 2;
-  box-shadow: 0 20px 60px var(--monet-mist);
 }
 
-/* Hover 时非 hover 的图片模糊 */
-.masonry:hover .photo-item:not(:hover) {
-  filter: blur(2px);
-  opacity: 0.7;
+/* 聚焦时非聚焦的图片模糊 - 使用结霜动画 */
+.masonry.has-focus .photo-item:not(.focused) {
   transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.masonry.has-focus .photo-item:not(.focused).frost {
+  animation: frostIn var(--frost-duration, 2.5s) var(--frost-delay, 0s) forwards;
 }
 
 /* Hover vignette + info reveal */
@@ -436,7 +440,7 @@ body {
   padding: 1.5rem;
 }
 
-.photo-item:hover .photo-overlay { opacity: 1; }
+.photo-item.focused .photo-overlay { opacity: 1; }
 
 .photo-overlay h3 {
   font-family: var(--font-display);
@@ -449,7 +453,7 @@ body {
   transition: transform 0.5s var(--ease-out);
 }
 
-.photo-item:hover .photo-overlay h3 { transform: translateY(0); }
+.photo-item.focused .photo-overlay h3 { transform: translateY(0); }
 
 .photo-overlay p {
   font-size: 0.7rem;
@@ -460,7 +464,7 @@ body {
   transition: transform 0.5s var(--ease-out) 0.05s;
 }
 
-.photo-item:hover .photo-overlay p { transform: translateY(0); }
+.photo-item.focused .photo-overlay p { transform: translateY(0); }
 
 /* Size variations */
 .photo-item.tall img { }
@@ -478,7 +482,7 @@ body {
   transition: opacity 0.5s var(--ease-out);
 }
 
-.photo-item.featured:hover::after { opacity: 1; }
+.photo-item.featured.focused::after { opacity: 1; }
 
 /* Loading shimmer */
 .photo-item.loading {
