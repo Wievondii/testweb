@@ -356,6 +356,8 @@
         }
 
         updateLoadProgress();
+        // 图片加载完成后立即重新布局，修正预估高度导致的堆叠
+        layoutMasonry();
         setTimeout(loadNext, LOAD_DELAY);
       };
 
@@ -383,6 +385,8 @@
         item.classList.add('visible');
 
         updateLoadProgress();
+        // 加载失败后也重新布局，确保占位元素不影响其他项
+        layoutMasonry();
         setTimeout(loadNext, LOAD_DELAY);
       };
       img.src = src;
