@@ -370,19 +370,19 @@
 
   // ======== Photo Grid ========
   function renderPhotoGrid() {
-    const visiblePhotos = getVisiblePhotos();
+    const filteredPhotos = getVisiblePhotos();
     if (currentCategoryFilter === 'all') {
       photoCount.textContent = `${photos.length} 张作品`;
       photoCount.setAttribute('aria-label', `当前显示全部，共 ${photos.length} 张作品`);
     } else {
-      photoCount.textContent = `${visiblePhotos.length}/${photos.length} - 分类: ${currentCategoryFilter}`;
-      photoCount.setAttribute('aria-label', `当前分类 ${currentCategoryFilter}，显示 ${visiblePhotos.length} 张，共 ${photos.length} 张作品`);
+      photoCount.textContent = `${filteredPhotos.length}/${photos.length} - 分类: ${currentCategoryFilter}`;
+      photoCount.setAttribute('aria-label', `当前分类 ${currentCategoryFilter}，显示 ${filteredPhotos.length} 张，共 ${photos.length} 张作品`);
     }
-    if (visiblePhotos.length === 0) {
+    if (filteredPhotos.length === 0) {
       photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无作品</p>';
       return;
     }
-    photoGrid.innerHTML = visiblePhotos.map(p => `
+    photoGrid.innerHTML = filteredPhotos.map(p => `
       <div class="photo-card" data-id="${escapeAttr(p.id)}" draggable="true">
         <img class="photo-card-img" src="${escapeAttr(p.url)}" alt="${escapeAttr(p.title)}" loading="lazy">
         <div class="photo-card-body">
