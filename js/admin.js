@@ -371,9 +371,13 @@
   // ======== Photo Grid ========
   function renderPhotoGrid() {
     const visiblePhotos = getVisiblePhotos();
-    photoCount.textContent = currentCategoryFilter === 'all'
-      ? `${photos.length} 张作品`
-      : `${visiblePhotos.length}/${photos.length}（分类：${currentCategoryFilter}）`;
+    if (currentCategoryFilter === 'all') {
+      photoCount.textContent = `${photos.length} 张作品`;
+      photoCount.setAttribute('aria-label', `当前显示全部，共 ${photos.length} 张作品`);
+    } else {
+      photoCount.textContent = `${visiblePhotos.length}/${photos.length} - 分类: ${currentCategoryFilter}`;
+      photoCount.setAttribute('aria-label', `当前分类 ${currentCategoryFilter}，显示 ${visiblePhotos.length} 张，共 ${photos.length} 张作品`);
+    }
     if (visiblePhotos.length === 0) {
       photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无作品</p>';
       return;

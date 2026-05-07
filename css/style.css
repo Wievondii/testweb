@@ -834,6 +834,10 @@ body {
   .filter-pill { padding: 0.4rem 0.9rem; font-size: 0.6rem; }
 }
 
+@media (max-width: 360px) {
+  .hero-title { font-size: 2.2rem; }
+}
+
 /* ==================== REDUCED MOTION ==================== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
