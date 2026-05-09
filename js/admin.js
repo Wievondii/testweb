@@ -14,7 +14,8 @@
   let editingId = null;
   let deletingId = null;
   let currentHash = '';
-  let selectedCategory = null;
+  let uploadPrefillCategory = null;
+  let currentCategoryFilter = 'all';
 
   // DOM refs
   const loginGate = document.getElementById('loginGate');
@@ -208,16 +209,31 @@
   function renderCategoryBar() {
     const categories = ['人像', '花草', '城市风景', '其他'];
     const counts = {};
+    counts.all = photos.length;
     categories.forEach(c => counts[c] = 0);
     photos.forEach(p => {
       (p.tags || []).forEach(t => {
         if (counts.hasOwnProperty(t)) counts[t]++;
       });
     });
-    categories.forEach(c => {
+    ['all', ...categories].forEach(c => {
       const el = adminCategoryBar.querySelector(`[data-count-cat="${c}"]`);
       if (el) el.textContent = counts[c];
     });
+  }
+
+  function getVisiblePhotos() {
+    if (currentCategoryFilter === 'all') return photos;
+    return photos.filter(p => (p.tags || []).includes(currentCategoryFilter));
+  }
+
+  function setCategoryFilter(cat) {
+    currentCategoryFilter = cat;
+    uploadPrefillCategory = cat === 'all' ? null : cat;
+    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(t => {
+      t.classList.toggle('active', t.dataset.cat === cat);
+    });
+    renderPhotoGrid();
   }
 
   // ======== Upload Zone ========
@@ -256,7 +272,7 @@
       uploadPreview.classList.add('show');
       photoTitle.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       photoDesc.value = '';
-      photoTags.value = selectedCategory || '';
+      photoTags.value = uploadPrefillCategory || '';
     } catch (e) {
       showToast('压缩失败: ' + e.message, 'error');
     }
@@ -267,7 +283,7 @@
   function resetUpload() {
     pendingFile = null;
     pendingCompressed = null;
-    selectedCategory = null;
+    uploadPrefillCategory = currentCategoryFilter === 'all' ? null : currentCategoryFilter;
     compressInfo.classList.remove('show');
     uploadPreview.classList.remove('show');
     uploadProgress.style.display = 'none';
@@ -275,8 +291,6 @@
     photoTitle.value = '';
     photoDesc.value = '';
     photoTags.value = '';
-    // Clear active state from category bar
-    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(tag => tag.classList.remove('active'));
   }
 
   // ======== Upload to Image Host + Save ========
@@ -356,21 +370,28 @@
 
   // ======== Photo Grid ========
   function renderPhotoGrid() {
-    photoCount.textContent = `${photos.length} 张作品`;
-    if (photos.length === 0) {
+    const filteredPhotos = getVisiblePhotos();
+    if (currentCategoryFilter === 'all') {
+      photoCount.textContent = `${photos.length} 张作品`;
+      photoCount.setAttribute('aria-label', `当前显示全部，共 ${photos.length} 张作品`);
+    } else {
+      photoCount.textContent = `${filteredPhotos.length}/${photos.length} - 分类: ${currentCategoryFilter}`;
+      photoCount.setAttribute('aria-label', `当前分类 ${currentCategoryFilter}，显示 ${filteredPhotos.length} 张，共 ${photos.length} 张作品`);
+    }
+    if (filteredPhotos.length === 0) {
       photoGrid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无作品</p>';
       return;
     }
-    photoGrid.innerHTML = photos.map(p => `
-      <div class="photo-card" data-id="${p.id}" draggable="true">
+    photoGrid.innerHTML = filteredPhotos.map(p => `
+      <div class="photo-card" data-id="${escapeAttr(p.id)}" draggable="true">
         <img class="photo-card-img" src="${escapeAttr(p.url)}" alt="${escapeAttr(p.title)}" loading="lazy">
         <div class="photo-card-body">
           <h4>${escapeHtml(p.title)}</h4>
           <p>${escapeHtml(p.description || '')}</p>
           <div class="photo-card-tags">${(p.tags || []).map(t => `<span class="photo-card-tag">${escapeHtml(t)}</span>`).join('')}</div>
           <div class="photo-card-actions">
-            <button class="btn btn-sm edit-btn" data-id="${p.id}">编辑</button>
-            <button class="btn btn-sm btn-danger delete-btn" data-id="${p.id}">删除</button>
+            <button class="btn btn-sm edit-btn" data-id="${escapeAttr(p.id)}">编辑</button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${escapeAttr(p.id)}">删除</button>
           </div>
         </div>
       </div>
@@ -384,15 +405,11 @@
     if (deleteBtn) openDeleteModal(deleteBtn.dataset.id);
   });
 
-  // ======== Category Bar: Click to Upload ========
+  // ======== Category Bar: Click to Filter ========
   adminCategoryBar.addEventListener('click', (e) => {
     const tag = e.target.closest('.admin-cat-tag');
     if (!tag) return;
-    // Toggle active state
-    adminCategoryBar.querySelectorAll('.admin-cat-tag').forEach(t => t.classList.remove('active'));
-    tag.classList.add('active');
-    selectedCategory = tag.dataset.cat;
-    fileInput.click();
+    setCategoryFilter(tag.dataset.cat);
   });
 
   // ======== Category Bar: Drag to Classify ========
@@ -425,6 +442,7 @@
     if (!photo) return;
     if (!photo.tags) photo.tags = [];
     const cat = tag.dataset.cat;
+    if (cat === 'all') return;
     if (!photo.tags.includes(cat)) {
       photo.tags.push(cat);
       updatePhoto(photo);

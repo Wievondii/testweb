@@ -102,6 +102,7 @@ body {
   letter-spacing: 0.35em;
   display: flex;
   gap: 0;
+  white-space: nowrap;
 }
 
 .logo-mark { color: var(--accent); }
@@ -208,10 +209,11 @@ body {
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 7rem);
+  font-size: 4.2rem;
   font-weight: 400;
   line-height: 1.05;
   letter-spacing: -0.02em;
+  white-space: nowrap;
   color: var(--text);
   margin-bottom: 1.5rem;
   opacity: 0;
@@ -818,7 +820,7 @@ body {
   .site-header { padding: 1.25rem var(--page-pad); }
   .site-header.scrolled { padding: 0.8rem var(--page-pad); }
   .hero { min-height: 80vh; }
-  .hero-title { font-size: clamp(2.5rem, 10vw, 4rem); }
+  .hero-title { font-size: 3rem; }
   .gallery { padding: 0 var(--page-pad) 3rem; }
   .lightbox-nav { display: none; }
   .lightbox-info { bottom: 1.5rem; }
@@ -827,8 +829,13 @@ body {
 }
 
 @media (max-width: 480px) {
+  .hero-title { font-size: 2.5rem; }
   .category-filter { gap: 0.35rem; }
   .filter-pill { padding: 0.4rem 0.9rem; font-size: 0.6rem; }
+}
+
+@media (max-width: 360px) {
+  .hero-title { font-size: 2.4rem; }
 }
 
 /* ==================== REDUCED MOTION ==================== */
@@ -861,7 +868,11 @@ body {
   background: var(--bg);
   min-height: 100vh;
   padding-top: 68px;
-  padding-left: 130px;
+  padding-left: 0;
+}
+
+#adminPanel {
+  padding-left: 166px;
 }
 
 .login-gate {
@@ -949,9 +960,9 @@ body {
   top: 68px;
   left: 0;
   bottom: 0;
-  width: 120px;
+  width: 156px;
   z-index: 99;
-  padding: 1.25rem 0.6rem 1rem;
+  padding: 1rem 0.65rem 0.9rem;
   background: rgba(10, 14, 23, 0.92);
   backdrop-filter: blur(24px);
   border-right: 1px solid var(--border);
@@ -997,7 +1008,7 @@ body {
   justify-content: flex-start;
   width: 100%;
   gap: 0.45rem;
-  padding: 0.7rem 0.6rem 0.7rem 0.75rem;
+  padding: 0.72rem 0.62rem 0.72rem 0.76rem;
   border: 1px solid rgba(168, 136, 199, 0.12);
   border-radius: var(--radius);
   background: rgba(168, 136, 199, 0.03);
@@ -1176,7 +1187,8 @@ body {
 .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.7rem; }
 
 .admin-content {
-  max-width: 1100px;
+  /* 后台以操作效率为主，使用全宽布局展示更多卡片，减少左右留白浪费 */
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem var(--page-pad);
 }
@@ -1324,7 +1336,7 @@ body {
 
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 1rem;
 }
 
@@ -1445,6 +1457,7 @@ body {
 
 @media (max-width: 768px) {
   .admin-body { padding-left: 0; }
+  #adminPanel { padding-left: 0; }
   .admin-content { padding: 1rem var(--page-pad); }
   .upload-preview-grid { flex-direction: column; }
   .upload-preview-img { width: 100%; height: 200px; }
@@ -1464,6 +1477,7 @@ body {
     gap: 0.5rem;
     overflow-y: visible;
     overflow-x: auto;
+    scroll-snap-type: x proximity;
   }
   /* 隐藏侧栏 ::before 装饰线和 ::after 标题 */
   .admin-category-bar::before,
@@ -1473,12 +1487,17 @@ body {
   /* 水平布局：标签紧凑胶囊形，隐藏指示条 */
   .admin-cat-tag {
     width: auto;
-    padding: 0.4rem 0.9rem;
-    font-size: 0.7rem;
+    min-width: 5.1rem;
+    padding: 0.46rem 0.9rem;
+    font-size: 0.68rem;
     border-radius: 100px;
     justify-content: center;
+    scroll-snap-align: start;
   }
+  .admin-cat-icon { font-size: 0.78rem; }
+  .admin-cat-count { font-size: 0.58rem; min-width: 1.4em; }
   .admin-cat-tag::before { display: none; }
   .admin-cat-tag:hover { transform: none; }
   .admin-cat-tag.drag-over { transform: none; }
+  .admin-content { padding-top: 4.9rem; }
 }

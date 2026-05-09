@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
-  <link rel="stylesheet" href="css/style.css?v=12">
+  <link rel="stylesheet" href="css/style.css?v=13">
   <link rel="stylesheet" href="css/animations.css?v=1">
 </head>
 <body class="admin-body">
@@ -41,6 +41,11 @@
 
     <!-- Category Bar -->
     <div class="admin-category-bar" id="adminCategoryBar">
+      <button type="button" class="admin-cat-tag active" data-cat="all" draggable="false">
+        <span class="admin-cat-icon">&#x1F5C2;</span>
+        <span class="admin-cat-label">全部</span>
+        <span class="admin-cat-count" data-count-cat="all">0</span>
+      </button>
       <button type="button" class="admin-cat-tag" data-cat="人像" draggable="false">
         <span class="admin-cat-icon">&#x1F464;</span>
         <span class="admin-cat-label">人像</span>
@@ -63,7 +68,7 @@
       </button>
       <div class="admin-cat-hint">
         <span class="admin-cat-hint-icon">&#x2195;</span>
-        <span>拖拽照片到分类</span>
+        <span>单击筛选 / 拖拽归类</span>
       </div>
     </div>
 
@@ -189,6 +194,6 @@
   <input type="file" id="importFile" accept=".json" style="display:none;">
 
   <script src="js/compressor.js?v=2"></script>
-  <script src="js/admin.js?v=4"></script>
+  <script src="js/admin.js?v=5"></script>
 </body>
 </html>
