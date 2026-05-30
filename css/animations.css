@@ -1,37 +1,40 @@
-/* ========== 页面加载淡入 ========== */
+/* ========== 页面加载淡入 — 如同晨雾散去 ========== */
 @keyframes pageLoadFade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 body {
-  animation: pageLoadFade 1.2s var(--ease-out) forwards;
+  animation: pageLoadFade 1s var(--ease-out) forwards;
 }
 
-/* ========== Hero 标题入场 ========== */
+/* ========== Hero 标题入场 — 从雾气中浮现 ========== */
 @keyframes heroTitleIn {
   from {
     opacity: 0;
     letter-spacing: 0.3em;
-    transform: translateY(30px) scale(0.95);
-    filter: blur(10px);
+    transform: translateY(40px) scale(0.92);
+    filter: blur(12px);
+    text-shadow: 0 0 80px rgba(168, 136, 199, 0.8);
   }
   to {
     opacity: 1;
     letter-spacing: -0.02em;
     transform: translateY(0) scale(1);
     filter: blur(0);
+    text-shadow: 0 0 60px rgba(168, 136, 199, 0.5), 0 0 120px rgba(189, 162, 227, 0.25);
   }
 }
 .hero-title {
-  animation: heroTitleIn 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: heroTitleIn 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
+/* Hero 标题悬浮呼吸 — 如同花园中轻拂的微风 */
 @keyframes heroFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 .hero-title {
-  animation: heroTitleIn 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, heroFloat 6s ease-in-out 2s infinite;
+  animation: heroTitleIn 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, heroFloat 7s ease-in-out 2.5s infinite;
 }
 
 /* ========== 滚动提示浮动 ========== */
@@ -43,13 +46,13 @@ body {
   animation: scrollFloat 2.5s ease-in-out infinite;
 }
 
-/* ========== Filter pill 微光脉冲 ========== */
+/* ========== Filter pill 微光脉冲 — 如同花瓣上的露珠闪烁 ========== */
 @keyframes pillGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 136, 199, 0); transform: scale(1); }
-  50% { box-shadow: 0 0 16px 4px rgba(168, 136, 199, 0.25); transform: scale(1.02); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 136, 199, 0); }
+  50% { box-shadow: 0 0 20px 5px rgba(168, 136, 199, 0.22); }
 }
 .filter-pill.active {
-  animation: pillGlow 3s ease-in-out infinite;
+  animation: pillGlow 4s ease-in-out infinite;
 }
 
 /* ========== Lightbox 淡入淡出 ========== */
@@ -62,3 +65,60 @@ body {
 }
 
 /* ========== 筛选 stagger 动画（已移除未使用的 .masonry-item.stagger-animate）========== */
+
+/* ========== 管理后台分类标签入场 — 逐个浮现 ========== */
+@keyframes catTagSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.admin-cat-tag {
+  animation: catTagSlideIn 0.5s var(--ease-out) forwards;
+  opacity: 0;
+}
+.admin-cat-tag:nth-child(1) { animation-delay: 0.1s; }
+.admin-cat-tag:nth-child(2) { animation-delay: 0.2s; }
+.admin-cat-tag:nth-child(3) { animation-delay: 0.3s; }
+.admin-cat-tag:nth-child(4) { animation-delay: 0.4s; }
+
+/* ========== 照片卡片入场 — 从雾中浮现 ========== */
+@keyframes photoCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.photo-card {
+  animation: photoCardIn 0.6s var(--ease-out) forwards;
+  opacity: 0;
+}
+.photo-card:nth-child(1) { animation-delay: 0.05s; }
+.photo-card:nth-child(2) { animation-delay: 0.1s; }
+.photo-card:nth-child(3) { animation-delay: 0.15s; }
+.photo-card:nth-child(4) { animation-delay: 0.2s; }
+.photo-card:nth-child(5) { animation-delay: 0.25s; }
+.photo-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* ========== 上传区域呼吸光晕 ========== */
+@keyframes uploadBreathe {
+  0%, 100% {
+    border-color: var(--outline-variant);
+    box-shadow: none;
+  }
+  50% {
+    border-color: rgba(168, 136, 199, 0.35);
+    box-shadow: 0 0 24px rgba(168, 136, 199, 0.1);
+  }
+}
+.upload-zone:not(:hover):not(.dragover) {
+  animation: uploadBreathe 5s ease-in-out infinite;
+}
