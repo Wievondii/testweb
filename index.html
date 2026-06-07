@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <link rel="stylesheet" href="css/style.css?v=13">
-  <link rel="stylesheet" href="css/animations.css?v=2">
+  <link rel="stylesheet" href="css/style.css?v=14">
+  <link rel="stylesheet" href="css/animations.css?v=3">
 </head>
 <body>
 
@@ -32,6 +32,9 @@
   <section class="hero" id="home">
     <canvas id="threeCanvas"></canvas>
     <div class="hero-bg-lines"></div>
+    <!-- 印象派装饰性光晕 -->
+    <div class="hero-deco-orb hero-deco-orb--left"></div>
+    <div class="hero-deco-orb hero-deco-orb--right"></div>
     <div class="hero-content">
       <p class="hero-eyebrow">一场印象派的视觉之旅</p>
       <h1 class="hero-title" id="heroTitle">小肥画展</h1>
@@ -118,8 +121,24 @@
 
   <!-- Footer -->
   <footer class="site-footer">
+    <div class="footer-decoration">
+      <svg viewBox="0 0 120 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="footer-flourish">
+        <path d="M60 2C45 2 30 8 20 14C30 12 45 10 60 10C75 10 90 12 100 14C90 8 75 2 60 2Z" fill="url(#footerGrad)" opacity="0.3"/>
+        <circle cx="60" cy="12" r="3" fill="var(--accent-soft)" opacity="0.5"/>
+        <circle cx="45" cy="10" r="1.5" fill="var(--monet-rose)" opacity="0.4"/>
+        <circle cx="75" cy="10" r="1.5" fill="var(--monet-lavender)" opacity="0.4"/>
+        <defs>
+          <linearGradient id="footerGrad" x1="20" y1="2" x2="100" y2="14">
+            <stop offset="0%" stop-color="var(--monet-rose)" stop-opacity="0.4"/>
+            <stop offset="50%" stop-color="var(--accent-soft)" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="var(--monet-lavender)" stop-opacity="0.4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
     <div class="footer-rule"></div>
     <p class="footer-text">&copy; 小肥画展 · 用光影书写诗意</p>
+    <p class="footer-subtext">Impressionist Garden Gallery</p>
   </footer>
 
   <!-- 任务3.5：Scroll-to-top 按钮 -->
@@ -131,7 +150,7 @@
 
   <script src="js/compressor.js?v=2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/three-bg.js?v=2"></script>
-  <script src="js/main.js?v=12"></script>
+  <script src="js/three-bg.js?v=3"></script>
+  <script src="js/main.js?v=13"></script>
 </body>
 </html>

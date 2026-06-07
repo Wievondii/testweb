@@ -1,6 +1,7 @@
 /**
  * Three.js Hero Background — Floating Petals & Light Particles
  * Monet's Garden themed particle system with water waves
+ * Enhanced with deeper Monet purple palette
  */
 (() => {
   const canvas = document.getElementById('threeCanvas');
@@ -14,8 +15,8 @@
   }
 
   const hero = document.getElementById('home');
-  const PETAL_COUNT = 80;
-  const PARTICLE_COUNT = 60;
+  const PETAL_COUNT = 90;
+  const PARTICLE_COUNT = 70;
 
   // Scene setup
   const scene = new THREE.Scene();
@@ -34,15 +35,17 @@
   // Mouse tracking with interaction radius
   const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
 
-  // Petal colors: soft lavender, rose, sage, gold
+  // Petal colors: 深化莫奈紫调 — 如吉维尼花园中的鸢尾花与薰衣草
   const petalColors = [
-    new THREE.Color(0xc4a8d8), // soft lavender
-    new THREE.Color(0xd8c0e8), // light purple
-    new THREE.Color(0xe8b4d0), // rose
-    new THREE.Color(0xead8e4), // soft pink
-    new THREE.Color(0xe0d8ec), // lavender white
-    new THREE.Color(0xa8c9a0), // sage green (rare)
-    new THREE.Color(0xe8d5a3), // monet gold (rare)
+    new THREE.Color(0xc4a8e8), // 莫奈薰衣草紫
+    new THREE.Color(0xd8b8f0), // 浅鸢尾紫
+    new THREE.Color(0xeab4d2), // 花园玫瑰粉
+    new THREE.Color(0xeadce8), // 柔粉紫白
+    new THREE.Color(0xdcc8e8), // 淡紫丁香
+    new THREE.Color(0xb898d8), // 深薰衣草
+    new THREE.Color(0xc8e8c0), // 莫奈绿叶 (稀有)
+    new THREE.Color(0xe8d898), // 莫奈金色 (稀有)
+    new THREE.Color(0x98c8e8), // 莫奈水面蓝 (稀有)
   ];
 
   // Create petals
@@ -158,8 +161,10 @@
   const lightColors = new Float32Array(PARTICLE_COUNT * 3);
   const lightData = [];
 
-  const goldColor = new THREE.Color(0xe8d5a3);
-  const whiteColor = new THREE.Color(0xa888c7); // 变成莫奈紫，在亮色背景显眼
+  // 光粒子颜色 — 莫奈紫光点与金色阳光
+  const goldColor = new THREE.Color(0xe8d898);
+  const purpleColor = new THREE.Color(0xb898d8); // 莫奈紫光
+  const whiteColor = new THREE.Color(0xc8b8e0);  // 淡紫白光
 
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const i3 = i * 3;
@@ -167,11 +172,11 @@
     lightPositions[i3 + 1] = (Math.random() - 0.5) * 50;
     lightPositions[i3 + 2] = (Math.random() - 0.5) * 15 - 3;
 
-    lightSizes[i] = Math.random() * 0.8 + 0.2;
+    lightSizes[i] = Math.random() * 0.9 + 0.2;
 
-    // 30% gold particles
-    const isGold = Math.random() < 0.3;
-    const c = isGold ? goldColor : whiteColor;
+    // 25% gold, 35% purple, 40% white
+    const r = Math.random();
+    const c = r < 0.25 ? goldColor : r < 0.6 ? purpleColor : whiteColor;
     lightColors[i3] = c.r;
     lightColors[i3 + 1] = c.g;
     lightColors[i3 + 2] = c.b;
@@ -256,10 +261,13 @@
 
       void main() {
         float wave = sin(vUv.x * 10.0 + uTime) * cos(vUv.y * 8.0 + uTime * 0.7) * 0.5;
-        vec3 waterColor = vec3(0.494, 0.710, 0.839); // #7eb5d6
-        vec3 sunColor = vec3(0.910, 0.835, 0.639);   // #e8d5a3
-        vec3 finalColor = mix(waterColor, sunColor, pow(max(0.0, sin(vUv.x * 6.0 + uTime * 0.5) * 0.5 + 0.5), 3.0) * 0.4);
-        float alpha = 0.2 + wave * 0.05;
+        // 莫奈紫调水面 — 紫色倒影与金色阳光交织
+        vec3 waterColor = vec3(0.55, 0.65, 0.82);   // 紫调水面蓝
+        vec3 sunColor = vec3(0.91, 0.85, 0.65);     // 莫奈金色阳光
+        vec3 purpleReflection = vec3(0.72, 0.58, 0.85); // 紫色倒影
+        vec3 finalColor = mix(waterColor, sunColor, pow(max(0.0, sin(vUv.x * 6.0 + uTime * 0.5) * 0.5 + 0.5), 3.0) * 0.35);
+        finalColor = mix(finalColor, purpleReflection, sin(vUv.y * 4.0 + uTime * 0.3) * 0.15 + 0.1);
+        float alpha = 0.22 + wave * 0.05;
         gl_FragColor = vec4(finalColor, alpha);
       }
     `,
@@ -290,10 +298,11 @@
       void main() {
         vec2 center = vUv - 0.5;
         float d = length(center);
-        vec3 centerColor = vec3(0.968, 0.960, 0.980); // 极淡的紫白
-        vec3 edgeColor = vec3(0.929, 0.898, 0.965);   // 边缘加深莫奈紫
-        vec3 color = mix(centerColor, edgeColor, smoothstep(0.1, 0.7, d));
-        gl_FragColor = vec4(color, 0.6);
+        // 加深莫奈紫调背景渐变 — 如同花园上空的紫色天光
+        vec3 centerColor = vec3(0.965, 0.955, 0.978); // 极淡紫白中心
+        vec3 edgeColor = vec3(0.92, 0.885, 0.955);    // 边缘加深莫奈紫
+        vec3 color = mix(centerColor, edgeColor, smoothstep(0.08, 0.65, d));
+        gl_FragColor = vec4(color, 0.65);
       }
     `,
     transparent: true,
